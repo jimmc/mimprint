@@ -13,9 +13,11 @@ import java.io.FilenameFilter;
 import java.util.Arrays;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 
 /** Maintains a list of images and associated information.
  */
@@ -31,6 +33,12 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Our list. */
 	protected JList list;
+
+	/** The label showing the directory info. */
+	protected JLabel dirInfoLabel;
+
+	/** The label showing the file info. */
+	protected JLabel fileInfoLabel;
 
 	/** The current directory in which we are displaying files. */
 	protected File targetDirectory;
@@ -52,12 +60,32 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		super();
 		this.app = app;
 		this.viewer = viewer;
+
+		dirInfoLabel = new JLabel("dir info here");
+		fileInfoLabel = new JLabel("file info here");
+		JSplitPane infoSplitPane = new JSplitPane(
+			JSplitPane.VERTICAL_SPLIT,
+			dirInfoLabel,fileInfoLabel);
+		//infoSplitPane.setBackground(Color.black);
+
 		list = new JList();
 		list.addListSelectionListener(this);
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(600,100));
+		JScrollPane listScrollPane = new JScrollPane(list);
+		listScrollPane.setPreferredSize(new Dimension(600,100));
+
+		JSplitPane splitPane = new JSplitPane(
+			JSplitPane.HORIZONTAL_SPLIT,
+			listScrollPane,infoSplitPane);
+		splitPane.setDividerLocation(200);
+
 		setLayout(new BorderLayout());
-		add(scrollPane);
+		add(splitPane);
+
+		initImageLoader();
+	}
+
+	/** Initialize our image loader thread. */
+	protected void initImageLoader() {
 		Thread imageLoader = new Thread() {
 			public void run() {
 				imageLoaderRun();
@@ -94,6 +122,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			viewer.errorDialog(msg);
 			return;
 		}
+		File previousTargetDirectory = targetDirectory;
 		if (targetFile.isDirectory()) {
 			//It's a directory, use it
 			targetDirectory = targetFile;
@@ -112,7 +141,27 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		fileNames = targetDirectory.list(filter);
 		Arrays.sort(fileNames,new ImageFileNameComparator());
 		//TBD - look up file dates, sizes, and associated text
+		if (previousTargetDirectory==null || targetDirectory==null ||
+		    !previousTargetDirectory.toString().equals(
+				targetDirectory.toString()))
+			setDirectoryInfo(targetDirectory);
 		list.setListData(fileNames);
+	}
+
+	/** Display new directory info. */
+	protected void setDirectoryInfo(File dir) {
+System.out.println("setDirectoryInfo dir="+dir);
+		dirInfoLabel.setText("Directory: "+dir.toString());
+		//TBD - look up summary.txt file
+	}
+
+	/** Display new file info. */
+	protected void setFileInfo(String path) {
+System.out.println("setFileInfo path="+path);
+		fileInfoLabel.setText("File: "+path);
+		//TBD - look up accompanying .txt file
+		//TBD - print "M of N" image files
+		//TBD - print file size, date
 	}
 
 	/** True if the file name is for an image file that we recognize. */
@@ -225,12 +274,14 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		if (currentImage==null) {
 			path = null;
 			imageArea.showText("No image");
+			setFileInfo(null);
 		} else {
 			Image image = currentImage.getScaledImage();
 			if (image==null)
 				image = currentImage.getImage();
 			imageArea.showImage(image);
 			path = currentImage.getPath();
+			setFileInfo(path);
 		}
 		viewer.setTitleFileName(path);
 	}
