@@ -150,14 +150,12 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Display new directory info. */
 	protected void setDirectoryInfo(File dir) {
-System.out.println("setDirectoryInfo dir="+dir);
 		dirInfoLabel.setText("Directory: "+dir.toString());
 		//TBD - look up summary.txt file
 	}
 
 	/** Display new file info. */
 	protected void setFileInfo(String path) {
-System.out.println("setFileInfo path="+path);
 		fileInfoLabel.setText("File: "+path);
 		//TBD - look up accompanying .txt file
 		//TBD - print "M of N" image files
