@@ -2,8 +2,8 @@
 
 #Change these definitions to point to the location on your machine
 #containing these files
-JVER          = 1.3
-JDK           = /u/java/jdk$(JVER)
+JVER          = 1.4.1
+JDK           = /u/java/j2sdk$(JVER)
 JRE           = $(JDK)/jre
 
 HOSTNAME = $(shell uname -n)
