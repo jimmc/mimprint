@@ -15,9 +15,10 @@
 - Make next-directory code be recursive. [020818]
 - v0.0.2. [020818]
 - Add VERSION file, clean up Makefile. [021026]
-- Add -bigfont, -help and -nolookeahd command line options. [021026]
+- Add -bigfont (020828), -help and -nolookeahd command line options. [021026]
 - Use .props files to create one Resources.properties file. [021026]
 - Fix bugs with relative dir names (such as ".") when going to next dir.[021026]
 - Add JAI code. [021029]
-- Refactor stuff from ImageArea into ImageBundle; speed up rotate. [021030]
+- Refactor stuff from ImageArea into ImageBundle; speed up rotate.
+  (020817) [021030]
 - Make rotation work in -jai mode. [021031]

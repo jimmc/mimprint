@@ -1,9 +1,5 @@
 - Make preload of adjacent pictures preload a full-size scaled version if
   we are running in full-screen mode. (020817)
-- If an image is rotated, remember that in the ImageBundle so that if we
-  back up to it right away, we still see the rotated image. (020817)
-- Fix how rotating is done to remove intermediate step of creating and
-  waiting for a rotated image. (020818)
 - Add pan/zoom commands. (020818)
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)
@@ -18,5 +14,3 @@
   subdirectories, start there if found. (020818)
 - In dialog advancing to next directory, give the name of this directory
   and the next one. (020818)
-- Add a flag to tell it whether to use big fonts or not; perhaps a "-tv"
-  option to make it use big fonts; use normal fonts if no "tv" option. (020828)
