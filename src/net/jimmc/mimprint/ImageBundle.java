@@ -80,7 +80,7 @@ public class ImageBundle {
 	}
 
 	/** Create a renderedImage. */
-	public RenderedImage createRenderedImage(String path) {
+	protected RenderedImage createRenderedImage(String path) {
 		RenderedOp rFile = JAI.create("fileLoad",path);
 		return rFile;
 	}
@@ -122,16 +122,6 @@ public class ImageBundle {
 		return listIndex;
 	}
 
-	/** Get the original image from this bundle. */
-	public Image getImage() {
-		return image;
-	}
-
-	/** Get the rendered image from this bundle. */
-	public RenderedImage getRenderedImage() {
-		return renderedImage;
-	}
-
 	/** Get our image transformed by scale and rotation. */
 	public Image getTransformedImage() {
 		if (transformedImage==null)
@@ -169,7 +159,7 @@ public class ImageBundle {
 	}
 
 	/** Load an image, wait for it to be loaded. */
-	public void loadCompleteImage(Image image) {
+	protected void loadCompleteImage(Image image) {
 		tracker.addImage(image,0);
 		boolean loadStatus=false;
 		try {
@@ -187,34 +177,69 @@ public class ImageBundle {
 
 	/** Load the transformed version of our renderedImage.
 	 */
-	public void loadTransformedRenderedImage() {
+	protected void loadTransformedRenderedImage() {
 		if (transformedRenderedImage!=null)
 			return;
 
+		//scale the image to fit into the display area
 		ParameterBlock pb = new ParameterBlock();
 		pb.addSource(renderedImage);
-
-		//scale the image to fit into the imageArea
 		int rw = renderedImage.getWidth();
 		int rh = renderedImage.getHeight();
-		float xScale = imageArea.getWidth()/(float)rw;
-		float yScale = imageArea.getHeight()/(float)rh;
+		boolean xy = (rotation==1 || rotation==3);
+			//True if rotated by 90 (or 270) degrees, so the
+			//horizontal and vertical axes are interchanged.
+		float xScale = displayWidth/(float)(xy?rh:rw);
+		float yScale = displayHeight/(float)(xy?rw:rh);
 		float scale = (xScale<yScale)?xScale:yScale;
-		float zero = (float)0.0;
+		float zero = 0.0F;
 		pb.add(scale);	//x scale
 		pb.add(scale);	//y scale
 		pb.add(zero);	//x translation
 		pb.add(zero);	//y translation
 		pb.add(Interpolation.getInstance(
 			Interpolation.INTERP_BILINEAR));
-		//TBD handle rotation
-		transformedRenderedImage = JAI.create("scale",pb);
+		RenderedImage scaledImage = JAI.create("scale",pb);
+
+		if (rotation==0) {
+			//No rotation, we are done
+			transformedRenderedImage = scaledImage;
+			return;
+		}
+
+		//rotate the scaled image
+		ParameterBlock pbr = new ParameterBlock();
+		pbr.addSource(scaledImage);
+		float sw = rw*scale;	//scaled width
+		float sh = rh*scale;	//scaled height
+		float cx = sw/2.0F;	//center of the scaled image
+		float cy = sh/2.0F;
+		if (rotation==1) {
+			if (xScale<yScale)
+				cx = cy;
+			else
+				cy = cx;
+		} else if (rotation==3) {
+			if (xScale<yScale)
+				cy = cx;
+			else
+				cx = cy;
+		}
+		float radians = -(float)Math.PI*rotation/2.0F;	//CCW
+		pbr.add(cx);
+		pbr.add(cy);
+		pbr.add(radians);
+		pbr.add(Interpolation.getInstance(
+			Interpolation.INTERP_NEAREST));
+		RenderedImage rotatedImage = JAI.create("rotate",pbr);
+
+		transformedRenderedImage = rotatedImage;
 	}
 
-	/** Get a scaled version of the given image, which fits into
-	 * the imageArea window at maximum size.
+	/** Get a scaled version of the given image which fits into
+	 * the display area.
 	 */
-	public Image createScaledImage(Image sourceImage) {
+	protected Image createScaledImage(Image sourceImage) {
 		app.debugMsg("createScaledIimage");
 		if (sourceImage==null)
 			return null;
@@ -235,8 +260,8 @@ public class ImageBundle {
 			srcWidth = sourceImage.getWidth(null);
 			srcHeight = sourceImage.getHeight(null);
 		}
-		int winWidth = imageArea.getWidth();
-		int winHeight = imageArea.getHeight();
+		int winWidth = displayWidth;
+		int winHeight = displayHeight;
 		if (srcWidth==winWidth && srcHeight==winHeight)
 			return sourceImage;	//exact match
 		double widthRatio = ((double)winWidth)/((double)srcWidth);
@@ -257,27 +282,24 @@ public class ImageBundle {
 	}
 
 	/** Rotate the specified image by our own rotation amount. */
-	public Image createRotatedImage(Image srcImage) {
-		switch (rotation) {
-		default:
-		case 0:	return srcImage;
-		case 1: return createRotatedImage(srcImage,90);
-		case 2: return createRotatedImage(srcImage,180);
-		case 3: return createRotatedImage(srcImage,270);
-		}
+	protected Image createRotatedImage(Image srcImage) {
+		return createRotatedImage(srcImage,rotation);
 	}
 
 	/** Rotate the specified image.
 	 * @param srcImage The image to rotate.  The image must already
 	 *        be loaded so that we can get the width and height
 	 *        without waiting.
-	 * @param rotation Degress counterclockwise to rotate.  Must be one of
-	 *        90, 180, or 270.
-	 * @return A new image rotated by the specified number of degrees.
+	 * @param rotation Quadrants counterclockwise to rotate.
+	 *        1 for 90 degress, 2 for 180 degrees, 3 for 270 degrees.
+	 * @return A new image rotated by the specified amount.
+	 *        If the rotation is 0, the original image is returned.
 	 *        The image may not yet be fully generated.
 	 */
-	public Image createRotatedImage(Image srcImage, int rotation) {
+	protected Image createRotatedImage(Image srcImage, int rotation) {
 		app.debugMsg("getRotatedImage");
+		if (rotation==0)
+			return srcImage;
 		int w = srcImage.getWidth(null);
 		int h = srcImage.getHeight(null);
 		int waitCount=0;
@@ -300,7 +322,7 @@ public class ImageBundle {
 		Graphics2D dstG2;
 		AffineTransform transform;
 		switch (rotation) {
-		case 90:
+		case 1:
 			dstImage = imageArea.createImage(h,w);
 			dstG = dstImage.getGraphics();
 			dstG2 = (Graphics2D)dstG;
@@ -308,7 +330,7 @@ public class ImageBundle {
 				0.0, -1.0, 1.0,  0.0,
 				(double)0, (double)w );
 			break;
-		case 180:
+		case 2:
 			dstImage = imageArea.createImage(w,h);
 			dstG = dstImage.getGraphics();
 			dstG2 = (Graphics2D)dstG;
@@ -316,7 +338,7 @@ public class ImageBundle {
 				-1.0,  0.0, 0.0, -1.0,
 				(double)w, (double)h );
 			break;
-		case 270:
+		case 3:
 			dstImage = imageArea.createImage(h,w);
 			dstG = dstImage.getGraphics();
 			dstG2 = (Graphics2D)dstG;
