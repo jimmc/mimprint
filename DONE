@@ -1,0 +1,3 @@
+- Start DONE list. [020817]
+- When starting on a specified file, actually display that file. [020817]
+- When opening a directory, auto-select the first file. [020817]
