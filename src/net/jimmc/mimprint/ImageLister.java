@@ -7,14 +7,19 @@ package jimmc.jiviewer;
 
 import jimmc.util.FileUtil;
 import jimmc.util.MoreException;
+import jimmc.util.ZoneInfo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JList;
@@ -252,8 +257,32 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		else
 			fileSizeStr = ""+fileSize+"B";
 		fileInfo += "; "+fileSizeStr;
-		long modTime = f.lastModified();
-		fileInfo += "; "+(new Date(modTime)).toString();
+		long modTimeMillis = f.lastModified();
+		Date modDate = new Date(modTimeMillis);
+		SimpleDateFormat dFmt =
+			(SimpleDateFormat)DateFormat.getDateTimeInstance();
+		String tzPath = getTimeZoneFileNameForImage(path);
+		File tzFile = new File(tzPath);
+		if (tzFile.exists()) {
+		    try {
+		    	//What a hack... the SimpleDateFormat code doesn't
+			//do the right time-zone calculations, it uses
+			//TimeZone.getRawOffset, which just gets the first
+			//offset in the timezone.  We need it to get the
+			//offset for the specified time.
+			TimeZone tz = new ZoneInfo(tzFile);
+			int zOff = tz.getOffset(modTimeMillis);
+			SimpleTimeZone stz =	
+				new SimpleTimeZone(zOff,tz.getID());
+			dFmt.setTimeZone(stz);
+			dFmt.applyPattern(dFmt.toPattern()+" zzzz");
+		    } catch (IOException ex) {
+System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
+		    	//do nothing to change timezone or format
+		    }
+		}
+		String dateStr = dFmt.format(modDate);
+		fileInfo += "; "+dateStr;
 
 		//Add file info text
 		String fileText = getFileText(path);
@@ -334,6 +363,20 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			return null;
 		String textPath = path.substring(0,dot+1)+"txt";
 		return textPath;
+	}
+
+	/** Get the name of the timezone file for the image.
+	 * @param path The path to the image file.
+	 * @return The timezone file name, or null if we can't figure it out.
+	 */
+	protected String getTimeZoneFileNameForImage(String path) {
+		int sl = path.lastIndexOf(File.separator);
+		if (sl<0)
+			path = "."+File.separator;
+		else
+			path = path.substring(0,sl+1);
+		String tzPath = path+"TZ";
+		return tzPath;
 	}
 
     //The ListSelectionListener interface
