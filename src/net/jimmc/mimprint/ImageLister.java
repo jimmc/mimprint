@@ -217,11 +217,13 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		dirInfoLabel.setText(dirInfo);
 	}
 
-	/** Display new file info. */
-	protected void setFileInfo(String path) {
+	/** Display new file info.
+	 * @return The info about the image
+	 */
+	protected String setFileInfo(String path) {
 		if (path==null) {
 			fileInfoLabel.setText("");	//no file, show nothing
-			return;
+			return null;
 		}
 		File f = new File(path);
 
@@ -258,6 +260,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 		//Display the info
 		fileInfoLabel.setText(fileInfo);
+
+		return fileInfo;
 	}
 
 	/** Set the contents of the status area. */
@@ -405,9 +409,9 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				image = currentImage.getImage();
 			}
 			setDebugStatus("current image loaded");
-			imageArea.showImage(image);
 			path = currentImage.getPath();
-			setFileInfo(path);
+			String imageInfo = setFileInfo(path);
+			imageArea.showImage(image,imageInfo);
 		}
 		viewer.setTitleFileName(path);
 	}
@@ -491,12 +495,16 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			setDebugStatus("image loader thread awakened");
 			if (nextImage!=null) {
 				setStatus("Loading next image");
+				imageArea.setCursorBusy(true);
 				nextImage.loadScaledImage();
+				imageArea.setCursorBusy(false);
 				setStatus("");
 			}
 			if (previousImage!=null) {
 				setStatus("Loading previous image");
+				imageArea.setCursorBusy(true);
 				previousImage.loadScaledImage();
+				imageArea.setCursorBusy(false);
 				setStatus("");
 			}
 		}
