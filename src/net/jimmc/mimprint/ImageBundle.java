@@ -151,6 +151,7 @@ public class ImageBundle {
 
 		app.debugMsg("Bundle loadTransformedImage A image="+image);
 		Image si = createScaledImage(image);
+		loadCompleteImage(si);
 		app.debugMsg("Bundle loadTransformedImage B scaledImage="+si);
 		Image ri = createRotatedImage(si);
 		app.debugMsg("Bundle loadTransformedImage C txImage="+ri);
