@@ -243,6 +243,7 @@ public class ImageBundle {
 		app.debugMsg("createScaledIimage");
 		if (sourceImage==null)
 			return null;
+
 		int srcWidth = sourceImage.getWidth(null);
 		int srcHeight = sourceImage.getHeight(null);
 		int waitCount = 0;
@@ -260,21 +261,18 @@ public class ImageBundle {
 			srcWidth = sourceImage.getWidth(null);
 			srcHeight = sourceImage.getHeight(null);
 		}
-		int winWidth = displayWidth;
-		int winHeight = displayHeight;
-		if (srcWidth==winWidth && srcHeight==winHeight)
-			return sourceImage;	//exact match
-		double widthRatio = ((double)winWidth)/((double)srcWidth);
-		double heightRatio = ((double)winHeight)/((double)srcHeight);
-		int dstWidth;
-		int dstHeight;
-		if (widthRatio<heightRatio) {
-			dstWidth = winWidth;
-			dstHeight = (int)(srcHeight * widthRatio);
-		} else {
-			dstWidth = (int)(srcWidth * heightRatio);
-			dstHeight = winHeight;
-		}
+
+		boolean xy = (rotation==1 || rotation==3);
+			//True if rotated by 90 (or 270) degrees, so the
+			//horizontal and vertical axes are interchanged.
+		float xScale = displayWidth/(float)(xy?srcHeight:srcWidth);
+		float yScale = displayHeight/(float)(xy?srcWidth:srcHeight);
+		float scale = (xScale<yScale)?xScale:yScale;
+		if (scale==1.0)
+			return sourceImage;	//exact size match
+		int dstWidth = (int)(srcWidth * scale);
+		int dstHeight = (int)(srcHeight * scale);
+
 		Image scaledImage = sourceImage.getScaledInstance(
 						dstWidth,dstHeight,
 						Image.SCALE_FAST);
