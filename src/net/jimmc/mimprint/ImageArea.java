@@ -45,8 +45,8 @@ public class ImageArea extends JLabel
 	/** Our media tracker to load images. */
 	protected MediaTracker tracker;
 
-	/** The current full-size image */
-	protected Image fullSizeImage;
+	/** The current unscaled and unrotated image */
+	protected Image imageSource;
 
 	/** The info text about the current image. */
 	protected String imageInfoText;
@@ -117,6 +117,8 @@ public class ImageArea extends JLabel
 		showImage(image,null);
 	}
 
+	/** Show an image, set up text info about the image.
+	 */
 	public void showImage(Image image, String imageInfo) {
 		if (SwingUtilities.isEventDispatchThread()) {
 			//Run this outside the event thread
@@ -134,7 +136,7 @@ public class ImageArea extends JLabel
 
 		currentRotation = 0;
 		imageInfoText = imageInfo;
-		fullSizeImage = image;
+		imageSource = image;
 		showCurrentImage();	//rotate, scale, and display
 	}
 
@@ -167,7 +169,7 @@ public class ImageArea extends JLabel
 		}
 
 		setIcon(null);
-		if (fullSizeImage==null) {
+		if (imageSource==null) {
 			setText("No image");	//i18n
 			return;		//nothing there
 		}
@@ -176,10 +178,10 @@ public class ImageArea extends JLabel
 		Image srcImage;
 		switch (currentRotation) {
 		default:
-		case 0:	srcImage = fullSizeImage; break;
-		case 1: srcImage = rotate(fullSizeImage,90); break;
-		case 2: srcImage = rotate(fullSizeImage,180); break;
-		case 3: srcImage = rotate(fullSizeImage,270); break;
+		case 0:	srcImage = imageSource; break;
+		case 1: srcImage = getRotatedImage(imageSource,90); break;
+		case 2: srcImage = getRotatedImage(imageSource,180); break;
+		case 3: srcImage = getRotatedImage(imageSource,270); break;
 		}
 		Image scaledImage = getScaledImage(srcImage);
 		ImageIcon ii = new ImageIcon(scaledImage);
@@ -207,7 +209,7 @@ public class ImageArea extends JLabel
 	 * @return A new image rotated by the specified number of degrees.
 	 *        The image may not yet be fully generated.
 	 */
-	public Image rotate(Image srcImage, int rotation) {
+	public Image getRotatedImage(Image srcImage, int rotation) {
 		int w = srcImage.getWidth(null);
 		int h = srcImage.getHeight(null);
 		int waitCount=0;
@@ -265,7 +267,7 @@ public class ImageArea extends JLabel
 		}
 		dstG2.drawImage(srcImage,transform,null);
 		ImageIcon ii = new ImageIcon(dstImage);
-		loadCompleteImage(dstImage);		//load the whole image
+		//loadCompleteImage(dstImage);		//load the whole image
 		return dstImage;
 	}
 
@@ -453,7 +455,7 @@ public class ImageArea extends JLabel
 	public void componentHidden(ComponentEvent ev){}
 	public void componentMoved(ComponentEvent ev){}
 	public void componentResized(ComponentEvent ev){
-		if (fullSizeImage!=null)
+		if (imageSource!=null)
 			showCurrentImage();
 	}
 	public void componentShown(ComponentEvent ev){}
