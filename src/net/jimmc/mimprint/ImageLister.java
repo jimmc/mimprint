@@ -5,6 +5,8 @@
 
 package jimmc.jiviewer;
 
+import jimmc.util.FileUtil;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
@@ -13,11 +15,11 @@ import java.io.FilenameFilter;
 import java.util.Arrays;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 
 /** Maintains a list of images and associated information.
  */
@@ -35,10 +37,10 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	protected JList list;
 
 	/** The label showing the directory info. */
-	protected JLabel dirInfoLabel;
+	protected JTextArea dirInfoLabel;
 
 	/** The label showing the file info. */
-	protected JLabel fileInfoLabel;
+	protected JTextArea fileInfoLabel;
 
 	/** The current directory in which we are displaying files. */
 	protected File targetDirectory;
@@ -61,8 +63,10 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		this.app = app;
 		this.viewer = viewer;
 
-		dirInfoLabel = new JLabel("dir info here");
-		fileInfoLabel = new JLabel("file info here");
+		dirInfoLabel = new JTextArea("dir info here");
+		dirInfoLabel.setEditable(false);
+		fileInfoLabel = new JTextArea("file info here");
+		fileInfoLabel.setEditable(false);
 		JSplitPane infoSplitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
 			dirInfoLabel,fileInfoLabel);
@@ -150,16 +154,51 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Display new directory info. */
 	protected void setDirectoryInfo(File dir) {
-		dirInfoLabel.setText("Directory: "+dir.toString());
-		//TBD - look up summary.txt file
+		String dirInfo = "Directory: "+dir.toString();
+		try {
+			File summaryFile = new File(dir,"summary.txt");
+			String dirSummary = FileUtil.readFile(summaryFile);
+			if (dirSummary!=null) {
+				if (dirSummary.endsWith("\n")) {
+					dirSummary = dirSummary.substring(0,
+						dirSummary.length()-1);
+				}
+				dirInfo += "\nSummary: "+dirSummary;
+			}
+		} catch (Exception ex) {
+			//on error, ignore summary
+		}
+		dirInfoLabel.setText(dirInfo);
 	}
 
 	/** Display new file info. */
 	protected void setFileInfo(String path) {
-		fileInfoLabel.setText("File: "+path);
-		//TBD - look up accompanying .txt file
+		String fileInfo = "File: "+path;
+		String fileText = getFileText(path);
+		if (fileText!=null) {
+			if (fileText.endsWith("\n")) {
+				fileText = fileText.substring(
+						0,fileText.length()-1);
+			}
+			fileInfo += "\n"+fileText;
+		}
+		fileInfoLabel.setText(fileInfo);
 		//TBD - print "M of N" image files
 		//TBD - print file size, date
+	}
+
+	/** Get the text for the specified file. */
+	protected String getFileText(String path) {
+		try {
+			int dot = path.lastIndexOf('.');
+			if (dot<0)
+				return null;
+			String textPath = path.substring(0,dot+1)+"txt";
+			File f = new File(textPath);
+			return FileUtil.readFile(f);
+		} catch (Exception ex) {
+			return null;	//on any error, ignore the file
+		}
 	}
 
 	/** True if the file name is for an image file that we recognize. */
