@@ -6,6 +6,8 @@
 package jimmc.jiviewer;
 
 import java.awt.Dimension;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.AffineTransform;
@@ -19,7 +21,8 @@ import javax.swing.JLabel;
 
 /** A window in which we view our images.
  */
-public class ImageArea extends JLabel implements KeyListener {
+public class ImageArea extends JLabel
+		implements KeyListener, ComponentListener {
 	/** Our App. */
 	protected App app;
 
@@ -46,6 +49,7 @@ public class ImageArea extends JLabel implements KeyListener {
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
 		addKeyListener(this);
+		addComponentListener(this);
 		tracker = new MediaTracker(this);
 	}
 
@@ -57,19 +61,19 @@ public class ImageArea extends JLabel implements KeyListener {
 	/** Show the contents of the specified image file.
 	 */
 	public void showFile(File file) {
+		setIcon(null);
 		currentRotation = 0;
 		if (file==null) {
-//System.out.println("showFile null file");
-			setIcon(null);
+			setText("No file");
 			return;		//nothing there
 		}
 		String path = file.getAbsolutePath();
-//System.out.println("showFile "+path);
 		if (path==null) {
-			setIcon(null);
+			setText("No file path");
 			return;		//nothing there
 		}
-		PImageIcon ii = new PImageIcon(file.getAbsolutePath());
+		setText("Loading image...");
+		ImageIcon ii = new ImageIcon(file.getAbsolutePath());
 		fullSizeImage = ii.getImage();
 		loadCompleteImage(fullSizeImage);	//load the whole image
 		showCurrentImage();	//rotate, scale, and display
@@ -100,8 +104,9 @@ public class ImageArea extends JLabel implements KeyListener {
 		case 3: srcImage = rotate(fullSizeImage,270); break;
 		}
 		Image scaledImage = getScaledImage(srcImage);
-		PImageIcon ii = new PImageIcon(scaledImage);
+		ImageIcon ii = new ImageIcon(scaledImage);
 		loadCompleteImage(scaledImage);	//wait for it
+		setText(null);
 		setIcon(ii);
 	}
 
@@ -165,7 +170,7 @@ public class ImageArea extends JLabel implements KeyListener {
 			throw new RuntimeException(msg0);
 		}
 		dstG2.drawImage(srcImage,transform,null);
-		PImageIcon ii = new PImageIcon(dstImage);
+		ImageIcon ii = new ImageIcon(dstImage);
 		loadCompleteImage(dstImage);		//load the whole image
 		return dstImage;
 	}
@@ -196,18 +201,6 @@ public class ImageArea extends JLabel implements KeyListener {
 		return scaledImage;
 	}
 
-	class PImageIcon extends ImageIcon {
-		public PImageIcon(Image im) {
-			super(im);
-		}
-		public PImageIcon(String path) {
-			super(path);
-		}
-		public void pLoadImage(Image im) {
-			loadImage(im);
-		}
-	}
-
 	/** We return true to allow keyboard focus and thus input. */
 	public boolean isFocusTraversable() {
 		return true;	//allow keyboard input
@@ -225,6 +218,9 @@ public class ImageArea extends JLabel implements KeyListener {
 			if (imageLister!=null)
 				imageLister.up();
 			break;
+		case KeyEvent.VK_ESCAPE:
+			viewer.setFullScreen(false);	//back to normal size
+			break;
 		default:	//ignore
 		}
 	}
@@ -234,6 +230,9 @@ public class ImageArea extends JLabel implements KeyListener {
 	public void keyTyped(KeyEvent ev) {
 		char ch = ev.getKeyChar();
 		switch (ch) {
+		case 'f':	//full-screen
+			viewer.setFullScreen(true);
+			break;
 		case 'o':	//file-open dialog
 			viewer.processFileOpen();
 			break;
@@ -254,6 +253,15 @@ public class ImageArea extends JLabel implements KeyListener {
 		}
 	}
     //End KeyListener interface
+
+    //The ComponentListener interface
+	public void componentHidden(ComponentEvent ev){}
+	public void componentMoved(ComponentEvent ev){}
+	public void componentResized(ComponentEvent ev){
+		showCurrentImage();
+	}
+	public void componentShown(ComponentEvent ev){}
+    //End ComponentListener interface
 }
 
 /* end */

@@ -10,7 +10,10 @@ import jimmc.swing.JimmcFrame;
 import jimmc.swing.MenuAction;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 import java.text.MessageFormat;
 import javax.swing.JLabel;
@@ -26,6 +29,15 @@ public class Viewer extends JimmcFrame {
 
 	/** The list of images. */
 	protected ImageLister imageLister;
+
+	/** Our image display area. */
+	protected ImageArea imageArea;
+
+	/** True if we are in full-screen-image mode. */
+	protected boolean fullImageP;
+
+	/** The screen bounds when in normal mode. */
+	protected Rectangle normalBounds;
 
 	/** Create our frame. */
 	public Viewer(App app) {
@@ -73,7 +85,7 @@ public class Viewer extends JimmcFrame {
 	/** Create the body of our form. */
 	protected void initForm() {
 		imageLister = new ImageLister(app,this);
-		ImageArea imageArea = new ImageArea(app,this);
+		imageArea = new ImageArea(app,this);
 		imageLister.setImageArea(imageArea);
 		imageArea.setImageLister(imageLister);
 		getContentPane().add(
@@ -123,6 +135,38 @@ public class Viewer extends JimmcFrame {
 			title = MessageFormat.format(fmt,args);
 		}
 		setTitle(title);
+	}
+
+	/** Set the image area to take up the full screen, or unset.
+	 * @param fullImage true to make the ImageArea take up the full
+	 *        screen, false to go back to the non-full-screen.
+	 */
+	public void setFullScreen(boolean fullImage) {
+		if (fullImage==fullImageP)
+			return;		//already in that mode
+		if (fullImage) {
+			//switching from normal mode to full-image mode
+			normalBounds = getBounds();
+			Rectangle imageAreaBounds = imageArea.getBounds();
+			Point viewerRootLocation = getLocationOnScreen();
+			Point imageRootLocation=imageArea.getLocationOnScreen();
+			Dimension screenSize = getToolkit().getScreenSize();
+			int xoff = imageRootLocation.x - viewerRootLocation.x;
+			int yoff = imageRootLocation.y - viewerRootLocation.y;
+			int woff = normalBounds.width - imageAreaBounds.width;
+			int hoff = normalBounds.height - imageAreaBounds.height;
+			int x = -xoff;
+			int y = -yoff;
+			int w = screenSize.width + woff;
+			int h = screenSize.height + hoff;;
+			setBounds(x,y,w,h);
+		} else {
+			//Switch back to normal bounds
+			setBounds(normalBounds.x, normalBounds.y,
+				normalBounds.width, normalBounds.height);
+		}
+		fullImageP = fullImage;
+		validate();
 	}
 
 	/** Get a string from our resources. */
