@@ -82,14 +82,15 @@ public class ImageArea extends JLabel
 	/** Load an image, wait for it to be loaded. */
 	public void loadCompleteImage(Image image) {
 		tracker.addImage(image,0);
+		boolean loadStatus;
 		try {
-			tracker.waitForID(0,20000);
+			loadStatus = tracker.waitForID(0,20000);
 		} catch (InterruptedException ex) {
 			String msg = "Interrupted waiting for image to load";
 				//TBD i18n, include ex.getMessage()
 			throw new RuntimeException(msg);
 		}
-		//TBD - check to see if it loaded properly
+//System.out.println("loadStatus="+loadStatus);
 		tracker.removeImage(image,0);
 	}
 
@@ -179,6 +180,8 @@ public class ImageArea extends JLabel
 	 * our window at maximum size.
 	 */
 	protected Image getScaledImage(Image sourceImage) {
+		if (sourceImage==null)
+			return null;
 		int srcWidth = sourceImage.getWidth(null);
 		int srcHeight = sourceImage.getHeight(null);
 		int winWidth = getWidth();
@@ -233,6 +236,9 @@ public class ImageArea extends JLabel
 		case 'f':	//full-screen
 			viewer.setFullScreen(true);
 			break;
+		case 'L'-0100:	//control-L, refresh
+			showCurrentImage();
+			break;
 		case 'o':	//file-open dialog
 			viewer.processFileOpen();
 			break;
@@ -258,7 +264,8 @@ public class ImageArea extends JLabel
 	public void componentHidden(ComponentEvent ev){}
 	public void componentMoved(ComponentEvent ev){}
 	public void componentResized(ComponentEvent ev){
-		showCurrentImage();
+		if (fullSizeImage!=null)
+			showCurrentImage();
 	}
 	public void componentShown(ComponentEvent ev){}
     //End ComponentListener interface
