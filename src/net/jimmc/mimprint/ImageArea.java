@@ -228,6 +228,12 @@ public class ImageArea extends JLabel
 		return true;	//allow keyboard input
 	}
 
+	/** Put up a help dialog. */
+	public void showHelpDialog() {
+		String helpText = app.getResourceString("info.ImageHelp");
+		viewer.infoDialog(helpText);
+	}
+
     //The KeyListener interface
     	public void keyPressed(KeyEvent ev) {
 		setCursor(invisibleCursor);	//turn off cursor on any key
@@ -281,7 +287,9 @@ public class ImageArea extends JLabel
 			viewer.processClose();
 			setCursor(invisibleCursor);	//turn cursor back off
 			break;
-		//TBD - add help popup
+		case '?':
+			showHelpDialog();
+			break;
 		default:		//unknown key
 			if (!knownKeyPress)
 				getToolkit().beep();

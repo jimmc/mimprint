@@ -8,6 +8,18 @@ error.NoSuchFile=No such file "{0}"
 error.UnknownArgument=Unknown command line argument "{0}"
 error.UnknownOption=Unknown command line option "{0}"
 
+info.ImageHelp=Available commands:\n\
+	UP - move to previous picture\n\
+	DOWN - move to next picture\n\
+	ESC - exit full screen mode\n\
+	Ctrl L - refresh\n\
+	f - full screen mode\n\
+	o - open the file-open dialog\n\
+	r - rotate image 90 degrees counter-clockwise\n\
+	R - rotate image 90 degrees clockwise\n\
+	Ctrl R - rotate image 180 degrees\n\
+	x - exit from Jiviewer\n
+
 menu.File.Exit.label=Exit
 menu.File.Open.label=Open
 menu.Help.label=Help
@@ -15,6 +27,7 @@ menu.Help.About.label=About Jiviewer
 
 query.Exit.prompt=Exit Jiviewer?
 query.FileToOpen=File or Directory to Open
+query.Info.title=Info
 
 title.nofile=jiviewer
 title.fileName=jiviewer: {0}
