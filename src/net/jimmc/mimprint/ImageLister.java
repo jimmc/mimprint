@@ -118,8 +118,10 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		} else {
 			file = new File(targetDirectory,fileNames[sel]);
 		}
-		if (imageArea!=null)
+		if (imageArea!=null) {
 			imageArea.showFile(file);
+			viewer.setTitleFileName(file.getAbsolutePath());
+		}
 	}
 }
 

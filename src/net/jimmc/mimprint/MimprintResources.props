@@ -6,3 +6,6 @@ menu.File.Exit.label=Exit
 menu.File.Open.label=Open
 
 query.FileToOpen=File or Directory to Open
+
+title.nofile=jiviewer
+title.fileName=jiviewer: {0}

@@ -12,6 +12,7 @@ import jimmc.swing.MenuAction;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.io.File;
+import java.text.MessageFormat;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -34,6 +35,7 @@ public class Viewer extends JimmcFrame {
 		initForm();
 		pack();
 		addWindowListener();
+		setTitleFileName("");
 	}
 
 	/** Create our menu bar. */
@@ -105,6 +107,21 @@ public class Viewer extends JimmcFrame {
 	/** Closing this form exits the program. */
 	protected void processClose() {
 		processFileExit();
+	}
+
+	/** Set the specified file name into our title line. */
+	public void setTitleFileName(String fileName) {
+		if (fileName==null)
+			fileName = "";
+		String title;
+		if (fileName.equals(""))
+			title = getResourceString("title.nofile");
+		else {
+			Object[] args = { fileName };
+			String fmt = getResourceString("title.fileName");
+			title = MessageFormat.format(fmt,args);
+		}
+		setTitle(title);
 	}
 
 	/** Get a string from our resources. */
