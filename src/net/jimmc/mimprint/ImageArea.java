@@ -81,7 +81,7 @@ public class ImageArea extends JLabel
 		setForeground(Color.white);	//and color for status info
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
-		Font biggerFont = new Font("Serif",Font.PLAIN,20);
+		Font biggerFont = new Font("Serif",Font.PLAIN,50);
 		if (biggerFont!=null)
 			setFont(biggerFont);
 		addKeyListener(this);
