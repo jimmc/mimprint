@@ -1,7 +1,7 @@
 about.info=\
 	jiviewer\n\
-	Copyright 2001 Jim McBeath\n\
-	v0.0.1  December 8, 2001
+	Copyright 2001-2002 Jim McBeath\n\
+	v0.0.2  August 18, 2002
 about.title=About Jiviewer
 
 error.NoSuchFile=No such file "{0}"
