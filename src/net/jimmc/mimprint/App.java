@@ -25,6 +25,12 @@ public class App implements ResourceSource {
 	/** Our resources. */
 	protected ResourceBundle resources;
 
+	/** True to use a big font for dialogs.
+	 * This is useful when we are watching on a TV screen.
+	 * @see #useBigFont
+	 */
+	protected boolean bigFontP;
+
 	/** Program starts here. */
 	public static void main(String[] args) {
 		App m = new App();
@@ -49,7 +55,17 @@ public class App implements ResourceSource {
 	/** Parse our command line arguments. */
 	protected void parseArgs(String[] args) {
 		for (int i=0; i<args.length; i++) {
-			if (args[i].startsWith("-")) {
+			if (args[i].equalsIgnoreCase("-bigfont")) {
+				bigFontP = true;
+			}
+			else if (args[i].equalsIgnoreCase("-help")) {
+				//Print out the help text
+				String help = getResourceString(
+					"info.CommandHelp");
+				System.out.println(help);
+				System.exit(0);
+			}
+			else if (args[i].startsWith("-")) {
 				Object[] eArgs = { args[i] };
 				String msg = getResourceFormatted(
 					"error.UnknownOption",eArgs);
@@ -67,6 +83,11 @@ public class App implements ResourceSource {
 				target = args[i];
 			}
 		}
+	}
+
+	/** True if we should be using a big font. */
+	public boolean useBigFont() {
+		return bigFontP;
 	}
 
 	/** Deliver an error message, then exit with error status. */

@@ -62,8 +62,10 @@ public class Viewer extends JsFrame {
 	 * on the TV. */
 	protected JTextArea getMessageDisplayTextArea(String msg) {
 		JTextArea textArea = super.getMessageDisplayTextArea(msg);
-		Font bigFont = new Font("Serif",Font.PLAIN,25);
-		textArea.setFont(bigFont);
+		if (app.useBigFont()) {
+			Font bigFont = new Font("Serif",Font.PLAIN,25);
+			textArea.setFont(bigFont);
+		}
 		return textArea;
 	}
 
