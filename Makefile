@@ -14,21 +14,27 @@ SOURCEPATH     = src
 #MAIN refers to the main java sources, not including test sources
 MAIN_SRCS = $(wildcard \
 		src/jimmc/swing/*.java \
+		src/jimmc/util/*.java \
 		src/jimmc/jiviewer/*.java )
 MAIN_OBJS = $(MAIN_SRCS:src/%.java=obj/%.class)
 MAIN_PROPS    = src/jimmc/swing/*.properties \
+		src/jimmc/util/*.properties \
 		src/jimmc/jiviewer/*.properties
 MAIN_MAKEFILES = src/jimmc/swing/Makefile \
+		src/jimmc/util/Makefile \
 		src/jimmc/jiviewer/Makefile
 
 #TEST refers to the java sources for unit testing
 TEST_SRCS = $(wildcard \
 		test/jimmc/swing/*.java \
+		test/jimmc/util/*.java \
 		test/jimmc/jiviewer/*.java )
 TEST_OBJS = $(TEST_SRCS:test/%.java=testobj/%.class)
 TEST_PROPS    = test/jimmc/swing/*.properties \
+		test/jimmc/util/*.properties \
 		test/jimmc/jiviewer/*.properties
 TEST_MAKEFILES = test/jimmc/swing/Makefile \
+		test/jimmc/util/Makefile \
 		test/jimmc/jiviewer/Makefile
 
 #SRCS is all java source files, both regular and test
@@ -37,7 +43,7 @@ OBJS	= $(MAIN_OBJS) $(TEST_OBJS)
 PROPS	= $(MAIN_PROPS) $(TEST_PROPS)
 MAKEFILES = $(MAIN_MAKEFILES) $(TEST_MAKEFILES)
 
-PKGS          = jimmc.swing jimmc.jiviewer
+PKGS          = jimmc.swing jimmc.util jimmc.jiviewer
 
 VERSION       = $(shell cat misc/Version | awk '{print $$2}')
 _VERSION      = $(shell cat misc/Version | awk '{print $$2}' | \
@@ -57,8 +63,10 @@ JARMANIFEST   = misc/manifest.mf
 JAROBJS       = $(OBJS)
 JARPROPS      = $(PROPS)
 JAR_LIST_OBJS = jimmc/swing/*.class \
+		jimmc/util/*.class \
 		jimmc/jiviewer/*.class
 JAR_LIST_PROPS = jimmc/swing/*.properties \
+		jimmc/util/*.properties \
 		jimmc/jiviewer/*.properties
 
 default:	objdir jar
