@@ -23,6 +23,9 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 
  * $Log: ZoneInfo.java,v $
+ * Revision 1.2  2003/07/03 04:15:53  jimmc
+ * Move ZoneInfo into jimmc.jiviewer package
+ *
  * Revision 1.1  2003/07/03 04:03:59  jimmc
  * Read timezone info from a Unix zoneinfo file.
  *
@@ -55,7 +58,7 @@ Boston, MA  02111-1307, USA.
  * tested with GregorianCalendar
  *
  */
-package jimmc.util;
+package jimmc.jiviewer;
 
 import java.io.*;
 import java.util.TimeZone;

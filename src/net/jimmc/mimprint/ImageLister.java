@@ -7,7 +7,6 @@ package jimmc.jiviewer;
 
 import jimmc.util.FileUtil;
 import jimmc.util.MoreException;
-import jimmc.util.ZoneInfo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
