@@ -1,10 +1,15 @@
 #Makefile for jiviewer
 
-PROJECT = jiviewer
-BASENAME = jiviewer
-TOPDIR = .
-ARCHDIR = Arch
-MAKEINFODIR = makeinfo
+PROJECT      := jiviewer
+PKGS         := jimmc.swing jimmc.util jimmc.jiviewer
+MAINPKG      := jimmc.jiviewer
+
+PKGDIRS      := $(subst .,/,$(PKGS))
+MAINPKGDIR   := $(subst .,/,$(MAINPKG))
+BASENAME     := $(PROJECT)
+TOPDIR       := .
+ARCHDIR      := Arch
+MAKEINFODIR  := makeinfo
 include $(MAKEINFODIR)/javadefs.mak
 -include $(TOPDIR)/localdefs.mak
 
@@ -12,62 +17,39 @@ CLASSPATH      = obj
 SOURCEPATH     = src
 
 #MAIN refers to the main java sources, not including test sources
-MAIN_SRCS = $(wildcard \
-		src/jimmc/swing/*.java \
-		src/jimmc/util/*.java \
-		src/jimmc/jiviewer/*.java )
-MAIN_OBJS = $(MAIN_SRCS:src/%.java=obj/%.class)
-MAIN_PROPS    = src/jimmc/swing/*.properties \
-		src/jimmc/util/*.properties \
-		src/jimmc/jiviewer/*.properties
-MAIN_MAKEFILES = src/jimmc/swing/Makefile \
-		src/jimmc/util/Makefile \
-		src/jimmc/jiviewer/Makefile
+MAIN_SRCS    := $(wildcard $(PKGDIRS:%=src/%/*.java))
+MAIN_OBJS    := $(MAIN_SRCS:src/%.java=obj/%.class)
+MAIN_PROPS   := $(wildcard $(PKGDIRS:%=src/%/*.properties))
+MAIN_MAKEFILES := $(PKGDIRS:%=src/%/Makefile)
 
 #TEST refers to the java sources for unit testing
-TEST_SRCS = $(wildcard \
-		test/jimmc/swing/*.java \
-		test/jimmc/util/*.java \
-		test/jimmc/jiviewer/*.java )
-TEST_OBJS = $(TEST_SRCS:test/%.java=testobj/%.class)
-TEST_PROPS    = test/jimmc/swing/*.properties \
-		test/jimmc/util/*.properties \
-		test/jimmc/jiviewer/*.properties
-TEST_MAKEFILES = test/jimmc/swing/Makefile \
-		test/jimmc/util/Makefile \
-		test/jimmc/jiviewer/Makefile
+TEST_SRCS    := $(wildcard $(PKGDIRS:%=test/%/*.java))
+TEST_OBJS    := $(TEST_SRCS:test/%.java=testobj/%.class)
+TEST_PROPS   := $(wildcard $(PKGDIRS:%=test/%/*.properties))
+TEST_MAKEFILES := $(PKGDIRS:%=test/%/Makefile)
 
 #SRCS is all java source files, both regular and test
-SRCS    = $(MAIN_SRCS) $(TEST_SRCS)
-OBJS	= $(MAIN_OBJS) $(TEST_OBJS)
-PROPS	= $(MAIN_PROPS) $(TEST_PROPS)
-MAKEFILES = $(MAIN_MAKEFILES) $(TEST_MAKEFILES)
+SRCS         := $(MAIN_SRCS) $(TEST_SRCS) $(JARINST_SRCS)
+OBJS	     := $(MAIN_OBJS) $(TEST_OBJS)
+PROPS	     := $(MAIN_PROPS) $(TEST_PROPS)
+MAKEFILES    := $(MAIN_MAKEFILES) $(TEST_MAKEFILES)
+SRCHTMLS     := $(wildcard $(PKGDIRS:%=src/%/*.html))
 
-PKGS          = jimmc.swing jimmc.util jimmc.jiviewer
-
-VERSION       = $(shell cat misc/Version | awk '{print $$2}')
-_VERSION      = $(shell cat misc/Version | awk '{print $$2}' | \
+VERSION      := $(shell cat VERSION | awk '{print $$2}')
+_VERSION     := $(shell cat VERSION | awk '{print $$2}' | \
 			sed -e 's/\./_/g' -e 's/v//')
-RELDIR        = $(BASENAME)-$(_VERSION)
-RELFILES      = README README.build README.html $(JARFILE) \
-		misc/Version misc/COPYING misc/COPYRIGHT misc/HISTORY
-RELDATFILES   = dat/format.dat dat/kingmacbeth.dat
-KITMISC       = README README.build README.html \
-		misc/Version misc/COPYING misc/COPYRIGHT misc/HISTORY \
-		misc/manifest.mf \
-		makeinfo/*.mak doc/*.html
-KITSRCS       = $(KITMISC) Makefile $(MAKEFILES) $(SRCS)
+VDATE        := $(shell cat VERSION | awk '{print $$3, $$4, $$5}')
+JARFILE      := $(BASENAME).jar
+JARMANIFEST  := misc/manifest.mf
+JAROBJS      := $(OBJS)
+PROPFILE     := src/jimmc/jiviewer/Resources.properties
+PROPS        := $(wildcard $(PKGDIRS:%=src/%/*.props))
 
-JARFILE       = $(BASENAME).jar
-JARMANIFEST   = misc/manifest.mf
-JAROBJS       = $(OBJS)
-JARPROPS      = $(PROPS)
-JAR_LIST_OBJS = jimmc/swing/*.class \
-		jimmc/util/*.class \
-		jimmc/jiviewer/*.class
-JAR_LIST_PROPS = jimmc/swing/*.properties \
-		jimmc/util/*.properties \
-		jimmc/jiviewer/*.properties
+JAR_LIST_OBJS := $(PKGDIRS:%=%/*.class)
+JAR_LIST_PROPS:= $(MAIN_PROPS:src/%=%)
+
+RELDIR       := $(BASENAME)-$(_VERSION)
+RELBINFILES  := README VERSION $(JARFILE)
 
 default:	objdir jar
 
@@ -80,7 +62,20 @@ classfiles:	$(JAROBJS)
 
 jar:		$(JARFILE)
 
-$(JARFILE):	$(JAROBJS) $(JARMANIFEST) jaronly
+$(JARFILE):	$(JAROBJS) $(JARMANIFEST) propfile jaronly
+
+propfile:	$(PROPFILE)
+
+$(PROPFILE):	$(PROPS) VERSION
+		rm -f $(PROPFILE)
+		echo "#This file is automatically created from the *.props files" > $(PROPFILE)
+		echo "#in various source directories." >> $(PROPFILE)
+		for f in $(PROPS); do \
+			echo "" >> $(PROPFILE); \
+			echo "#===== $$f =====" >> $(PROPFILE); \
+			cat $$f | sed -e 's/%VERSION%/$(VERSION)/g' \
+			  -e 's/%VDATE%/$(VDATE)/g' >> $(PROPFILE); \
+		done
 
 jaronly:;	cd obj && $(JAR) -cmf ../$(JARMANIFEST) ../$(JARFILE) \
 			$(JAR_LIST_OBJS)
