@@ -87,6 +87,10 @@ public class ImageBundle {
 
 	/** Set the size of the display for our image.
 	 * From this we calclate the scale factor.
+	 * @param width Width of the display,
+	 *              or 0 to do no scaling of the image.
+	 * @param height Height of the display,
+	 *              or 0 to do no scaling of the image.
 	 */
 	public void setDisplaySize(int width, int height) {
 		if (width==displayWidth && height==displayHeight)
@@ -182,6 +186,12 @@ public class ImageBundle {
 		if (transformedRenderedImage!=null)
 			return;
 
+		if (displayWidth==0 || displayHeight==0) {
+			//no transformations
+			transformedRenderedImage = renderedImage;
+			return;
+		}
+
 		//scale the image to fit into the display area
 		ParameterBlock pb = new ParameterBlock();
 		pb.addSource(renderedImage);
@@ -244,6 +254,9 @@ public class ImageBundle {
 		app.debugMsg("createScaledIimage");
 		if (sourceImage==null)
 			return null;
+
+		if (displayWidth==0 || displayHeight==0)
+			return sourceImage;	//no scaling
 
 		int srcWidth = sourceImage.getWidth(null);
 		int srcHeight = sourceImage.getHeight(null);

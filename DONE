@@ -28,3 +28,4 @@
 - Fix bug where rotated images sometimes come up blank. [021117]
 - Don't use big dialogs unless using big font. [021211]
 - Don't ask for confirmation on exit. [021211]
+- Add 's' flag to toggle image scaling. [030514]

@@ -70,11 +70,15 @@ public class ImageArea extends JLabel
 	/** Our worker thread. */
 	protected Worker worker;
 
+	/** True if our image should be scaled to fit the window. */
+	protected boolean scaled;
+
 	/** Create an ImageArea. */
 	public ImageArea(App app, Viewer viewer) {
 		super();
 		this.app = app;
 		this.viewer = viewer;
+		scaled = true;
 		setBackground(Color.gray);	//set up neutral background
 		setForeground(Color.white);	//and color for status info
 		setPreferredSize(new Dimension(800,600));
@@ -111,6 +115,11 @@ public class ImageArea extends JLabel
 		GraphicsJAI gj = GraphicsJAI.createGraphicsJAI(
 			(Graphics2D)g,this);
 		AffineTransform tx = new AffineTransform();
+		if (!scaled) {
+			gj.drawRenderedImage(renderedImageSource,tx);
+			//TBD - do we need scroll bars?
+			return;
+		}
 		int rw = renderedImageSource.getWidth();
 		int rh = renderedImageSource.getHeight();
 		double xScale = getWidth()/(double)rw;
@@ -182,8 +191,11 @@ public class ImageArea extends JLabel
 		}
 		setText("Loading image...");	//i18n
 
-		currentImage.setDisplaySize(getWidth(),getHeight());
-			//make sure the image size is correct
+		//make sure the image size is correct
+		if (scaled)
+			currentImage.setDisplaySize(getWidth(),getHeight());
+		else
+			currentImage.setDisplaySize(0,0); //no scaling
 
 		if (app.useJAI()) {
 			app.debugMsg("ShowCurrentImage X");
@@ -303,6 +315,10 @@ public class ImageArea extends JLabel
 			break;
 		case 'R'-0100:	//control-R, rotate 180
 			rotate(2);
+			break;
+		case 's':	//toggle "scaled" flag
+			scaled = !scaled;
+			showCurrentImage();
 			break;
 		case 'x':	//exit
 			setCursorVisible(true);	//turn on cursor
