@@ -12,6 +12,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
@@ -27,7 +28,8 @@ import javax.swing.JLabel;
 /** A window in which we view our images.
  */
 public class ImageArea extends JLabel
-		implements KeyListener, MouseMotionListener, ComponentListener {
+		implements KeyListener, MouseListener,
+		MouseMotionListener, ComponentListener {
 	/** Our App. */
 	protected App app;
 
@@ -49,6 +51,9 @@ public class ImageArea extends JLabel
 	/** An invisible cursor. */
 	protected Cursor invisibleCursor;
 
+	/** True when we get a key press we recognize. */
+	protected boolean knownKeyPress;
+
 	/** Create an ImageArea. */
 	public ImageArea(App app, Viewer viewer) {
 		super();
@@ -57,6 +62,7 @@ public class ImageArea extends JLabel
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
 		addKeyListener(this);
+		addMouseListener(this);
 		addMouseMotionListener(this);
 		addComponentListener(this);
 		tracker = new MediaTracker(this);
@@ -226,6 +232,7 @@ public class ImageArea extends JLabel
     	public void keyPressed(KeyEvent ev) {
 		setCursor(invisibleCursor);	//turn off cursor on any key
 		int keyCode = ev.getKeyCode();
+		knownKeyPress = true;	//assume we know it
 		switch (keyCode) {
 		case KeyEvent.VK_DOWN:
 			if (imageLister!=null)
@@ -239,6 +246,8 @@ public class ImageArea extends JLabel
 			viewer.setFullScreen(false);	//back to normal size
 			break;
 		default:	//ignore
+			knownKeyPress = false;
+			break;
 		}
 	}
 	public void keyReleased(KeyEvent ev) {
@@ -274,11 +283,22 @@ public class ImageArea extends JLabel
 			break;
 		//TBD - add help popup
 		default:		//unknown key
-			getToolkit().beep();
+			if (!knownKeyPress)
+				getToolkit().beep();
 			break;
 		}
 	}
     //End KeyListener interface
+
+    //The MouseListener interface
+    	public void mouseClicked(MouseEvent ev) {}
+    	public void mouseEntered(MouseEvent ev) {}
+    	public void mouseExited(MouseEvent ev) {}
+    	public void mousePressed(MouseEvent ev) {
+		requestFocus();
+	}
+    	public void mouseReleased(MouseEvent ev) {}
+    //End MouseListener interface
 
     //The MouseMotionListener interface
 	public void mouseDragged(MouseEvent ev){
