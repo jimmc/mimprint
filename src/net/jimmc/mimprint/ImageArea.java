@@ -5,16 +5,21 @@
 
 package jimmc.jiviewer;
 
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.io.File;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -22,7 +27,7 @@ import javax.swing.JLabel;
 /** A window in which we view our images.
  */
 public class ImageArea extends JLabel
-		implements KeyListener, ComponentListener {
+		implements KeyListener, MouseMotionListener, ComponentListener {
 	/** Our App. */
 	protected App app;
 
@@ -41,6 +46,9 @@ public class ImageArea extends JLabel
 	/** The current image rotation in units of 90 degrees */
 	protected int currentRotation;
 
+	/** An invisible cursor. */
+	protected Cursor invisibleCursor;
+
 	/** Create an ImageArea. */
 	public ImageArea(App app, Viewer viewer) {
 		super();
@@ -49,8 +57,13 @@ public class ImageArea extends JLabel
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
 		addKeyListener(this);
+		addMouseMotionListener(this);
 		addComponentListener(this);
 		tracker = new MediaTracker(this);
+		Toolkit toolkit = getToolkit();
+		Image cursorImage = toolkit.createImage(new byte[0]);
+		invisibleCursor = toolkit.createCustomCursor(
+				cursorImage,new Point(0,0),"");
 	}
 
 	/** Set our image lister. */
@@ -211,6 +224,7 @@ public class ImageArea extends JLabel
 
     //The KeyListener interface
     	public void keyPressed(KeyEvent ev) {
+		setCursor(invisibleCursor);	//turn off cursor on any key
 		int keyCode = ev.getKeyCode();
 		switch (keyCode) {
 		case KeyEvent.VK_DOWN:
@@ -240,7 +254,9 @@ public class ImageArea extends JLabel
 			showCurrentImage();
 			break;
 		case 'o':	//file-open dialog
+			setCursor(null);	//turn on cursor
 			viewer.processFileOpen();
+			setCursor(invisibleCursor);	//turn cursor back off
 			break;
 		case 'r':	//rotate CCW
 			rotate(1);
@@ -252,13 +268,26 @@ public class ImageArea extends JLabel
 			rotate(2);
 			break;
 		case 'x':	//exit
+			setCursor(null);	//turn on cursor
 			viewer.processClose();
+			setCursor(invisibleCursor);	//turn cursor back off
 			break;
 		//TBD - add help popup
-		default:		//do nothing    TBD- beep?
+		default:		//unknown key
+			getToolkit().beep();
+			break;
 		}
 	}
     //End KeyListener interface
+
+    //The MouseMotionListener interface
+	public void mouseDragged(MouseEvent ev){
+		setCursor(null);	//turn cursor back on
+	}
+	public void mouseMoved(MouseEvent ev){
+		setCursor(null);	//turn cursor back on
+	}
+    //End MouseMotionListener interface
 
     //The ComponentListener interface
 	public void componentHidden(ComponentEvent ev){}
