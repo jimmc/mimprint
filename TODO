@@ -10,7 +10,13 @@
 - Look for a special file in each directory (e.g. images.jiv) with one line
   per image to display, each line having a file name and possibly flags such
   as whether to rotate it. (020818)
+- Add a command to tell jiviewer to record the current rotation state to
+  the images.jiv files; add a command to tell it to remove this filename from
+  the images.jiv file; add a command to tell it to create an images.jiv file
+  from the current viewing information. (020828)
 - When starting at a directory, if no images in that directory, look in
   subdirectories, start there if found. (020818)
 - In dialog advancing to next directory, give the name of this directory
   and the next one. (020818)
+- Add a flag to tell it whether to use big fonts or not; perhaps a "-tv"
+  option to make it use big fonts; use normal fonts if no "tv" option. (020828)
