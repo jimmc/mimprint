@@ -105,6 +105,7 @@ public class Viewer extends JimmcFrame {
 
 	/** Open the specified target. */
 	public void open(String target) {
+		currentOpenFile = new File(target);
 		imageLister.open(target);
 	}
 
