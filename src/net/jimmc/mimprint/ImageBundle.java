@@ -14,6 +14,9 @@ public class ImageBundle {
 	/** The ImageArea in which our image will be displayed. */
 	protected ImageArea imageArea;
 
+	/** Our app. */
+	protected App app;
+
 	/** The path to this image. */
 	protected String path;
 
@@ -33,6 +36,7 @@ public class ImageBundle {
 	 */
 	public ImageBundle(ImageArea imageArea, File file, int listIndex) {
 		this.imageArea = imageArea;
+		app = imageArea.app;
 		path = file.getAbsolutePath();
 		image = imageArea.getToolkit().createImage(path);
 		this.listIndex = listIndex;
@@ -64,9 +68,13 @@ public class ImageBundle {
 	public void loadScaledImage() {
 		if (scaledImage!=null)
 			return;		//already loaded
+		app.debugMsg("Bundle loadScaledImage A image="+image);
 		imageArea.loadCompleteImage(image);
+		app.debugMsg("Bundle loadScaledImage B");
 		Image si = imageArea.getScaledImage(image);
+		app.debugMsg("Bundle loadScaledImage C scaledImage="+si);
 		imageArea.loadCompleteImage(si);
+		app.debugMsg("Bundle loadScaledImage D");
 		scaledImage = si;
 	}
 }
