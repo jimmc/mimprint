@@ -13,3 +13,5 @@
 - Use 50pt font for "Loading" message. (020817) [020818]
 - Use 25pt font for dialogs. [020818]
 - Make next-directory code be recursive. [020818]
+- Add -bigfont and -help command line options. [021026]
+- Use .props files to create one Resources.propererties file. [021026]

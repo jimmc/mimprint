@@ -99,7 +99,7 @@ public class App implements ResourceSource {
 	/** Set up our resources. */
 	public void initResources() {
 		resources = ResourceBundle.getBundle(
-			"jimmc.jiviewer.JiviewerResources");
+			"jimmc.jiviewer.Resources");
 	}
 
 	/** Get a string from our resource file. */

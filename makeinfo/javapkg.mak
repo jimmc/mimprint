@@ -23,7 +23,7 @@ endif
 
 SRCS	= *.java
 
-default:	classes jarfile
+default:	classes propfile jarfile
 
 classes:;	@echo $(JAVAC) $(JAVAC_DEBUG_OPTS) -d $(DESTDIR) \
 			-classpath $(CLASSPATH) \
@@ -31,6 +31,8 @@ classes:;	@echo $(JAVAC) $(JAVAC_DEBUG_OPTS) -d $(DESTDIR) \
 		@$(JAVAC) $(JAVAC_DEBUG_OPTS) -d $(DESTDIR) \
 			-classpath $(CLASSPATH) \
 			-sourcepath $(SOURCEPATH) $(SRCS)
+
+propfile:;	(cd $(TOPDIR); $(MAKE) propfile)
 
 jarfile:;	(cd $(TOPDIR); $(MAKE) jaronly)
 
