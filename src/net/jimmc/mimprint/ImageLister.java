@@ -117,15 +117,18 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	public void displayCurrentSelection() {
 		int sel = list.getSelectedIndex();
 		File file;
+		String path;
 		if (sel<0) {
 			//Nothing selected
 			file = null;
+			path = null;
 		} else {
 			file = new File(targetDirectory,fileNames[sel]);
+			path = file.getAbsolutePath();
 		}
 		if (imageArea!=null) {
 			imageArea.showFile(file);
-			viewer.setTitleFileName(file.getAbsolutePath());
+			viewer.setTitleFileName(path);
 		}
 	}
 
@@ -146,7 +149,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		int maxIndex = list.getModel().getSize();
 		if (sel<0 || sel>=maxIndex) {
 			//New selection value is out of range, ignore it
-			//TBD - give error? ring bell?
+			getToolkit().beep();
 			return;
 		}
 		list.setSelectedIndex(sel);

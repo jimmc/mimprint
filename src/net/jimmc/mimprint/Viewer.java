@@ -9,6 +9,7 @@ import jimmc.swing.GridBagger;
 import jimmc.swing.JimmcFrame;
 import jimmc.swing.MenuAction;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -38,6 +39,9 @@ public class Viewer extends JimmcFrame {
 
 	/** The screen bounds when in normal mode. */
 	protected Rectangle normalBounds;
+
+	/** The latest file opened with the File Open dialog. */
+	File currentOpenFile;
 
 	/** Create our frame. */
 	public Viewer(App app) {
@@ -88,9 +92,10 @@ public class Viewer extends JimmcFrame {
 		imageArea = new ImageArea(app,this);
 		imageLister.setImageArea(imageArea);
 		imageArea.setImageLister(imageLister);
-		getContentPane().add(
-			new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-				imageLister,imageArea));
+		JSplitPane splitPane = new JSplitPane(
+			JSplitPane.VERTICAL_SPLIT,imageLister,imageArea);
+		splitPane.setBackground(Color.black);
+		getContentPane().add(splitPane);
 	}
 
 	/** Get our App. */
@@ -105,16 +110,21 @@ public class Viewer extends JimmcFrame {
 
 	/** Open the specified target. */
 	public void open(File targetFile) {
+		currentOpenFile = targetFile;
 		imageLister.open(targetFile);
 	}
 
 	/** Process the File->Open menu command. */
 	protected void processFileOpen() {
 		String msg = getResourceString("query.FileToOpen");
-		File targetFile = fileOpenDialog(msg);
-		if (targetFile==null)
+		String dflt = null;
+		if (currentOpenFile!=null)
+			dflt = currentOpenFile.getAbsolutePath();
+		File newOpenFile = fileOpenDialog(msg,dflt);
+		if (newOpenFile==null)
 			return;		//nothing specified
-		open(targetFile);		//open it
+		currentOpenFile = newOpenFile;
+		open(currentOpenFile);		//open it
 	}
 
 	/** Closing this form exits the program. */
