@@ -117,6 +117,8 @@ public class ImageArea extends JLabel
 		double yScale = getHeight()/(double)rh;
 		double scale = (xScale<yScale)?xScale:yScale;
 			//make the whole image fit in the display
+		tx.translate((getWidth()-rw*scale)/2.0,
+			     (getHeight()-rh*scale)/2.0);
 		tx.scale(scale,scale);
 		app.debugMsg("paint B");
 		gj.drawRenderedImage(renderedImageSource,tx);
