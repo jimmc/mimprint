@@ -1,16 +1,24 @@
-- Make preload of adjacent pictures preload a full-size scaled version if
-  we are running in full-screen mode. (020817)
-- Add pan/zoom commands. (020818)
+PlayLists:
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)
 - Look for a special file in each directory (e.g. images.jiv) with one line
   per image to display, each line having a file name and possibly flags such
   as whether to rotate it. (020818)
+- Call the above a "Playlist" file.  Allow specifying a playlist file on
+  the command line, in which case it displays all images listed in that
+  playlist file.  Allow multiple playlist files on the command line; 
+  allow mixing playlist files and image files; all playlist files to
+  contain the names of other playlist files as well as image files. (021101)
 - Add a command to tell jiviewer to record the current rotation state to
   the images.jiv files; add a command to tell it to remove this filename from
   the images.jiv file; add a command to tell it to create an images.jiv file
   from the current viewing information. (020828)
 - When starting at a directory, if no images in that directory, look in
   subdirectories, start there if found. (020818)
+
+Misc:
+- Add pan/zoom commands. (020818)
+- Use +, - and = to zoom in, out, and zoom to 1.0 scale.  When zoomed in,
+  use scroll bars on viewing area. (021101)
 - In dialog advancing to next directory, give the name of this directory
   and the next one. (020818)

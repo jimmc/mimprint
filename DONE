@@ -19,6 +19,9 @@
 - Use .props files to create one Resources.properties file. [021026]
 - Fix bugs with relative dir names (such as ".") when going to next dir.[021026]
 - Add JAI code. [021029]
+- Make preload of adjacent pictures preload a full-size scaled version if
+  we are running in full-screen mode. (020817) [021030]
 - Refactor stuff from ImageArea into ImageBundle; speed up rotate.
   (020817) [021030]
 - Make rotation work in -jai mode. [021031]
+- v0.0.3 [021101]
