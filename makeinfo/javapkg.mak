@@ -14,7 +14,7 @@ include $(MAKEINFODIR)/javadefs.mak
 ifdef JUNITTEST
 DESTDIR = $(TOPDIR)/testobj
 SOURCEPATH = $(TOPDIR)/test:$(TOPDIR)/src
-CLASSPATH = $(DESTDIR):$(TOPDIR)/roots.jar:$(JUNITJAR)
+CLASSPATH = $(DESTDIR):$(TOPDIR)/jiviewer.jar:$(JUNITJAR)
 else
 DESTDIR = $(TOPDIR)/obj
 SOURCEPATH = $(TOPDIR)/src
