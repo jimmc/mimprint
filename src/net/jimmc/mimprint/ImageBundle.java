@@ -6,7 +6,12 @@
 package jimmc.jiviewer;
 
 import java.awt.Image;
+import java.awt.image.renderable.ParameterBlock;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import javax.media.jai.Interpolation;
+import javax.media.jai.JAI;
+import javax.media.jai.RenderedOp;
 
 /** An image in multiple sizes, plus additional information.
  */
@@ -23,6 +28,9 @@ public class ImageBundle {
 	/** The original image. */
 	protected Image image;
 
+	/** The renderedImage. */
+	protected RenderedImage renderedImage;
+
 	/** The scaled image. */
 	protected Image scaledImage;
 
@@ -35,11 +43,35 @@ public class ImageBundle {
 	 * @param listIndex The list index of the file.
 	 */
 	public ImageBundle(ImageArea imageArea, File file, int listIndex) {
-		this.imageArea = imageArea;
 		app = imageArea.app;
-		path = file.getAbsolutePath();
-		image = imageArea.getToolkit().createImage(path);
+		this.imageArea = imageArea;
 		this.listIndex = listIndex;
+		path = file.getAbsolutePath();
+		if (app.useJAI())
+			renderedImage = createRenderedImage(path);
+		else
+			image = imageArea.getToolkit().createImage(path);
+	}
+
+	/** Create a renderedImage. */
+	public RenderedImage createRenderedImage(String path) {
+		RenderedOp rFile = JAI.create("fileLoad",path);
+		return rFile;
+	    /*
+		ParameterBlock pb = new ParameterBlock();
+		pb.addSource(rFile);
+		float xScale = (float)0.5;
+		float yScale = (float)0.5;
+		float zero = (float)0.0;
+		pb.add(xScale);
+		pb.add(yScale);
+		pb.add(zero);	//x translation
+		pb.add(zero);	//y translation
+		pb.add(Interpolation.getInstance(
+			Interpolation.INTERP_BILINEAR));
+		RenderedOp rScaled = JAI.create("scale",pb);
+		return rScaled;
+	    */
 	}
 
 	/** Get the path for our original image. */
@@ -50,6 +82,11 @@ public class ImageBundle {
 	/** Get the original image from this bundle. */
 	public Image getImage() {
 		return image;
+	}
+
+	/** Get the rendered image from this bundle. */
+	public RenderedImage getRenderedImage() {
+		return renderedImage;
 	}
 
 	/** Get the scaled image from this bundle. */

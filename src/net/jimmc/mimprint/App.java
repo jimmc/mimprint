@@ -36,6 +36,10 @@ public class App implements ResourceSource {
 	 */
 	protected boolean lookAheadP=true;
 
+	/** True to use JAI.
+	 */
+	protected boolean jaiP;
+
 	/** True if the -debug command line option was specified.
 	 * @see #debug
 	 */
@@ -58,10 +62,10 @@ public class App implements ResourceSource {
 		String aboutInfo = getResourceString("about.info");
 		AboutWindow.setAboutTitle(aboutTitle);
 		AboutWindow.setAboutInfo(aboutInfo);
-		viewer = new Viewer(this);
 		parseArgs(args);
 		if (target==null)
 			target = ".";	//default is to display current dir
+		viewer = new Viewer(this);
 		viewer.show();		//open the main window
 		viewer.open(target);	//display the target
 	}
@@ -81,6 +85,9 @@ public class App implements ResourceSource {
 					"info.CommandHelp");
 				System.out.println(help);
 				System.exit(0);
+			}
+			else if (args[i].equalsIgnoreCase("-jai")) {
+				jaiP = true;
 			}
 			else if (args[i].equalsIgnoreCase("-noLookAhead")) {
 				lookAheadP = false;
@@ -108,6 +115,11 @@ public class App implements ResourceSource {
 	/** True if we should be using a big font. */
 	public boolean useBigFont() {
 		return bigFontP;
+	}
+
+	/** True if we should be using JAI. */
+	public boolean useJAI() {
+		return jaiP;
 	}
 
 	/** True if we should use lookahead when loading images. */

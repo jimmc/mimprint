@@ -11,6 +11,7 @@ import jimmc.util.MoreException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -411,6 +412,14 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		if (currentImage==null) {
 			path = null;
 			imageArea.showText("No image");
+		} else if (app.useJAI()) {
+			app.debugMsg("loading current image JAI");
+			RenderedImage ri = currentImage.getRenderedImage();
+			app.debugMsg("loaded current image JAI");
+			path = currentImage.getPath();
+			String imageInfo = getFileInfo(path);
+			setFileInfo(imageInfo);
+			imageArea.showImage(ri,imageInfo);
 		} else {
 			app.debugMsg("loading current image scaled");
 			Image image = currentImage.getScaledImage();

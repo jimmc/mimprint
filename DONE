@@ -18,3 +18,4 @@
 - Add -bigfont, -help and -nolookeahd command line options. [021026]
 - Use .props files to create one Resources.properties file. [021026]
 - Fix bugs with relative dir names (such as ".") when going to next dir.[021026]
+- Add JAI code. [021029]

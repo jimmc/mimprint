@@ -20,10 +20,12 @@ import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.image.RenderedImage;
 import java.awt.MediaTracker;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.File;
+import javax.media.jai.GraphicsJAI;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
@@ -47,6 +49,9 @@ public class ImageArea extends JLabel
 
 	/** The current unscaled and unrotated image */
 	protected Image imageSource;
+
+	/** The current rendered image source. */
+	protected RenderedImage renderedImageSource;
 
 	/** The info text about the current image. */
 	protected String imageInfoText;
@@ -102,6 +107,30 @@ public class ImageArea extends JLabel
 		worker.start();
 	}
 
+	/** If we have a renderedImageSource, we paint that,
+	 * otherwise we let the JLabel do its thing.
+	 */
+	public void paint(Graphics g) {
+		if (renderedImageSource==null) {
+			super.paint(g);
+			return;
+		}
+		app.debugMsg("paint A");
+		GraphicsJAI gj = GraphicsJAI.createGraphicsJAI(
+			(Graphics2D)g,this);
+		AffineTransform tx = new AffineTransform();
+		int rw = renderedImageSource.getWidth();
+		int rh = renderedImageSource.getHeight();
+		double xScale = getWidth()/(double)rw;
+		double yScale = getHeight()/(double)rh;
+		double scale = (xScale<yScale)?xScale:yScale;
+			//make the whole image fit in the display
+		tx.scale(scale,scale);
+		app.debugMsg("paint B");
+		gj.drawRenderedImage(renderedImageSource,tx);
+		app.debugMsg("paint C");
+	}
+
 	/** Set our image lister. */
 	public void setImageLister(ImageLister imageLister) {
 		this.imageLister = imageLister;
@@ -117,6 +146,33 @@ public class ImageArea extends JLabel
 	 */
 	public void showImage(Image image) {
 		showImage(image,null);
+	}
+
+	/** Show a rendered image, set up text info about the image.
+	 */
+	public void showImage(RenderedImage rImage, String imageInfo) {
+		app.debugMsg("showImage (rendered) "+rImage);
+		if (SwingUtilities.isEventDispatchThread()) {
+			//Run this outside the event thread
+			Object[] data = { this, rImage, imageInfo };
+			worker.invoke(new WorkerTask(data) {
+				public void run() {
+					Object[] rData = (Object[])getData();
+					ImageArea a = (ImageArea)rData[0];
+					a.showImage(
+						(RenderedImage)rData[1],
+						(String)rData[2]);
+				}
+			});
+			return;
+		}
+
+		//At this point we are not in the event thread
+		currentRotation = 0;
+		imageInfoText = imageInfo;
+		renderedImageSource = rImage;
+		showCurrentImage();	//rotate, scale, and display
+		revalidate();
 	}
 
 	/** Show an image, set up text info about the image.
@@ -175,11 +231,18 @@ public class ImageArea extends JLabel
 		}
 
 		setIcon(null);
-		if (imageSource==null) {
+		if (imageSource==null && renderedImageSource==null) {
 			setText("No image");	//i18n
 			return;		//nothing there
 		}
 		setText("Loading image...");	//i18n
+
+		if (renderedImageSource!=null) {
+			app.debugMsg("ShowCurrentImage X");
+			setText(null);
+			repaint();
+			return;
+		}
 
 		app.debugMsg("ShowCurrentImage A imageSource="+imageSource);
 		Image srcImage;
@@ -222,6 +285,7 @@ public class ImageArea extends JLabel
 	 *        The image may not yet be fully generated.
 	 */
 	public Image getRotatedImage(Image srcImage, int rotation) {
+		app.debugMsg("getRotatedImage");
 		int w = srcImage.getWidth(null);
 		int h = srcImage.getHeight(null);
 		int waitCount=0;
@@ -287,6 +351,7 @@ public class ImageArea extends JLabel
 	 * our window at maximum size.
 	 */
 	public Image getScaledImage(Image sourceImage) {
+		app.debugMsg("getScaledIimage");
 		if (sourceImage==null)
 			return null;
 		int srcWidth = sourceImage.getWidth(null);
@@ -468,6 +533,7 @@ public class ImageArea extends JLabel
 	public void componentHidden(ComponentEvent ev){}
 	public void componentMoved(ComponentEvent ev){}
 	public void componentResized(ComponentEvent ev){
+		app.debugMsg("componentResized");
 		if (imageSource!=null)
 			showCurrentImage();
 	}
