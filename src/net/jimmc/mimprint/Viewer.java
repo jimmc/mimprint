@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
@@ -21,6 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 
 /** The top window class for the jiviewer program.
  */
@@ -53,6 +55,16 @@ public class Viewer extends JsFrame {
 		pack();
 		addWindowListener();
 		setTitleFileName("");
+		maxSimpleMessageLength = 0;	//always use special dialogs
+	}
+
+	/** Our message display text area uses a big font so we can read it
+	 * on the TV. */
+	protected JTextArea getMessageDisplayTextArea(String msg) {
+		JTextArea textArea = super.getMessageDisplayTextArea(msg);
+		Font bigFont = new Font("Serif",Font.PLAIN,25);
+		textArea.setFont(bigFont);
+		return textArea;
 	}
 
 	/** Create our menu bar. */
