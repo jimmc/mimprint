@@ -39,34 +39,13 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	protected String[] fileNames;
 
 	/** The currently displayed image. */
-	protected Image currentImage;
-
-	/** The current image, scaled. */
-	protected Image currentScaledImage;
+	protected ImageBundle currentImage;
 
 	/** The next image in the list. */
-	protected Image nextImage;
-
-	/** The next image in the list, scaled. */
-	protected Image nextScaledImage;
+	protected ImageBundle nextImage;
 
 	/** The previous image in the list. */
-	protected Image previousImage;
-
-	/** The previous image in the list, scaled. */
-	protected Image previousScaledImage;
-
-	/** The path to the current file. */
-	protected String currentPath;
-
-	/** The path to the next file in the list. */
-	protected String nextPath;
-
-	/** The path to the previous file in the list. */
-	protected String previousPath;
-
-	/** The currently selected index. */
-	protected int currentSelection;
+	protected ImageBundle previousImage;
 
 	/** Create a new list. */
 	public ImageLister(App app, Viewer viewer) {
@@ -79,7 +58,6 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		scrollPane.setPreferredSize(new Dimension(600,100));
 		setLayout(new BorderLayout());
 		add(scrollPane);
-		currentSelection = -1;
 		Thread imageLoader = new Thread() {
 			public void run() {
 				imageLoaderRun();
@@ -128,6 +106,9 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				return isImageFileName(name);
 			}
 		};
+		currentImage = null;
+		nextImage = null;
+		previousImage = null;
 		fileNames = targetDirectory.list(filter);
 		Arrays.sort(fileNames,new ImageFileNameComparator());
 		//TBD - look up file dates, sizes, and associated text
@@ -166,84 +147,60 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	 */
 	protected void setupCurrentImage() {
 		int newSelection = list.getSelectedIndex();
+		int currentSelection = (currentImage==null)?
+					-1:currentImage.getListIndex();
 		if (newSelection==currentSelection)
 			return;		//no change, ignore this call
 
 		if (newSelection<0) {
 			//Nothing selected
 			currentImage = null;
-			currentScaledImage = null;
 			nextImage = null;
-			nextScaledImage = null;
 			previousImage = null;
-			previousScaledImage = null;
-			currentPath = null;
-			nextPath = null;
-			previousPath = null;
 			return;
 		}
 
 		//Most common case: user is advancing through the images
 		//one at a time.
 		if (newSelection == currentSelection+1 && currentSelection>=0) {
-			currentSelection = newSelection;
 			previousImage = currentImage;
-			previousScaledImage = currentScaledImage;
-			previousPath = currentPath;
 			currentImage = nextImage;
-			currentScaledImage = nextScaledImage;
-			currentPath = nextPath;
 			nextImage = null;
-			nextScaledImage = null;
-			nextPath = null;
 			return;
 		}
 
 		//Second common case: user is going backwards through the list.
 		if (newSelection == currentSelection-1) {
-			currentSelection = newSelection;
 			nextImage = currentImage;
-			nextScaledImage = currentScaledImage;
-			nextPath = currentPath;
 			currentImage = previousImage;
-			currentScaledImage = previousScaledImage;
-			currentPath = previousPath;
 			previousImage = null;
-			previousScaledImage = null;
-			previousPath = null;
 			return;
 		}
 
 		//Not an adjacent image
 		nextImage = null;
-		nextScaledImage = null;
-		nextPath = null;
 		previousImage = null;
-		previousScaledImage = null;
-		previousPath = null;
-		currentSelection = newSelection;
 
-		File file = new File(targetDirectory,
-					fileNames[currentSelection]);
+		File file = new File(targetDirectory,fileNames[newSelection]);
 		if (file==null) {
 			imageArea.showText("No file");
 			currentImage = null;
 			return;		//nothing there
 		}
-		currentPath = file.getAbsolutePath();
-		currentImage = getToolkit().createImage(currentPath);
-		currentScaledImage = imageArea.getScaledImage(currentImage);
+		currentImage = new ImageBundle(imageArea,file,newSelection);
 	}
 
 	/** Set up the next and previous images. */
 	protected void setupNextImage() {
+		int currentSelection = (currentImage==null)?
+					-1:currentImage.getListIndex();
 		int maxIndex = list.getModel().getSize();
 		if (nextImage==null && currentSelection+1<maxIndex) {
 			File file = new File(targetDirectory,
 					fileNames[currentSelection+1]);
 			if (file!=null) {
-				nextPath = file.getAbsolutePath();
-				nextImage = getToolkit().createImage(nextPath);
+				nextImage = new ImageBundle(imageArea,
+					file,currentSelection+1);
 				synchronized(this) {
 					notifyAll();	//start imageLoader
 				}
@@ -253,9 +210,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			File file = new File(targetDirectory,
 					fileNames[currentSelection-1]);
 			if (file!=null) {
-				previousPath = file.getAbsolutePath();
-				previousImage = getToolkit().createImage(
-							previousPath);
+				previousImage = new ImageBundle(imageArea,
+					file, currentSelection-1);
 				synchronized(this) {
 					notifyAll();	//start imageLoader
 				}
@@ -265,11 +221,18 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Display the current image. */
 	protected void displayCurrentImage() {
-		if (currentScaledImage!=null)
-			imageArea.showImage(currentScaledImage);
-		else
-			imageArea.showImage(currentImage);
-		viewer.setTitleFileName(currentPath);
+		String path;
+		if (currentImage==null) {
+			path = null;
+			imageArea.showText("No image");
+		} else {
+			Image image = currentImage.getScaledImage();
+			if (image==null)
+				image = currentImage.getImage();
+			imageArea.showImage(image);
+			path = currentImage.getPath();
+		}
+		viewer.setTitleFileName(path);
 	}
 
 	/** Move the selection up one item and show that file. */
@@ -309,16 +272,10 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				}
 			}
 			if (nextImage!=null) {
-				imageArea.loadCompleteImage(nextImage);
-				Image im = imageArea.getScaledImage(nextImage);
-				imageArea.loadCompleteImage(im);
-				nextScaledImage = im;
+				nextImage.loadScaledImage();
 			}
 			if (previousImage!=null) {
-				imageArea.loadCompleteImage(previousImage);
-				Image im = imageArea.getScaledImage(previousImage);
-				imageArea.loadCompleteImage(im);
-				previousScaledImage = im;
+				previousImage.loadScaledImage();
 			}
 		}
 	}
