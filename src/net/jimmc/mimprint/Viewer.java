@@ -22,7 +22,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
 
-/** The main class for the jiviewer program.
+/** The top window class for the jiviewer program.
  */
 public class Viewer extends JsFrame {
 	/** Our application info. */
