@@ -20,5 +20,10 @@ Misc:
 - Add pan/zoom commands. (020818)
 - Use +, - and = to zoom in, out, and zoom to 1.0 scale.  When zoomed in,
   use scroll bars on viewing area. (021101)
+- Use _ to zoom to fit-to-window (or perhaps _ to use 1.0 scale, = to fit
+  window?). (021211)
 - In dialog advancing to next directory, give the name of this directory
   and the next one. (020818)
+- Add command to add or edit the annotation file. (021211)
+- Add slideshow mode, random order, loop within directory vs auto-advance,
+  slideshow on playlist. (021211)

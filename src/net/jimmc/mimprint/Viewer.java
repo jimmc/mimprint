@@ -54,7 +54,6 @@ public class Viewer extends JsFrame {
 		pack();
 		addWindowListener();
 		setTitleFileName("");
-		maxSimpleMessageLength = 0;	//always use special dialogs
 	}
 
 	/** Our message display text area uses a big font so we can read it
@@ -64,6 +63,7 @@ public class Viewer extends JsFrame {
 		if (app.useBigFont()) {
 			Font bigFont = new Font("Serif",Font.PLAIN,25);
 			textArea.setFont(bigFont);
+			maxSimpleMessageLength = 0;	//use special dialogs
 		}
 		return textArea;
 	}
@@ -150,6 +150,11 @@ public class Viewer extends JsFrame {
 	/** Closing this form exits the program. */
 	protected void processClose() {
 		processFileExit();
+	}
+
+	//Just exit, don't bother asking
+	protected boolean confirmExit() {
+		return true;
 	}
 
 	/** Set the specified file name into our title line. */

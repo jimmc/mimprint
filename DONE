@@ -26,3 +26,5 @@
 - Make rotation work in -jai mode. [021031]
 - v0.0.3 [021101]
 - Fix bug where rotated images sometimes come up blank. [021117]
+- Don't use big dialogs unless using big font. [021211]
+- Don't ask for confirmation on exit. [021211]
