@@ -13,6 +13,7 @@ import java.awt.Image;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.Date;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JList;
@@ -36,6 +37,9 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Our list. */
 	protected JList list;
 
+	/** The status area. */
+	protected JTextArea statusLabel;
+
 	/** The label showing the directory info. */
 	protected JTextArea dirInfoLabel;
 
@@ -57,46 +61,73 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** The previous image in the list. */
 	protected ImageBundle previousImage;
 
+	/** The image loader thread, used as a lock object for image loader. */
+	protected Thread imageLoader;
+
+	/** The display updater thread, used as a lock object
+	 * for display updater. */
+	protected Thread displayUpdater;
+
 	/** Create a new list. */
 	public ImageLister(App app, Viewer viewer) {
 		super();
 		this.app = app;
 		this.viewer = viewer;
 
+		statusLabel = new JTextArea("status here");
+		statusLabel.setEditable(false);
 		dirInfoLabel = new JTextArea("dir info here");
 		dirInfoLabel.setEditable(false);
 		fileInfoLabel = new JTextArea("file info here");
 		fileInfoLabel.setEditable(false);
 		JSplitPane infoSplitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
-			dirInfoLabel,fileInfoLabel);
+			new JScrollPane(dirInfoLabel),
+			new JScrollPane(fileInfoLabel));
 		//infoSplitPane.setBackground(Color.black);
+		JSplitPane statusInfoPane = new JSplitPane(
+			JSplitPane.VERTICAL_SPLIT,
+			statusLabel,infoSplitPane);
 
 		list = new JList();
 		list.addListSelectionListener(this);
 		JScrollPane listScrollPane = new JScrollPane(list);
-		listScrollPane.setPreferredSize(new Dimension(600,100));
+		listScrollPane.setPreferredSize(new Dimension(600,140));
 
 		JSplitPane splitPane = new JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT,
-			listScrollPane,infoSplitPane);
+			listScrollPane,statusInfoPane);
 		splitPane.setDividerLocation(200);
 
 		setLayout(new BorderLayout());
 		add(splitPane);
 
 		initImageLoader();
+		initDisplayUpdater();
 	}
 
 	/** Initialize our image loader thread. */
 	protected void initImageLoader() {
-		Thread imageLoader = new Thread() {
+		imageLoader = new Thread() {
 			public void run() {
 				imageLoaderRun();
 			}
 		};
 		imageLoader.setPriority(imageLoader.getPriority()-2);
 		imageLoader.start();
+		setDebugStatus("image loader thread started");
+	}
+
+	/** Initialize a thread to update our display. */
+	protected void initDisplayUpdater() {
+		displayUpdater = new Thread() {
+			public void run() {
+				displayUpdaterRun();
+			}
+		};
+		displayUpdater.setPriority(imageLoader.getPriority()-1);
+		displayUpdater.start();
+		setDebugStatus("display updater thread started");
 	}
 
 	/** Set the ImageArea. */
@@ -127,7 +158,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			viewer.errorDialog(msg);
 			return;
 		}
-		File previousTargetDirectory = targetDirectory;
+		File formerTargetDirectory = targetDirectory;
 		if (targetFile.isDirectory()) {
 			//It's a directory, use it
 			targetDirectory = targetFile;
@@ -141,19 +172,14 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				targetDirectory = new File(".");
 			}
 		}
-		FilenameFilter filter = new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return isImageFileName(name);
-			}
-		};
 		currentImage = null;
 		nextImage = null;
 		previousImage = null;
-		fileNames = targetDirectory.list(filter);
+		fileNames = getImageFileNames(targetDirectory);
 		Arrays.sort(fileNames,new ImageFileNameComparator());
 		//TBD - look up file dates, sizes, and associated text
-		if (previousTargetDirectory==null || targetDirectory==null ||
-		    !previousTargetDirectory.toString().equals(
+		if (formerTargetDirectory==null || targetDirectory==null ||
+		    !formerTargetDirectory.toString().equals(
 				targetDirectory.toString()))
 			setDirectoryInfo(targetDirectory);
 		list.setListData(fileNames);
@@ -170,7 +196,6 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				n = 0;	//if file not found, select first file
 			list.setSelectedIndex(n);
 		}
-		//move(0);	//go to the current image
 	}
 
 	/** Display new directory info. */
@@ -194,7 +219,34 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Display new file info. */
 	protected void setFileInfo(String path) {
-		String fileInfo = "File: "+path;
+		if (path==null) {
+			fileInfoLabel.setText("");	//no file, show nothing
+			return;
+		}
+		File f = new File(path);
+
+		//Start the with file name
+		String fileInfo = "File: "+f.getName(); //TBD i18n
+
+		//Add (N of M)
+		int imageCount = list.getModel().getSize();
+		int thisIndex = currentImage.getListIndex()+1;
+		fileInfo += "; "+thisIndex+" of "+imageCount;  //TBD i18n
+
+		//Add file size and date/time    TBD i18n
+		long fileSize = f.length();
+		String fileSizeStr;
+		if (fileSize>1024*1024*10)	//>10M
+			fileSizeStr = ""+(fileSize/(1024*1024))+"M";
+		else if (fileSize>1024*10)	//>10K
+			fileSizeStr = ""+(fileSize/1024)+"K";
+		else
+			fileSizeStr = ""+fileSize+"B";
+		fileInfo += "; "+fileSizeStr;
+		long modTime = f.lastModified();
+		fileInfo += "; "+(new Date(modTime)).toString();
+
+		//Add file info text
 		String fileText = getFileText(path);
 		if (fileText!=null) {
 			if (fileText.endsWith("\n")) {
@@ -203,9 +255,17 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			}
 			fileInfo += "\n"+fileText;
 		}
+
+		//Display the info
 		fileInfoLabel.setText(fileInfo);
-		//TBD - print "M of N" image files
-		//TBD - print file size, date
+	}
+
+	/** Set the contents of the status area. */
+	public void setStatus(String status) {
+		statusLabel.setText(status);
+	}
+	public void setDebugStatus(String status) {
+		//System.out.println(status);
 	}
 
 	/** Get the text for the specified file. */
@@ -235,18 +295,20 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		return false;
 	}
 
+    //The ListSelectionListener interface
 	/** Here when the list selection changes. */
 	public void valueChanged(ListSelectionEvent ev) {
 		displayCurrentSelection();
 	}
+    //End ListSelectionListener interface
 
 	/** Show the currently selected file. */
 	public void displayCurrentSelection() {
 		if (imageArea==null)
 			return;
-		setupCurrentImage();
-		displayCurrentImage();
-		setupNextImage();
+		synchronized (displayUpdater) {
+			displayUpdater.notifyAll();  //wake up updater
+		}
 	}
 
 	/** Set up our images.
@@ -298,7 +360,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	}
 
 	/** Set up the next and previous images. */
-	protected void setupNextImage() {
+	protected void setupAdjacentImages() {
 		int currentSelection = (currentImage==null)?
 					-1:currentImage.getListIndex();
 		int maxIndex = list.getModel().getSize();
@@ -308,8 +370,9 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			if (file!=null) {
 				nextImage = new ImageBundle(imageArea,
 					file,currentSelection+1);
-				synchronized(this) {
-					notifyAll();	//start imageLoader
+				synchronized(imageLoader) {
+					imageLoader.notifyAll();
+						//start imageLoader
 				}
 			}
 		}
@@ -319,8 +382,9 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			if (file!=null) {
 				previousImage = new ImageBundle(imageArea,
 					file, currentSelection-1);
-				synchronized(this) {
-					notifyAll();	//start imageLoader
+				synchronized(imageLoader) {
+					imageLoader.notifyAll();
+						//start imageLoader
 				}
 			}
 		}
@@ -329,14 +393,18 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Display the current image. */
 	protected void displayCurrentImage() {
 		String path;
+		setFileInfo(null);	//clear info while changing
 		if (currentImage==null) {
 			path = null;
 			imageArea.showText("No image");
-			setFileInfo(null);
 		} else {
+			setDebugStatus("loading current image scaled");
 			Image image = currentImage.getScaledImage();
-			if (image==null)
+			if (image==null) {
+				setDebugStatus("loading current image unscaled");
 				image = currentImage.getImage();
+			}
+			setDebugStatus("current image loaded");
 			imageArea.showImage(image);
 			path = currentImage.getPath();
 			setFileInfo(path);
@@ -359,13 +427,41 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		int sel = list.getSelectedIndex();
 		sel += inc;
 		int maxIndex = list.getModel().getSize();
-		if (sel<0 || sel>=maxIndex) {
-			//TBD - put up dialog asking if we should move to
-			//the next/previous directory
-			//New selection value is out of range, ignore it
-			getToolkit().beep();
-			//TBD - put an error message in the status line in case
-			//the beep is turned off.
+		if (sel<0) {
+			String prompt = "At beginning; move to previous dir?";
+				//TBD i18n this section
+			if (!viewer.confirmDialog(prompt))
+				return;		//cancelled
+			//User is trying to move off the beginning of the list,
+			//see about moving back to the previous directory
+			File newDir = getPreviousDirectory(targetDirectory);
+			if (newDir==null) {
+				String eMsg = "No previous directory";
+				viewer.errorDialog(eMsg);
+				return;
+			}
+			//TBD - get last file in that directory
+			File lastFile = getLastFileInDir(newDir);
+			if (lastFile!=null)
+				open(lastFile);
+			else
+				open(newDir);	//TBD - skip back farther?
+			return;
+		}
+		if (sel>=maxIndex) {
+			String prompt = "At end; move to next dir?";
+				//TBD i18n this section
+			if (!viewer.confirmDialog(prompt))
+				return;		//cancelled
+			//User is trying to move off the end of the list,
+			//see about moving forward to the next directory
+			File newDir = getNextDirectory(targetDirectory);
+			if (newDir==null) {
+				String eMsg = "No next directory";
+				viewer.errorDialog(eMsg);
+				return;
+			}
+			open(newDir);	//TBD - skip forward farther if no imgs?
 			return;
 		}
 		list.setSelectedIndex(sel);
@@ -375,22 +471,114 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** The image loader thread, which loads images in the background. */
 	public void imageLoaderRun() {
+		setDebugStatus("image loader thread running");
 		while (true) {
-			synchronized(this) {
+			synchronized(imageLoader) {
 				try {
-					wait();
-					Thread.sleep(100);
+					setDebugStatus(
+						"image loader thread waiting");
+					imageLoader.wait();
 				} catch (InterruptedException ex) {
 					//ignore
 				}
 			}
+			try {
+				//Do this outside of the sync
+				Thread.sleep(100);
+			} catch (InterruptedException ex) {
+				//ignore
+			}
+			setDebugStatus("image loader thread awakened");
 			if (nextImage!=null) {
+				setStatus("Loading next image");
 				nextImage.loadScaledImage();
+				setStatus("");
 			}
 			if (previousImage!=null) {
+				setStatus("Loading previous image");
 				previousImage.loadScaledImage();
+				setStatus("");
 			}
 		}
+	}
+
+	/** The display updater thread, which handles requests to update the
+	 * display so that the Event thread will be freed up.
+	 */
+	public void displayUpdaterRun() {
+		setDebugStatus("display updater thread running");
+		while (true) {
+			//Check to see if the list selection changed will
+			//we were busy updating.  If so, don't do the wait.
+			int newSelection = list.getSelectedIndex();
+			int currentSelection = (currentImage==null)?
+						-1:currentImage.getListIndex();
+			if (newSelection==currentSelection) {
+			    //selection is correct, wait for a notify
+			    synchronized(displayUpdater) {
+				try {
+					setDebugStatus(
+					    "display updater thread waiting");
+					displayUpdater.wait();
+				} catch (InterruptedException ex) {
+					//ignore
+				}
+			    }
+			}
+			setDebugStatus("display updater thread awakened");
+			//Update the display
+			setupCurrentImage();
+			displayCurrentImage();
+			setupAdjacentImages();
+		}
+	}
+
+	protected String[] getImageFileNames(File dir) {
+		FilenameFilter filter = new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return isImageFileName(name);
+			}
+		};
+		return dir.list(filter);
+	}
+
+	/** Given a directory, get the next sibling directory. */
+	protected File getNextDirectory(File dir) {
+		return getRelativeDirectory(dir,1);
+	}
+
+	protected File getPreviousDirectory(File dir) {
+		return getRelativeDirectory(dir,-1);
+	}
+
+	protected File getRelativeDirectory(File dir, int move) {
+		File parentDir = dir.getParentFile();
+		if (parentDir==null)
+			parentDir = new File(".");
+		String[] siblings = parentDir.list();
+		Arrays.sort(siblings);
+		int dirIndex = Arrays.binarySearch(siblings,dir.getName());
+		if (dirIndex<0) {
+			String msg = "Can't find dir "+dir+" in parent list";
+			throw new RuntimeException(msg);
+		}
+		int newDirIndex = dirIndex + move;
+		if (newDirIndex<0 || newDirIndex>=siblings.length) {
+			//We are the last directory in the list, give up.
+			return null;
+			//TBD - we could recurse, move to the next/prev parent
+			//dir of our parentDir,
+			//and return the first/last dir there.
+		}
+		return new File(parentDir,siblings[newDirIndex]);
+	}
+
+	/** Given a directory, get the last image file in that directory. */
+	protected File getLastFileInDir(File dir) {
+		String[] names = getImageFileNames(dir);
+		if (names.length==0)
+			return null;
+		return new File(dir,names[names.length-1]);
 	}
 }
 
