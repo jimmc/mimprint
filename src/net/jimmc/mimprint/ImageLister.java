@@ -110,6 +110,11 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Here when the list selection changes. */
 	public void valueChanged(ListSelectionEvent ev) {
+		displayCurrentSelection();
+	}
+
+	/** Show the currently selected file. */
+	public void displayCurrentSelection() {
 		int sel = list.getSelectedIndex();
 		File file;
 		if (sel<0) {
@@ -122,6 +127,31 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			imageArea.showFile(file);
 			viewer.setTitleFileName(file.getAbsolutePath());
 		}
+	}
+
+	/** Move the selection up one item and show that file. */
+	public void up() {
+		move(-1);
+	}
+
+	/** Move the selection down one item and show that file. */
+	public void down() {
+		move(1);
+	}
+
+	/** Move the selection by the specified amount and show that file. */
+	public void move(int inc) {
+		int sel = list.getSelectedIndex();
+		sel += inc;
+		int maxIndex = list.getModel().getSize();
+		if (sel<0 || sel>=maxIndex) {
+			//New selection value is out of range, ignore it
+			//TBD - give error? ring bell?
+			return;
+		}
+		list.setSelectedIndex(sel);
+		list.ensureIndexIsVisible(sel);
+		displayCurrentSelection();
 	}
 }
 

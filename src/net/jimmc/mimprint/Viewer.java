@@ -73,8 +73,9 @@ public class Viewer extends JimmcFrame {
 	/** Create the body of our form. */
 	protected void initForm() {
 		imageLister = new ImageLister(app,this);
-		ImageArea imageArea = new ImageArea(app);
+		ImageArea imageArea = new ImageArea(app,this);
 		imageLister.setImageArea(imageArea);
+		imageArea.setImageLister(imageLister);
 		getContentPane().add(
 			new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				imageLister,imageArea));
