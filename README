@@ -1,0 +1,8 @@
+jiviewer is an image viewing program (Jimmc's Image Viewer), to make
+it easy to view JPG and GIF files of any pixel size.  In full-screen
+mode, a single image is scaled to fill the screen, with nothing else
+visible; arrow keys are used to step between images.  In normal mode,
+there is a border of controls around the image.
+
+Jim McBeath
+http://www.alumni.caltech.edu/~jimmc

@@ -1,0 +1,8 @@
+error.NoSuchFile=No such file "{0}"
+error.UnknownArgument=Unknown command line argument "{0}"
+error.UnknownOption=Unknown command line option "{0}"
+
+menu.File.Exit.label=Exit
+menu.File.Open.label=Open
+
+query.FileToOpen=File or Directory to Open
