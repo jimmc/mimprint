@@ -81,9 +81,11 @@ public class ImageArea extends JLabel
 		setForeground(Color.white);	//and color for status info
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
-		Font biggerFont = new Font("Serif",Font.PLAIN,50);
-		if (biggerFont!=null)
-			setFont(biggerFont);
+		if (app.useBigFont()) {
+			Font biggerFont = new Font("Serif",Font.PLAIN,50);
+			if (biggerFont!=null)
+				setFont(biggerFont);
+		}
 		addKeyListener(this);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -120,6 +122,7 @@ public class ImageArea extends JLabel
 	/** Show an image, set up text info about the image.
 	 */
 	public void showImage(Image image, String imageInfo) {
+		app.debugMsg("showImage "+image);
 		if (SwingUtilities.isEventDispatchThread()) {
 			//Run this outside the event thread
 			Object[] data = { this, image, imageInfo };
@@ -134,6 +137,7 @@ public class ImageArea extends JLabel
 			return;
 		}
 
+		//At this point we are not in the event thread
 		currentRotation = 0;
 		imageInfoText = imageInfo;
 		imageSource = image;
@@ -143,15 +147,17 @@ public class ImageArea extends JLabel
 	/** Load an image, wait for it to be loaded. */
 	public void loadCompleteImage(Image image) {
 		tracker.addImage(image,0);
-		boolean loadStatus;
+		boolean loadStatus=false;
 		try {
+			app.debugMsg("Waiting for image "+image);
 			loadStatus = tracker.waitForID(0,20000);
 		} catch (InterruptedException ex) {
 			String msg = "Interrupted waiting for image to load";
 				//TBD i18n, include ex.getMessage()
 			throw new RuntimeException(msg);
 		}
-//System.out.println("loadStatus="+loadStatus);
+		app.debugMsg("Done waiting for image "+image+
+			", loadStatus="+loadStatus);
 		tracker.removeImage(image,0);
 	}
 
@@ -175,6 +181,7 @@ public class ImageArea extends JLabel
 		}
 		setText("Loading image...");	//i18n
 
+		app.debugMsg("ShowCurrentImage A imageSource="+imageSource);
 		Image srcImage;
 		switch (currentRotation) {
 		default:
@@ -183,11 +190,16 @@ public class ImageArea extends JLabel
 		case 2: srcImage = getRotatedImage(imageSource,180); break;
 		case 3: srcImage = getRotatedImage(imageSource,270); break;
 		}
+		app.debugMsg("ShowCurrentImage B srcImage="+srcImage);
 		Image scaledImage = getScaledImage(srcImage);
+		app.debugMsg("ShowCurrentImage C scaledImage="+scaledImage);
 		ImageIcon ii = new ImageIcon(scaledImage);
+		app.debugMsg("ShowCurrentImage D");
 		loadCompleteImage(scaledImage);	//wait for it
+		app.debugMsg("ShowCurrentImage E");
 		setText(null);
 		setIcon(ii);
+		app.debugMsg("ShowCurrentImage F");
 	}
 
 	/** Rotate the current image in increments of 90 degrees. */
@@ -313,7 +325,8 @@ public class ImageArea extends JLabel
 			dstHeight = winHeight;
 		}
 		Image scaledImage = sourceImage.getScaledInstance(
-						dstWidth,dstHeight,0);
+						dstWidth,dstHeight,
+						Image.SCALE_FAST);
 		return scaledImage;
 	}
 
