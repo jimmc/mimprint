@@ -113,7 +113,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	}
 
 	/** Open the specified target.
-	 * If it is a directory, list all of the image files in the directory.
+	 * If it is a directory, list all of the image files in the directory
+	 * and select the first one.
 	 * If it is a file, list all of the image files in the containing
 	 * directory, and selected the given file.
 	 * @param targetFile The file or directory to open.
@@ -130,9 +131,15 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		if (targetFile.isDirectory()) {
 			//It's a directory, use it
 			targetDirectory = targetFile;
+			targetFile = null;	//get the real file later
 		} else {
 			//It's not a directory, get the directory from it
 			targetDirectory = targetFile.getParentFile();
+			if (targetDirectory==null) {
+				//No parent, so the file must not name a
+				//directory, so the directory must be "."
+				targetDirectory = new File(".");
+			}
 		}
 		FilenameFilter filter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
@@ -150,6 +157,20 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				targetDirectory.toString()))
 			setDirectoryInfo(targetDirectory);
 		list.setListData(fileNames);
+		if (fileNames.length==0) {
+			//No files in the list, so don't try to select anything
+		} else if (targetFile==null) {
+			//No file specified, so select the first file in the dir
+			list.setSelectedIndex(0);
+		} else {
+			//Find the index of the specified file and select it
+			String targetFileName = targetFile.getName();
+			int n = Arrays.binarySearch(fileNames,targetFileName);
+			if (n<0)
+				n = 0;	//if file not found, select first file
+			list.setSelectedIndex(n);
+		}
+		//move(0);	//go to the current image
 	}
 
 	/** Display new directory info. */
