@@ -10,7 +10,9 @@ error.UnknownOption=Unknown command line option "{0}", try -help
 
 info.CommandHelp=Usage: jiviewer [-help]\n\
 	\  -bigfont    Use a big font (useful for TV viewing)\n\
-	\  -help       Show this help message
+	\  -debug      Turn on debugging statements\n\
+	\  -help       Show this help message\n\
+	\  -nolookahead  Disable image file look-ahead
 
 info.ImageHelp=Available commands:\n\
 	UP - move to previous picture\n\

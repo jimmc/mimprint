@@ -31,6 +31,19 @@ public class App implements ResourceSource {
 	 */
 	protected boolean bigFontP;
 
+	/** True to use lookahead (default).
+	 * @see #useLookAhead
+	 */
+	protected boolean lookAheadP=true;
+
+	/** True if the -debug command line option was specified.
+	 * @see #debug
+	 */
+	protected boolean debugP;
+
+	/** The time we started running. */
+	protected long startTime;
+
 	/** Program starts here. */
 	public static void main(String[] args) {
 		App m = new App();
@@ -39,6 +52,7 @@ public class App implements ResourceSource {
 
 	/** Run the main stuff. */
 	public void doMain(String[] args) {
+		startTime = System.currentTimeMillis();
 		initResources();
 		String aboutTitle = getResourceString("about.title");
 		String aboutInfo = getResourceString("about.info");
@@ -55,8 +69,11 @@ public class App implements ResourceSource {
 	/** Parse our command line arguments. */
 	protected void parseArgs(String[] args) {
 		for (int i=0; i<args.length; i++) {
-			if (args[i].equalsIgnoreCase("-bigfont")) {
+			if (args[i].equalsIgnoreCase("-bigFont")) {
 				bigFontP = true;
+			}
+			else if (args[i].equalsIgnoreCase("-debug")) {
+				debugP = true;
 			}
 			else if (args[i].equalsIgnoreCase("-help")) {
 				//Print out the help text
@@ -64,6 +81,9 @@ public class App implements ResourceSource {
 					"info.CommandHelp");
 				System.out.println(help);
 				System.exit(0);
+			}
+			else if (args[i].equalsIgnoreCase("-noLookAhead")) {
+				lookAheadP = false;
 			}
 			else if (args[i].startsWith("-")) {
 				Object[] eArgs = { args[i] };
@@ -88,6 +108,27 @@ public class App implements ResourceSource {
 	/** True if we should be using a big font. */
 	public boolean useBigFont() {
 		return bigFontP;
+	}
+
+	/** True if we should use lookahead when loading images. */
+	public boolean useLookAhead() {
+		return lookAheadP;
+	}
+
+	/** True if we are debugging. */
+	public boolean debug() {
+		return debugP;
+	}
+
+	/** Print out a debugging message if the debug flag is on. */
+	public void debugMsg(String s) {
+		if (debug()) {
+			long now = System.currentTimeMillis();
+			long delta = now - startTime;
+			System.out.print(delta);
+			System.out.print(" ");
+			System.out.println(s);
+		}
 	}
 
 	/** Deliver an error message, then exit with error status. */
