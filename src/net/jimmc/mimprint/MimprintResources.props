@@ -14,6 +14,7 @@ info.ImageHelp=Available commands:\n\
 	ESC - exit full screen mode\n\
 	Ctrl L - refresh\n\
 	f - full screen mode\n\
+	i - show info about the image\n\
 	o - open the file-open dialog\n\
 	r - rotate image 90 degrees counter-clockwise\n\
 	R - rotate image 90 degrees clockwise\n\
