@@ -71,23 +71,23 @@ public class ImageArea extends JLabel
 		this.imageLister = imageLister;
 	}
 
-	/** Show the contents of the specified image file.
+	/** Show text instead of an image. */
+	public void showText(String text) {
+		setIcon(null);
+		setText(text);
+	}
+
+	/** Show an image.
 	 */
-	public void showFile(File file) {
+	public void showImage(Image image) {
 		setIcon(null);
 		currentRotation = 0;
-		if (file==null) {
-			setText("No file");
-			return;		//nothing there
-		}
-		String path = file.getAbsolutePath();
-		if (path==null) {
-			setText("No file path");
+		if (image==null) {
+			setText("No image");
 			return;		//nothing there
 		}
 		setText("Loading image...");
-		ImageIcon ii = new ImageIcon(file.getAbsolutePath());
-		fullSizeImage = ii.getImage();
+		fullSizeImage = image;
 		loadCompleteImage(fullSizeImage);	//load the whole image
 		showCurrentImage();	//rotate, scale, and display
 	}
@@ -192,7 +192,7 @@ public class ImageArea extends JLabel
 	/** Get a scaled version of the given image, which fits into
 	 * our window at maximum size.
 	 */
-	protected Image getScaledImage(Image sourceImage) {
+	public Image getScaledImage(Image sourceImage) {
 		if (sourceImage==null)
 			return null;
 		int srcWidth = sourceImage.getWidth(null);
