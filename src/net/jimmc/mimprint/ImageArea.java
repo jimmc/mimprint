@@ -15,6 +15,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.Font;
 import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -25,6 +26,7 @@ import java.awt.Toolkit;
 import java.io.File;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 /** A window in which we view our images.
  */
@@ -46,14 +48,29 @@ public class ImageArea extends JLabel
 	/** The current full-size image */
 	protected Image fullSizeImage;
 
+	/** The info text about the current image. */
+	protected String imageInfoText;
+
 	/** The current image rotation in units of 90 degrees */
 	protected int currentRotation;
 
 	/** An invisible cursor. */
 	protected Cursor invisibleCursor;
 
+	/** A busy cursor. */
+	protected Cursor busyCursor;
+
+	/** Flag telling us the visible-cursor state. */
+	protected boolean cursorVisible;
+
+	/** Flag telling us the busy-cursor state. */
+	protected boolean cursorBusy;
+
 	/** True when we get a key press we recognize. */
 	protected boolean knownKeyPress;
+
+	/** Our worker thread. */
+	protected Worker worker;
 
 	/** Create an ImageArea. */
 	public ImageArea(App app, Viewer viewer) {
@@ -64,6 +81,9 @@ public class ImageArea extends JLabel
 		setForeground(Color.white);	//and color for status info
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
+		Font biggerFont = new Font("Serif",Font.PLAIN,20);
+		if (biggerFont!=null)
+			setFont(biggerFont);
 		addKeyListener(this);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -73,6 +93,11 @@ public class ImageArea extends JLabel
 		Image cursorImage = toolkit.createImage(new byte[0]);
 		invisibleCursor = toolkit.createCustomCursor(
 				cursorImage,new Point(0,0),"");
+		busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+
+		worker = new Worker();
+		worker.setPriority(worker.getPriority()-1);
+		worker.start();
 	}
 
 	/** Set our image lister. */
@@ -89,15 +114,27 @@ public class ImageArea extends JLabel
 	/** Show an image.
 	 */
 	public void showImage(Image image) {
-		setIcon(null);
-		currentRotation = 0;
-		if (image==null) {
-			setText("No image");	//i18n
-			return;		//nothing there
+		showImage(image,null);
+	}
+
+	public void showImage(Image image, String imageInfo) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			//Run this outside the event thread
+			Object[] data = { this, image, imageInfo };
+			worker.invoke(new WorkerTask(data) {
+				public void run() {
+					Object[] rData = (Object[])getData();
+					ImageArea a = (ImageArea)rData[0];
+					a.showImage((Image)rData[1],
+							(String)rData[2]);
+				}
+			});
+			return;
 		}
-		setText("Loading image...");	//i18n
+
+		currentRotation = 0;
+		imageInfoText = imageInfo;
 		fullSizeImage = image;
-		loadCompleteImage(fullSizeImage);	//load the whole image
 		showCurrentImage();	//rotate, scale, and display
 	}
 
@@ -118,6 +155,24 @@ public class ImageArea extends JLabel
 
 	/** Redisplay the current image. */
 	public void showCurrentImage() {
+		if (SwingUtilities.isEventDispatchThread()) {
+			//Run this outside the event thread
+			worker.invoke(new WorkerTask(this) {
+				public void run() {
+					ImageArea a = (ImageArea)getData();
+					a.showCurrentImage();
+				}
+			});
+			return;
+		}
+
+		setIcon(null);
+		if (fullSizeImage==null) {
+			setText("No image");	//i18n
+			return;		//nothing there
+		}
+		setText("Loading image...");	//i18n
+
 		Image srcImage;
 		switch (currentRotation) {
 		default:
@@ -155,9 +210,23 @@ public class ImageArea extends JLabel
 	public Image rotate(Image srcImage, int rotation) {
 		int w = srcImage.getWidth(null);
 		int h = srcImage.getHeight(null);
-		if (w<=0 || h<=0) {
-			String msg = "No width or height for image"; //TBD i18n
-			throw new RuntimeException(msg);
+		int waitCount=0;
+		while (w<0 || h<0) {
+			//The image has not yet started loading, so we don't
+			//know it's size.  Wait just a bit.
+			if (waitCount++>100) {
+				String msg = "Can't get image size to rotate";
+				setIcon(null);
+				setText(msg);
+				return null;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (Exception ex) {
+				//ignore
+			}
+			w = srcImage.getWidth(null);
+			h = srcImage.getHeight(null);
 		}
 		Image dstImage;
 		Graphics dstG;
@@ -190,7 +259,9 @@ public class ImageArea extends JLabel
 			break;
 		default:
 			String msg0 = "Bad rotation angle";	//TBD i18n
-			throw new RuntimeException(msg0);
+			setIcon(null);
+			setText(msg0);
+			return null;
 		}
 		dstG2.drawImage(srcImage,transform,null);
 		ImageIcon ii = new ImageIcon(dstImage);
@@ -206,6 +277,24 @@ public class ImageArea extends JLabel
 			return null;
 		int srcWidth = sourceImage.getWidth(null);
 		int srcHeight = sourceImage.getHeight(null);
+		int waitCount = 0;
+		while (srcWidth<0 || srcHeight<0) {
+			//The image has not yet started loading, so we don't
+			//know it's size.  Wait just a bit.
+			if (waitCount++>100) {
+				String msg = "Can't get image size";
+				setIcon(null);
+				setText(msg);
+				return null;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (Exception ex) {
+				//ignore
+			}
+			srcWidth = sourceImage.getWidth(null);
+			srcHeight = sourceImage.getHeight(null);
+		}
 		int winWidth = getWidth();
 		int winHeight = getHeight();
 		if (srcWidth==winWidth && srcHeight==winHeight)
@@ -237,9 +326,39 @@ public class ImageArea extends JLabel
 		viewer.infoDialog(helpText);
 	}
 
+	/** Put up a dialog showing the image info. */
+	public void showImageInfoDialog() {
+		if (imageInfoText==null)
+			imageInfoText = "(No description)";	//TBD i18n
+		viewer.infoDialog(imageInfoText);
+	}
+
+	/** Set the cursor to a busy cursor. */
+	public void setCursorBusy(boolean busy) {
+		cursorBusy = busy;
+		if (busy) {
+			setCursor(busyCursor);
+		} else {
+			setCursorVisible(cursorVisible);
+		}
+	}
+
+	/** Make the cursor visible or invisible.
+	 * If busy-cursor has been set, cursor is always visible.
+	 */
+	public void setCursorVisible(boolean visible) {
+		cursorVisible = visible;
+		if (cursorBusy)
+			return;		//busy takes priority over invisible
+		if (visible)
+			setCursor(null);
+		else
+			setCursor(invisibleCursor);
+	}
+
     //The KeyListener interface
     	public void keyPressed(KeyEvent ev) {
-		setCursor(invisibleCursor);	//turn off cursor on any key
+		setCursorVisible(false);	//turn off cursor on any key
 		int keyCode = ev.getKeyCode();
 		knownKeyPress = true;	//assume we know it
 		switch (keyCode) {
@@ -274,10 +393,15 @@ public class ImageArea extends JLabel
 		//TBD - add e to edit the text in the accopanying .txt file
 		//TBD - add i to view the text in the accopanying .txt file
 		//      in a popup dialog or superimposed on the image
+		case 'i':
+			setCursorVisible(true);	//turn on cursor
+			showImageInfoDialog();
+			setCursorVisible(false);	//turn cursor back off
+			break;
 		case 'o':	//file-open dialog
-			setCursor(null);	//turn on cursor
+			setCursorVisible(true);	//turn on cursor
 			viewer.processFileOpen();
-			setCursor(invisibleCursor);	//turn cursor back off
+			setCursorVisible(false);	//turn cursor back off
 			break;
 		case 'r':	//rotate CCW
 			rotate(1);
@@ -289,12 +413,14 @@ public class ImageArea extends JLabel
 			rotate(2);
 			break;
 		case 'x':	//exit
-			setCursor(null);	//turn on cursor
+			setCursorVisible(true);	//turn on cursor
 			viewer.processClose();
-			setCursor(invisibleCursor);	//turn cursor back off
+			setCursorVisible(false);	//turn cursor back off
 			break;
 		case '?':
+			setCursorVisible(true);	//turn on cursor
 			showHelpDialog();
+			setCursorVisible(false);	//turn cursor back off
 			break;
 		default:		//unknown key
 			if (!knownKeyPress)
@@ -316,10 +442,10 @@ public class ImageArea extends JLabel
 
     //The MouseMotionListener interface
 	public void mouseDragged(MouseEvent ev){
-		setCursor(null);	//turn cursor back on
+		setCursorVisible(true);	//turn cursor back on
 	}
 	public void mouseMoved(MouseEvent ev){
-		setCursor(null);	//turn cursor back on
+		setCursorVisible(true);	//turn cursor back on
 	}
     //End MouseMotionListener interface
 
