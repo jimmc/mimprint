@@ -21,7 +21,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.RenderedImage;
-import java.awt.MediaTracker;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.File;
@@ -44,20 +43,14 @@ public class ImageArea extends JLabel
 	/** Our ImageLister. */
 	protected ImageLister imageLister;
 
-	/** Our media tracker to load images. */
-	protected MediaTracker tracker;
-
-	/** The current unscaled and unrotated image */
-	protected Image imageSource;
+	/** Our current ImageBundle. */
+	protected ImageBundle currentImage;
 
 	/** The current rendered image source. */
 	protected RenderedImage renderedImageSource;
 
 	/** The info text about the current image. */
 	protected String imageInfoText;
-
-	/** The current image rotation in units of 90 degrees */
-	protected int currentRotation;
 
 	/** An invisible cursor. */
 	protected Cursor invisibleCursor;
@@ -95,7 +88,6 @@ public class ImageArea extends JLabel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addComponentListener(this);
-		tracker = new MediaTracker(this);
 		Toolkit toolkit = getToolkit();
 		Image cursorImage = toolkit.createImage(new byte[0]);
 		invisibleCursor = toolkit.createCustomCursor(
@@ -162,41 +154,10 @@ public class ImageArea extends JLabel
 		}
 
 		//At this point we are not in the event thread
-		currentRotation = 0;
+		currentImage = imageBundle;
 		imageInfoText = imageInfo;
-		if (app.useJAI()) {
-			app.debugMsg("loading current image JAI");
-			renderedImageSource =
-				imageBundle.getScaledRenderedImage();
-			app.debugMsg("loaded current image JAI");
-		} else {
-			app.debugMsg("loading current image scaled");
-			imageSource = imageBundle.getScaledImage();
-			if (imageSource==null) {
-				app.debugMsg("loading current image unscaled");
-				imageSource = imageBundle.getImage();
-			}
-			app.debugMsg("loaded current image");
-		}
 		showCurrentImage();	//rotate, scale, and display
 		revalidate();
-	}
-
-	/** Load an image, wait for it to be loaded. */
-	public void loadCompleteImage(Image image) {
-		tracker.addImage(image,0);
-		boolean loadStatus=false;
-		try {
-			app.debugMsg("Waiting for image "+image);
-			loadStatus = tracker.waitForID(0,20000);
-		} catch (InterruptedException ex) {
-			String msg = "Interrupted waiting for image to load";
-				//TBD i18n, include ex.getMessage()
-			throw new RuntimeException(msg);
-		}
-		app.debugMsg("Done waiting for image "+image+
-			", loadStatus="+loadStatus);
-		tracker.removeImage(image,0);
 	}
 
 	/** Redisplay the current image. */
@@ -213,169 +174,35 @@ public class ImageArea extends JLabel
 		}
 
 		setIcon(null);
-		if (imageSource==null && renderedImageSource==null) {
+		if (currentImage==null) {
 			setText("No image");	//i18n
 			return;		//nothing there
 		}
 		setText("Loading image...");	//i18n
 
-		if (renderedImageSource!=null) {
-			app.debugMsg("ShowCurrentImage X");
-			setText(null);
-			repaint();
-			//TBD - handle rotation of RenderedImages
-			return;
-		}
+		currentImage.setDisplaySize(getWidth(),getHeight());
+			//make sure the image size is correct
 
-		app.debugMsg("ShowCurrentImage A imageSource="+imageSource);
-		Image srcImage;
-		switch (currentRotation) {
-		default:
-		case 0:	srcImage = imageSource; break;
-		case 1: srcImage = getRotatedImage(imageSource,90); break;
-		case 2: srcImage = getRotatedImage(imageSource,180); break;
-		case 3: srcImage = getRotatedImage(imageSource,270); break;
+		if (app.useJAI()) {
+			app.debugMsg("ShowCurrentImage X");
+			renderedImageSource =
+				currentImage.getTransformedRenderedImage();
+			repaint();
+		} else {
+			app.debugMsg("ShowCurrentImage A");
+			Image xImage = currentImage.getTransformedImage();
+			app.debugMsg("ShowCurrentImage B");
+			ImageIcon ii = new ImageIcon(xImage);
+			app.debugMsg("ShowCurrentImage C");
+			setIcon(ii);
 		}
-		app.debugMsg("ShowCurrentImage B srcImage="+srcImage);
-		Image scaledImage = getScaledImage(srcImage);
-		app.debugMsg("ShowCurrentImage C scaledImage="+scaledImage);
-		ImageIcon ii = new ImageIcon(scaledImage);
-		app.debugMsg("ShowCurrentImage D");
-		loadCompleteImage(scaledImage);	//wait for it
-		app.debugMsg("ShowCurrentImage E");
 		setText(null);
-		setIcon(ii);
-		app.debugMsg("ShowCurrentImage F");
 	}
 
 	/** Rotate the current image in increments of 90 degrees. */
 	public void rotate(int inc) {
-		currentRotation += inc;
-		if (currentRotation>=4)
-			currentRotation = 0;
-		else if (currentRotation<0)
-			currentRotation = 3;
+		currentImage.rotate(inc);
 		showCurrentImage();
-	}
-
-	/** Rotate the specified image.
-	 * @param srcImage The image to rotate.  The image must already
-	 *        be loaded so that we can get the width and height
-	 *        without waiting.
-	 * @param rotation Degress counterclockwise to rotate.  Must be one of
-	 *        90, 180, or 270.
-	 * @return A new image rotated by the specified number of degrees.
-	 *        The image may not yet be fully generated.
-	 */
-	public Image getRotatedImage(Image srcImage, int rotation) {
-		app.debugMsg("getRotatedImage");
-		int w = srcImage.getWidth(null);
-		int h = srcImage.getHeight(null);
-		int waitCount=0;
-		while (w<0 || h<0) {
-			//The image has not yet started loading, so we don't
-			//know it's size.  Wait just a bit.
-			if (waitCount++>100) {
-				String msg = "Can't get image size to rotate";
-				setIcon(null);
-				setText(msg);
-				return null;
-			}
-			try {
-				Thread.sleep(100);
-			} catch (Exception ex) {
-				//ignore
-			}
-			w = srcImage.getWidth(null);
-			h = srcImage.getHeight(null);
-		}
-		Image dstImage;
-		Graphics dstG;
-		Graphics2D dstG2;
-		AffineTransform transform;
-		switch (rotation) {
-		case 90:
-			dstImage = createImage(h,w);
-			dstG = dstImage.getGraphics();
-			dstG2 = (Graphics2D)dstG;
-			transform = new AffineTransform(
-				0.0, -1.0, 1.0,  0.0,
-				(double)0, (double)w );
-			break;
-		case 180:
-			dstImage = createImage(w,h);
-			dstG = dstImage.getGraphics();
-			dstG2 = (Graphics2D)dstG;
-			transform = new AffineTransform(
-				-1.0,  0.0, 0.0, -1.0,
-				(double)w, (double)h );
-			break;
-		case 270:
-			dstImage = createImage(h,w);
-			dstG = dstImage.getGraphics();
-			dstG2 = (Graphics2D)dstG;
-			transform = new AffineTransform(
-				 0.0, 1.0, -1.0, 0.0,
-				 (double)h, (double)0 );
-			break;
-		default:
-			String msg0 = "Bad rotation angle";	//TBD i18n
-			setIcon(null);
-			setText(msg0);
-			return null;
-		}
-		dstG2.drawImage(srcImage,transform,null);
-		ImageIcon ii = new ImageIcon(dstImage);
-		//loadCompleteImage(dstImage);		//load the whole image
-		return dstImage;
-	}
-
-	/** Get a scaled version of the given image, which fits into
-	 * our window at maximum size.
-	 */
-	public Image getScaledImage(Image sourceImage) {
-		app.debugMsg("getScaledIimage");
-		if (sourceImage==null)
-			return null;
-		int srcWidth = sourceImage.getWidth(null);
-		int srcHeight = sourceImage.getHeight(null);
-		int waitCount = 0;
-		while (srcWidth<0 || srcHeight<0) {
-			//The image has not yet started loading, so we don't
-			//know it's size.  Wait just a bit.
-			if (waitCount++>100) {
-				String msg = "Can't get image size";
-				setIcon(null);
-				setText(msg);
-				return null;
-			}
-			try {
-				Thread.sleep(100);
-			} catch (Exception ex) {
-				//ignore
-			}
-			srcWidth = sourceImage.getWidth(null);
-			srcHeight = sourceImage.getHeight(null);
-		}
-		int winWidth = getWidth();
-		int winHeight = getHeight();
-		if (srcWidth==winWidth && srcHeight==winHeight)
-			return sourceImage;	//exact match
-		double widthRatio = ((double)winWidth)/((double)srcWidth);
-		double heightRatio = ((double)winHeight)/((double)srcHeight);
-		int dstWidth;
-		int dstHeight;
-		if (widthRatio<heightRatio) {
-			dstWidth = winWidth;
-			dstHeight = (int)(srcHeight * widthRatio);
-		} else {
-			dstWidth = (int)(srcWidth * heightRatio);
-			dstHeight = winHeight;
-		}
-		Image scaledImage = sourceImage.getScaledInstance(
-						dstWidth,dstHeight,
-						Image.SCALE_FAST);
-		return scaledImage;
 	}
 
 	/** We return true to allow keyboard focus and thus input. */
@@ -517,8 +344,7 @@ public class ImageArea extends JLabel
 	public void componentMoved(ComponentEvent ev){}
 	public void componentResized(ComponentEvent ev){
 		app.debugMsg("componentResized");
-		if (imageSource!=null)
-			showCurrentImage();
+		showCurrentImage();
 	}
 	public void componentShown(ComponentEvent ev){}
     //End ComponentListener interface

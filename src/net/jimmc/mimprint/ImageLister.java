@@ -500,7 +500,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				setStatus("Loading next image");
 				imageArea.setCursorBusy(true);
 				app.debugMsg("imageLoader load next image");
-				nextImage.loadScaledImage();
+				nextImage.loadTransformedImage();
 				app.debugMsg("imageLoader done next image");
 				imageArea.setCursorBusy(false);
 				setStatus("");
@@ -509,7 +509,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 				setStatus("Loading previous image");
 				imageArea.setCursorBusy(true);
 				app.debugMsg("imageLoader load prev image");
-				previousImage.loadScaledImage();
+				previousImage.loadTransformedImage();
 				app.debugMsg("imageLoader done prev image");
 				imageArea.setCursorBusy(false);
 				setStatus("");
