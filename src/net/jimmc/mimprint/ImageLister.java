@@ -339,8 +339,12 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		sel += inc;
 		int maxIndex = list.getModel().getSize();
 		if (sel<0 || sel>=maxIndex) {
+			//TBD - put up dialog asking if we should move to
+			//the next/previous directory
 			//New selection value is out of range, ignore it
 			getToolkit().beep();
+			//TBD - put an error message in the status line in case
+			//the beep is turned off.
 			return;
 		}
 		list.setSelectedIndex(sel);
