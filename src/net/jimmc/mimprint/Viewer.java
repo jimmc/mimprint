@@ -95,7 +95,7 @@ public class Viewer extends JsFrame {
 		imageArea.setImageLister(imageLister);
 		JSplitPane splitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,imageLister,imageArea);
-		splitPane.setBackground(Color.black);
+		splitPane.setBackground(imageArea.getBackground());
 		getContentPane().add(splitPane);
 	}
 
@@ -114,6 +114,11 @@ public class Viewer extends JsFrame {
 	public void open(File targetFile) {
 		currentOpenFile = targetFile;
 		imageLister.open(targetFile);
+	}
+
+	/** Set our status info. */
+	public void setStatus(String status) {
+		imageLister.setStatus(status);
 	}
 
 	/** Process the File->Open menu command. */
