@@ -217,13 +217,12 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		dirInfoLabel.setText(dirInfo);
 	}
 
-	/** Display new file info.
+	/** Get the text associated with a file.
 	 * @return The info about the image
 	 */
-	protected String setFileInfo(String path) {
+	protected String getFileInfo(String path) {
 		if (path==null) {
-			fileInfoLabel.setText("");	//no file, show nothing
-			return null;
+			return null;	//no file, so no info
 		}
 		File f = new File(path);
 
@@ -257,11 +256,14 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			}
 			fileInfo += "\n"+fileText;
 		}
-
-		//Display the info
-		fileInfoLabel.setText(fileInfo);
-
 		return fileInfo;
+	}
+
+	protected void setFileInfo(String info) {
+		//Display the info
+		if (info==null)
+			info = "";
+		fileInfoLabel.setText(info);
 	}
 
 	/** Set the contents of the status area. */
@@ -410,7 +412,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			}
 			setDebugStatus("current image loaded");
 			path = currentImage.getPath();
-			String imageInfo = setFileInfo(path);
+			String imageInfo = getFileInfo(path);
+			setFileInfo(imageInfo);
 			imageArea.showImage(image,imageInfo);
 		}
 		viewer.setTitleFileName(path);
