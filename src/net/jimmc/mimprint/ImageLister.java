@@ -274,6 +274,26 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		fileInfoLabel.setText(info);
 	}
 
+	/** Write new text associated with a file.
+	 * @param path The path to the image file.
+	 * @param text The text about that image.
+	 */
+	protected void writeFileText(String path, String text) {
+		if (path==null) {
+			return;	//no file, so no info
+		}
+		if (text.length()>0 && !text.endsWith("\n"))
+			text = text + "\n";	//terminate with a newline
+		try {
+			String textPath = getTextFileNameForImage(path);
+			File f = new File(textPath);
+			FileUtil.writeFile(f,text);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);  //TBD more info
+		}
+		displayCurrentImage();	//refresh image text
+	}
+
 	/** Set the contents of the status area. */
 	public void setStatus(String status) {
 		statusLabel.setText(status);
@@ -282,10 +302,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Get the text for the specified file. */
 	protected String getFileText(String path) {
 		try {
-			int dot = path.lastIndexOf('.');
-			if (dot<0)
-				return null;
-			String textPath = path.substring(0,dot+1)+"txt";
+			String textPath = getTextFileNameForImage(path);
 			File f = new File(textPath);
 			return FileUtil.readFile(f);
 		} catch (Exception ex) {
@@ -304,6 +321,19 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		    extension.equals("jpeg"))
 			return true;
 		return false;
+	}
+
+	/** Get the name of the text file which contains the info
+	 * about the specified image file.
+	 * @param path The path to the image file.
+	 * @return The text file name, or null if we can't figure it out.
+	 */
+	protected String getTextFileNameForImage(String path) {
+		int dot = path.lastIndexOf('.');
+		if (dot<0)
+			return null;
+		String textPath = path.substring(0,dot+1)+"txt";
+		return textPath;
 	}
 
     //The ListSelectionListener interface
@@ -417,6 +447,16 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			imageArea.showImage(currentImage,imageInfo);
 		}
 		viewer.setTitleFileName(path);
+	}
+
+	protected String getCurrentImageFileText() {
+		String path = currentImage.getPath();
+		return getFileText(path);
+	}
+
+	protected void setCurrentImageFileText(String imageText) {
+		String path = currentImage.getPath();
+		writeFileText(path,imageText);
 	}
 
 	/** Move the selection up one item and show that file. */

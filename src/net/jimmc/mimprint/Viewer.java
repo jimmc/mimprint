@@ -18,8 +18,11 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.text.MessageFormat;
+import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 
@@ -202,6 +205,35 @@ public class Viewer extends JsFrame {
 		}
 		fullImageP = fullImage;
 		validate();
+	}
+
+	/** Display the specified text, allow the user to edit it.
+	 * @param title The title of the editing dialog.
+	 * @param text The text to display and edit.
+	 * @return The edited string, or null if cancelled.
+	 */
+	protected String editTextDialog(String title, String text) {
+		JTextArea tx = new JTextArea(text);
+		JScrollPane scroll = new JScrollPane(tx);
+		scroll.setPreferredSize(new Dimension(500,200));
+		JOptionPane pane =
+			new JOptionPane(scroll,
+				JOptionPane.PLAIN_MESSAGE,
+				JOptionPane.OK_CANCEL_OPTION);
+		JDialog dlg = pane.createDialog(this,title);
+		dlg.setResizable(true);
+		pane.setInitialValue(null);
+		pane.selectInitialValue();
+		dlg.show();	//get user's changes
+
+		Object v = pane.getValue();
+		if (!(v instanceof Integer))
+			return null;		//CLOSED_OPTION
+		int n = ((Integer)v).intValue();
+		if (n==JOptionPane.NO_OPTION || n==JOptionPane.CANCEL_OPTION)
+			return null;		//canceled
+		String newText = tx.getText();
+		return newText;
 	}
 
 	/** Get a string from our resources. */

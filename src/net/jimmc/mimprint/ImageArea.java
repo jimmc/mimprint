@@ -230,6 +230,19 @@ public class ImageArea extends JLabel
 		viewer.infoDialog(helpText);
 	}
 
+	/** Put up an editing dialog showing the image info. */
+	public void showImageEditDialog() {
+		String imageText = imageLister.getCurrentImageFileText();
+		if (imageText==null)
+			imageText = "";
+		String title = "Info text for "+currentImage.path;
+				//TBD i18n and better title
+		String newImageText = viewer.editTextDialog(title,imageText);
+		if (newImageText==null)
+			return;		//cancelled
+		imageLister.setCurrentImageFileText(newImageText);
+	}
+
 	/** Put up a dialog showing the image info. */
 	public void showImageInfoDialog() {
 		if (imageInfoText==null)
@@ -294,9 +307,11 @@ public class ImageArea extends JLabel
 		case 'L'-0100:	//control-L, refresh
 			showCurrentImage();
 			break;
-		//TBD - add e to edit the text in the accopanying .txt file
-		//TBD - add i to view the text in the accopanying .txt file
-		//      in a popup dialog or superimposed on the image
+		case 'e':
+			setCursorVisible(true);	//turn on cursor
+			showImageEditDialog();
+			setCursorVisible(false);	//turn cursor back off
+			break;
 		case 'i':
 			setCursorVisible(true);	//turn on cursor
 			showImageInfoDialog();
