@@ -58,8 +58,12 @@ public class ImageBundle {
 		return listIndex;
 	}
 
-	/** Load the scaled version of our image. */
+	/** Load the scaled version of our image.
+	 * This method is typically run in a separate image-loader thread.
+	 */
 	public void loadScaledImage() {
+		if (scaledImage!=null)
+			return;		//already loaded
 		imageArea.loadCompleteImage(image);
 		Image si = imageArea.getScaledImage(image);
 		imageArea.loadCompleteImage(si);
