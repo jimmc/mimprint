@@ -18,7 +18,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.text.MessageFormat;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
