@@ -6,12 +6,14 @@
 package jimmc.jiviewer;
 
 import jimmc.util.FileUtil;
+import jimmc.util.MoreException;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import javax.swing.event.ListSelectionListener;
@@ -115,7 +117,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		};
 		imageLoader.setPriority(imageLoader.getPriority()-2);
 		imageLoader.start();
-		setDebugStatus("image loader thread started");
+		app.debugMsg("image loader thread started");
 	}
 
 	/** Initialize a thread to update our display. */
@@ -127,7 +129,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		};
 		displayUpdater.setPriority(imageLoader.getPriority()-1);
 		displayUpdater.start();
-		setDebugStatus("display updater thread started");
+		app.debugMsg("display updater thread started");
 	}
 
 	/** Set the ImageArea. */
@@ -157,6 +159,13 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 					"error.NoSuchFile",eArgs);
 			viewer.errorDialog(msg);
 			return;
+		}
+		try {
+			targetFile = new File(targetFile.getCanonicalPath());
+			//Clean up the path,
+			//to avoid problems when attempting to traverse dirs.
+		} catch (IOException ex) {
+			throw new MoreException(ex);
 		}
 		File formerTargetDirectory = targetDirectory;
 		if (targetFile.isDirectory()) {
@@ -270,9 +279,6 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	public void setStatus(String status) {
 		statusLabel.setText(status);
 	}
-	public void setDebugStatus(String status) {
-		//System.out.println(status);
-	}
 
 	/** Get the text for the specified file. */
 	protected String getFileText(String path) {
@@ -367,6 +373,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** Set up the next and previous images. */
 	protected void setupAdjacentImages() {
+		if (!app.useLookAhead())
+			return;		//lookahead disabled
 		int currentSelection = (currentImage==null)?
 					-1:currentImage.getListIndex();
 		int maxIndex = list.getModel().getSize();
@@ -404,13 +412,13 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			path = null;
 			imageArea.showText("No image");
 		} else {
-			setDebugStatus("loading current image scaled");
+			app.debugMsg("loading current image scaled");
 			Image image = currentImage.getScaledImage();
 			if (image==null) {
-				setDebugStatus("loading current image unscaled");
+				app.debugMsg("loading current image unscaled");
 				image = currentImage.getImage();
 			}
-			setDebugStatus("current image loaded");
+			app.debugMsg("loaded current image "+image);
 			path = currentImage.getPath();
 			String imageInfo = getFileInfo(path);
 			setFileInfo(imageInfo);
@@ -478,11 +486,11 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 	/** The image loader thread, which loads images in the background. */
 	public void imageLoaderRun() {
-		setDebugStatus("image loader thread running");
+		app.debugMsg("image loader thread running");
 		while (true) {
 			synchronized(imageLoader) {
 				try {
-					setDebugStatus(
+					app.debugMsg(
 						"image loader thread waiting");
 					imageLoader.wait();
 				} catch (InterruptedException ex) {
@@ -495,18 +503,22 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			} catch (InterruptedException ex) {
 				//ignore
 			}
-			setDebugStatus("image loader thread awakened");
+			app.debugMsg("image loader thread awakened");
 			if (nextImage!=null) {
 				setStatus("Loading next image");
 				imageArea.setCursorBusy(true);
+				app.debugMsg("imageLoader load next image");
 				nextImage.loadScaledImage();
+				app.debugMsg("imageLoader done next image");
 				imageArea.setCursorBusy(false);
 				setStatus("");
 			}
 			if (previousImage!=null) {
 				setStatus("Loading previous image");
 				imageArea.setCursorBusy(true);
+				app.debugMsg("imageLoader load prev image");
 				previousImage.loadScaledImage();
+				app.debugMsg("imageLoader done prev image");
 				imageArea.setCursorBusy(false);
 				setStatus("");
 			}
@@ -517,7 +529,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	 * display so that the Event thread will be freed up.
 	 */
 	public void displayUpdaterRun() {
-		setDebugStatus("display updater thread running");
+		app.debugMsg("display updater thread running");
 		while (true) {
 			//Check to see if the list selection changed will
 			//we were busy updating.  If so, don't do the wait.
@@ -528,15 +540,17 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			    //selection is correct, wait for a notify
 			    synchronized(displayUpdater) {
 				try {
-					setDebugStatus(
+					app.debugMsg(
 					    "display updater thread waiting");
 					displayUpdater.wait();
 				} catch (InterruptedException ex) {
 					//ignore
 				}
+				app.debugMsg("display updater thread awakened");
 			    }
+			} else {
+				app.debugMsg("display updater thread no wait");
 			}
-			setDebugStatus("display updater thread awakened");
 			//Update the display
 			setupCurrentImage();
 			displayCurrentImage();
@@ -568,9 +582,11 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			parentDir = new File(".");
 		String[] siblings = parentDir.list();
 		Arrays.sort(siblings);
-		int dirIndex = Arrays.binarySearch(siblings,dir.getName());
+		String dirName = dir.getName();
+		int dirIndex = Arrays.binarySearch(siblings,dirName);
 		if (dirIndex<0) {
-			String msg = "Can't find dir "+dir+" in parent list";
+			String msg = "Can't find dir "+dirName+
+				" in parent list";
 			throw new RuntimeException(msg);
 		}
 		int newDirIndex = dirIndex + move;
