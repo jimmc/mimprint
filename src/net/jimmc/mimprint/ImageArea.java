@@ -142,25 +142,19 @@ public class ImageArea extends JLabel
 		setText(text);
 	}
 
-	/** Show an image.
-	 */
-	public void showImage(Image image) {
-		showImage(image,null);
-	}
-
 	/** Show a rendered image, set up text info about the image.
 	 */
-	public void showImage(RenderedImage rImage, String imageInfo) {
-		app.debugMsg("showImage (rendered) "+rImage);
+	public void showImage(ImageBundle imageBundle, String imageInfo) {
+		app.debugMsg("showImage "+imageBundle);
 		if (SwingUtilities.isEventDispatchThread()) {
 			//Run this outside the event thread
-			Object[] data = { this, rImage, imageInfo };
+			Object[] data = { this, imageBundle, imageInfo };
 			worker.invoke(new WorkerTask(data) {
 				public void run() {
 					Object[] rData = (Object[])getData();
 					ImageArea a = (ImageArea)rData[0];
 					a.showImage(
-						(RenderedImage)rData[1],
+						(ImageBundle)rData[1],
 						(String)rData[2]);
 				}
 			});
@@ -170,34 +164,22 @@ public class ImageArea extends JLabel
 		//At this point we are not in the event thread
 		currentRotation = 0;
 		imageInfoText = imageInfo;
-		renderedImageSource = rImage;
+		if (app.useJAI()) {
+			app.debugMsg("loading current image JAI");
+			renderedImageSource =
+				imageBundle.getScaledRenderedImage();
+			app.debugMsg("loaded current image JAI");
+		} else {
+			app.debugMsg("loading current image scaled");
+			imageSource = imageBundle.getScaledImage();
+			if (imageSource==null) {
+				app.debugMsg("loading current image unscaled");
+				imageSource = imageBundle.getImage();
+			}
+			app.debugMsg("loaded current image");
+		}
 		showCurrentImage();	//rotate, scale, and display
 		revalidate();
-	}
-
-	/** Show an image, set up text info about the image.
-	 */
-	public void showImage(Image image, String imageInfo) {
-		app.debugMsg("showImage "+image);
-		if (SwingUtilities.isEventDispatchThread()) {
-			//Run this outside the event thread
-			Object[] data = { this, image, imageInfo };
-			worker.invoke(new WorkerTask(data) {
-				public void run() {
-					Object[] rData = (Object[])getData();
-					ImageArea a = (ImageArea)rData[0];
-					a.showImage((Image)rData[1],
-							(String)rData[2]);
-				}
-			});
-			return;
-		}
-
-		//At this point we are not in the event thread
-		currentRotation = 0;
-		imageInfoText = imageInfo;
-		imageSource = image;
-		showCurrentImage();	//rotate, scale, and display
 	}
 
 	/** Load an image, wait for it to be loaded. */
@@ -241,6 +223,7 @@ public class ImageArea extends JLabel
 			app.debugMsg("ShowCurrentImage X");
 			setText(null);
 			repaint();
+			//TBD - handle rotation of RenderedImages
 			return;
 		}
 

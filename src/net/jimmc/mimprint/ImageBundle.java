@@ -34,6 +34,9 @@ public class ImageBundle {
 	/** The scaled image. */
 	protected Image scaledImage;
 
+	/** The scaled renderedImage. */
+	protected RenderedImage scaledRenderedImage;
+
 	/** The index of this image in the containing list. */
 	protected int listIndex;
 
@@ -57,21 +60,6 @@ public class ImageBundle {
 	public RenderedImage createRenderedImage(String path) {
 		RenderedOp rFile = JAI.create("fileLoad",path);
 		return rFile;
-	    /*
-		ParameterBlock pb = new ParameterBlock();
-		pb.addSource(rFile);
-		float xScale = (float)0.5;
-		float yScale = (float)0.5;
-		float zero = (float)0.0;
-		pb.add(xScale);
-		pb.add(yScale);
-		pb.add(zero);	//x translation
-		pb.add(zero);	//y translation
-		pb.add(Interpolation.getInstance(
-			Interpolation.INTERP_BILINEAR));
-		RenderedOp rScaled = JAI.create("scale",pb);
-		return rScaled;
-	    */
 	}
 
 	/** Get the path for our original image. */
@@ -94,6 +82,11 @@ public class ImageBundle {
 		return scaledImage;
 	}
 
+	/** Get the scaled rendered image from this bundle. */
+	public RenderedImage getScaledRenderedImage() {
+		return scaledRenderedImage;
+	}
+
 	/** Get our list index. */
 	public int getListIndex() {
 		return listIndex;
@@ -103,6 +96,11 @@ public class ImageBundle {
 	 * This method is typically run in a separate image-loader thread.
 	 */
 	public void loadScaledImage() {
+		if (renderedImage!=null) {
+			//Produce a scaled version of the renderedImage
+			loadScaledRenderedImage();
+			return;
+		}
 		if (scaledImage!=null)
 			return;		//already loaded
 		app.debugMsg("Bundle loadScaledImage A image="+image);
@@ -113,6 +111,30 @@ public class ImageBundle {
 		imageArea.loadCompleteImage(si);
 		app.debugMsg("Bundle loadScaledImage D");
 		scaledImage = si;
+	}
+
+	/** Load the scaled version of our renderedImage.
+	 */
+	public void loadScaledRenderedImage() {
+		if (scaledRenderedImage!=null)
+			return;
+		ParameterBlock pb = new ParameterBlock();
+		pb.addSource(renderedImage);
+
+		//scale the image to fit into the imageArea
+		int rw = renderedImage.getWidth();
+		int rh = renderedImage.getHeight();
+		float xScale = imageArea.getWidth()/(float)rw;
+		float yScale = imageArea.getHeight()/(float)rh;
+		float scale = (xScale<yScale)?xScale:yScale;
+		float zero = (float)0.0;
+		pb.add(scale);	//x scale
+		pb.add(scale);	//y scale
+		pb.add(zero);	//x translation
+		pb.add(zero);	//y translation
+		pb.add(Interpolation.getInstance(
+			Interpolation.INTERP_BILINEAR));
+		scaledRenderedImage = JAI.create("scale",pb);
 	}
 }
 
