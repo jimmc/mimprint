@@ -50,6 +50,7 @@ JAR_LIST_PROPS:= $(MAIN_PROPS:src/%=%)
 
 RELDIR       := $(BASENAME)-$(_VERSION)
 RELBINFILES  := README VERSION $(JARFILE)
+RELSRCS      := Makefile makeinfo/*.mak $(SRCS)
 
 default:	objdir jar
 
@@ -118,36 +119,19 @@ jiviewer_doc:;	$(JAVADOC) -J-mx50m -d doc/api -classpath $(CLASSPATH) \
 			$(PKGS)
 
 #Make the release directory, including source and docs
-rel:;		mkdir $(RELDIR)
-		cp -p $(RELFILES) $(RELDIR)
-		mkdir $(RELDIR)/dat
-		cp -p $(RELDATFILES) $(RELDIR)/dat
-		mkdir $(RELDIR)/src
-		tar cf - $(KITSRCS) | (cd $(RELDIR)/src && tar xf -)
-		mkdir $(RELDIR)/doc
-		find doc \
-		    -name \*.html -print -o \
-		    -name \*.css -print -o \
-		    -name package-list -print | \
-			tar cf - --files-from - | \
-			(cd $(RELDIR) && tar xf - )
+rel:		relbin relsrc
 
-rel_examples:
-		mkdir $(RELDIR)/examples
-		find examples -name CVS -prune -o \
-			-name '*.jpg' -print | \
-			tar cf - --files-from - | \
-			(cd $(RELDIR) && tar xf - )
+#Make the release directory with just the binary-kit files
+relbin:;	mkdir $(RELDIR)
+		cp -p $(RELBINFILES) $(RELDIR)
+
+relsrc:;	zip -r $(RELDIR)/src.zip $(RELSRCS)
 
 #After making the release directory, make a zip file for it
 relzip:;	zip -r $(RELDIR).zip $(RELDIR)
 
 #After making the release directory, make a gzipped tar file for it
 relgz:;		tar czf $(RELDIR).tgz $(RELDIR)
-
-#Make a kit directory to distribute the source
-kit:;		mkdir kit
-		tar cf - $(KITSRCS) | (cd kit && tar xf -)
 
 #After making relgz and relzip, copy those files and the README file into
 #the archive directory with the appropriate names.
