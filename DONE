@@ -30,3 +30,4 @@
 - Don't ask for confirmation on exit. [021211]
 - Add 's' ImageArea command to toggle image scaling. [030514]
 - Add 'e' ImageArea command to edit image info. [030606]
+- Read TZ file in image directory to set and display time zone. [030702]
