@@ -1,0 +1,10 @@
+- Make window resize use non-Event thread so that we get the "Loading"
+  (or some similar) prompt will the image is resizing. (020817)
+- Make ImageArea keyboard commands use non-Event thread so that we get
+  the "Loading" prompt while rotating. (020817)
+- Make preload of adjacent pictures preload a full-size scaled version if
+  we are running in full-screen mode. (020817)
+- If an image is rotated, remember that in the ImageBundle so that if we
+  back up to it right away, we still see the rotated image. (020817)
+- While busy loading an image, change the cursor in the image area to a
+  busy cursor so we can tell when we are in full-screen mode. (020817)
