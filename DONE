@@ -1,3 +1,8 @@
 - Start DONE list. [020817]
 - When starting on a specified file, actually display that file. [020817]
 - When opening a directory, auto-select the first file. [020817]
+- Improve response by not doing as much in the Event thread. [020817]
+- Add status line. [020817]
+- When at end/start of dir, move to next/prev dir. [020817]
+- Add file size, date, and "M of N" to file info area. [020817]
+- Use gray background for image area. [020817]

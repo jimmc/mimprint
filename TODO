@@ -8,3 +8,4 @@
   back up to it right away, we still see the rotated image. (020817)
 - While busy loading an image, change the cursor in the image area to a
   busy cursor so we can tell when we are in full-screen mode. (020817)
+- Use larger font in ImageArea for label text. (020817)
