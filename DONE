@@ -6,3 +6,7 @@
 - When at end/start of dir, move to next/prev dir. [020817]
 - Add file size, date, and "M of N" to file info area. [020817]
 - Use gray background for image area. [020817]
+- Display "Loading image" when rotating and screen-refresh. (020817) [020818]
+- Put up a busy cursor while background job is preloading. (020817) [020818]
+- Use 20pt font for "Loading" message. (020817) [020818]
+- Add 'i' command to show dialog with image info. [020818]
