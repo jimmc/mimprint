@@ -5,6 +5,7 @@
 
 package jimmc.jiviewer;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ComponentEvent;
@@ -59,6 +60,8 @@ public class ImageArea extends JLabel
 		super();
 		this.app = app;
 		this.viewer = viewer;
+		setBackground(Color.gray);	//set up neutral background
+		setForeground(Color.white);	//and color for status info
 		setPreferredSize(new Dimension(800,600));
 		setHorizontalAlignment(CENTER);
 		addKeyListener(this);
@@ -89,10 +92,10 @@ public class ImageArea extends JLabel
 		setIcon(null);
 		currentRotation = 0;
 		if (image==null) {
-			setText("No image");
+			setText("No image");	//i18n
 			return;		//nothing there
 		}
-		setText("Loading image...");
+		setText("Loading image...");	//i18n
 		fullSizeImage = image;
 		loadCompleteImage(fullSizeImage);	//load the whole image
 		showCurrentImage();	//rotate, scale, and display
@@ -268,6 +271,9 @@ public class ImageArea extends JLabel
 		case 'L'-0100:	//control-L, refresh
 			showCurrentImage();
 			break;
+		//TBD - add e to edit the text in the accopanying .txt file
+		//TBD - add i to view the text in the accopanying .txt file
+		//      in a popup dialog or superimposed on the image
 		case 'o':	//file-open dialog
 			setCursor(null);	//turn on cursor
 			viewer.processFileOpen();
