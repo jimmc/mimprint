@@ -571,12 +571,21 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			throw new RuntimeException(msg);
 		}
 		int newDirIndex = dirIndex + move;
-		if (newDirIndex<0 || newDirIndex>=siblings.length) {
-			//We are the last directory in the list, give up.
-			return null;
-			//TBD - we could recurse, move to the next/prev parent
-			//dir of our parentDir,
-			//and return the first/last dir there.
+		while (newDirIndex<0 || newDirIndex>=siblings.length) {
+			//We are at the end/start of our sibling directories,
+			//so recurse up the directory tree and move the
+			//parent to the next directory.
+			parentDir = getRelativeDirectory(parentDir,move);
+			if (parentDir==null)
+				return null;
+			siblings = parentDir.list();
+			if (siblings.length==0)
+				continue;	//no files, try next dir
+			Arrays.sort(siblings);
+			if (newDirIndex<0)	//backing up
+				newDirIndex = siblings.length-1;
+			else
+				newDirIndex = 0;
 		}
 		return new File(parentDir,siblings[newDirIndex]);
 	}
