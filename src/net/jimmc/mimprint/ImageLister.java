@@ -89,7 +89,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	public void open(File targetFile) {
 		if (!targetFile.exists()) {
 			Object[] eArgs = { targetFile.getName() };
-			String msg = app.getResourceFormattedString(
+			String msg = app.getResourceFormatted(
 					"error.NoSuchFile",eArgs);
 			viewer.errorDialog(msg);
 			return;

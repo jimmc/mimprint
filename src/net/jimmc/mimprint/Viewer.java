@@ -6,7 +6,7 @@
 package jimmc.jiviewer;
 
 import jimmc.swing.GridBagger;
-import jimmc.swing.GenericFrame;
+import jimmc.swing.JsFrame;
 import jimmc.swing.MenuAction;
 
 import java.awt.Color;
@@ -24,7 +24,7 @@ import javax.swing.JSplitPane;
 
 /** The main class for the jiviewer program.
  */
-public class Viewer extends GenericFrame {
+public class Viewer extends JsFrame {
 	/** Our application info. */
 	protected App app;
 
@@ -46,6 +46,7 @@ public class Viewer extends GenericFrame {
 	/** Create our frame. */
 	public Viewer(App app) {
 		super();
+		setResourceSource(app);
 		this.app = app;
 		setJMenuBar(createMenuBar());
 		initForm();

@@ -6,6 +6,7 @@
 package jimmc.jiviewer;
 
 import jimmc.swing.AboutWindow;
+import jimmc.util.ResourceSource;
 
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
@@ -14,13 +15,7 @@ import java.util.ResourceBundle;
 /** A main class for parsing command line arguments and other application-wide
  * information.
  */
-public class App {
-	/** The info to display in the About dialog. */
-	public static final String aboutInfo =
-		"jiviewer\n"+
-		"Copyright 2001 Jim McBeath\n"+
-		"v0.0.0  September 15, 2001";
-
+public class App implements ResourceSource {
 	/** Our viewer window. */
 	protected Viewer viewer;
 
@@ -39,8 +34,10 @@ public class App {
 	/** Run the main stuff. */
 	public void doMain(String[] args) {
 		initResources();
-		AboutWindow.setAboutTitle("About jiviewer");	//TD i18n
-		AboutWindow.setAboutInfo(aboutInfo);	//TBD i18n
+		String aboutTitle = getResourceString("about.title");
+		String aboutInfo = getResourceString("about.info");
+		AboutWindow.setAboutTitle(aboutTitle);
+		AboutWindow.setAboutInfo(aboutInfo);
 		viewer = new Viewer(this);
 		parseArgs(args);
 		if (target==null)
@@ -54,14 +51,14 @@ public class App {
 		for (int i=0; i<args.length; i++) {
 			if (args[i].startsWith("-")) {
 				Object[] eArgs = { args[i] };
-				String msg = getResourceFormattedString(
+				String msg = getResourceFormatted(
 					"error.UnknownOption",eArgs);
 				errorExit(msg);
 			}
 			else if (target!=null) {
 				//We only understand one target
 				Object[] eArgs = { args[i] };
-				String msg = getResourceFormattedString(
+				String msg = getResourceFormatted(
 					"error.UnknownArgument",eArgs);
 				errorExit(msg);
 			}
@@ -78,14 +75,6 @@ public class App {
 		System.exit(1);
 	}
 
-	/** Get a string from a resource file and format it with the given
-	 * args.
-	 */
-	public String getResourceFormattedString(String resName, Object[] args){
-		String fmt = getResourceString(resName);
-		return MessageFormat.format(fmt,args);
-	}
-
 	/** Set up our resources. */
 	public void initResources() {
 		resources = ResourceBundle.getBundle(
@@ -99,6 +88,22 @@ public class App {
 		} catch (MissingResourceException ex) {
 			return name;	//use the resource name
 		}
+	}
+
+	/** Get a string from a resource file and format it with the given
+	 * arg.
+	 */
+	public String getResourceFormatted(String resName, Object arg){
+		String fmt = getResourceString(resName);
+		return MessageFormat.format(fmt,new Object[] { arg });
+	}
+
+	/** Get a string from a resource file and format it with the given
+	 * args.
+	 */
+	public String getResourceFormatted(String resName, Object[] args){
+		String fmt = getResourceString(resName);
+		return MessageFormat.format(fmt,args);
 	}
 }
 
