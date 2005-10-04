@@ -1,0 +1,8 @@
+jiviewer v0.0.5  October 3, 2005
+
+  * Remove dependence on JAI, so this version now runs on MacOSX.
+  * Add build.xml and build.properties to allow building with ant.
+
+----------------------------------------------------------------------
+
+jiviewer v0.0.4  July 2, 2003

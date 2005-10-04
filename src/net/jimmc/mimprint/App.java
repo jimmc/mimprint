@@ -36,10 +36,6 @@ public class App implements ResourceSource {
 	 */
 	protected boolean lookAheadP=true;
 
-	/** True to use JAI.
-	 */
-	protected boolean jaiP;
-
 	/** True if the -debug command line option was specified.
 	 * @see #debug
 	 */
@@ -86,9 +82,6 @@ public class App implements ResourceSource {
 				System.out.println(help);
 				System.exit(0);
 			}
-			else if (args[i].equalsIgnoreCase("-jai")) {
-				jaiP = true;
-			}
 			else if (args[i].equalsIgnoreCase("-noLookAhead")) {
 				lookAheadP = false;
 			}
@@ -115,11 +108,6 @@ public class App implements ResourceSource {
 	/** True if we should be using a big font. */
 	public boolean useBigFont() {
 		return bigFontP;
-	}
-
-	/** True if we should be using JAI. */
-	public boolean useJAI() {
-		return jaiP;
 	}
 
 	/** True if we should use lookahead when loading images. */

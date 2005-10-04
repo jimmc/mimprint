@@ -10,13 +10,9 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.Image;
 import java.awt.image.renderable.ParameterBlock;
-import java.awt.image.RenderedImage;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.io.File;
-import javax.media.jai.Interpolation;
-import javax.media.jai.JAI;
-import javax.media.jai.RenderedOp;
 
 /** An image in multiple sizes, plus additional information.
  */
@@ -48,14 +44,8 @@ public class ImageBundle {
 	/** The original image. */
 	protected Image image;
 
-	/** The renderedImage. */
-	protected RenderedImage renderedImage;
-
 	/** The transformed image. */
 	protected Image transformedImage;
-
-	/** The transformed renderedImage. */
-	protected RenderedImage transformedRenderedImage;
 
 	/** The index of this image in the containing list. */
 	protected int listIndex;
@@ -73,16 +63,7 @@ public class ImageBundle {
 		tracker = new MediaTracker(imageArea);
 		path = file.getAbsolutePath();
 		setDisplaySize(imageArea.getWidth(),imageArea.getHeight());
-		if (app.useJAI())
-			renderedImage = createRenderedImage(path);
-		else
-			image = toolkit.createImage(path);
-	}
-
-	/** Create a renderedImage. */
-	protected RenderedImage createRenderedImage(String path) {
-		RenderedOp rFile = JAI.create("fileLoad",path);
-		return rFile;
+                image = toolkit.createImage(path);
 	}
 
 	/** Set the size of the display for our image.
@@ -98,7 +79,6 @@ public class ImageBundle {
 		//The display size has changed, clear out the cached
 		//transformed images so they will be regenerated
 		transformedImage = null;
-		transformedRenderedImage = null;
 		displayWidth = width;
 		displayHeight = height;
 	}
@@ -113,7 +93,6 @@ public class ImageBundle {
 		else if (rotation<0)
 			rotation = 3;
 		transformedImage = null;
-		transformedRenderedImage = null;
 	}
 
 	/** Get the path for our original image. */
@@ -133,23 +112,10 @@ public class ImageBundle {
 		return transformedImage;
 	}
 
-	/** Get our image transformed by scale and rotation. */
-	public RenderedImage getTransformedRenderedImage() {
-		if (transformedRenderedImage==null)
-			loadTransformedRenderedImage();
-		return transformedRenderedImage;
-	}
-
 	/** Load the transformed version of our image.
 	 * This method is typically run in a separate image-loader thread.
 	 */
 	public void loadTransformedImage() {
-		if (renderedImage!=null) {
-			//Produce a transformed version of the renderedImage
-			loadTransformedRenderedImage();
-			return;
-		}
-
 		if (transformedImage!=null)
 			return;		//already loaded
 
@@ -178,73 +144,6 @@ public class ImageBundle {
 		app.debugMsg("Done waiting for image "+image+
 			", loadStatus="+loadStatus);
 		tracker.removeImage(image,0);
-	}
-
-	/** Load the transformed version of our renderedImage.
-	 */
-	protected void loadTransformedRenderedImage() {
-		if (transformedRenderedImage!=null)
-			return;
-
-		if (displayWidth==0 || displayHeight==0) {
-			//no transformations
-			transformedRenderedImage = renderedImage;
-			return;
-		}
-
-		//scale the image to fit into the display area
-		ParameterBlock pb = new ParameterBlock();
-		pb.addSource(renderedImage);
-		int rw = renderedImage.getWidth();
-		int rh = renderedImage.getHeight();
-		boolean xy = (rotation==1 || rotation==3);
-			//True if rotated by 90 (or 270) degrees, so the
-			//horizontal and vertical axes are interchanged.
-		float xScale = displayWidth/(float)(xy?rh:rw);
-		float yScale = displayHeight/(float)(xy?rw:rh);
-		float scale = (xScale<yScale)?xScale:yScale;
-		float zero = 0.0F;
-		pb.add(scale);	//x scale
-		pb.add(scale);	//y scale
-		pb.add(zero);	//x translation
-		pb.add(zero);	//y translation
-		pb.add(Interpolation.getInstance(
-			Interpolation.INTERP_BILINEAR));
-		RenderedImage scaledImage = JAI.create("scale",pb);
-
-		if (rotation==0) {
-			//No rotation, we are done
-			transformedRenderedImage = scaledImage;
-			return;
-		}
-
-		//rotate the scaled image
-		ParameterBlock pbr = new ParameterBlock();
-		pbr.addSource(scaledImage);
-		float sw = rw*scale;	//scaled width
-		float sh = rh*scale;	//scaled height
-		float cx = sw/2.0F;	//center of the scaled image
-		float cy = sh/2.0F;
-		if (rotation==1) {
-			if (xScale<yScale)
-				cx = cy;
-			else
-				cy = cx;
-		} else if (rotation==3) {
-			if (xScale<yScale)
-				cy = cx;
-			else
-				cx = cy;
-		}
-		float radians = -(float)Math.PI*rotation/2.0F;	//CCW
-		pbr.add(cx);
-		pbr.add(cy);
-		pbr.add(radians);
-		pbr.add(Interpolation.getInstance(
-			Interpolation.INTERP_NEAREST));
-		RenderedImage rotatedImage = JAI.create("rotate",pbr);
-
-		transformedRenderedImage = rotatedImage;
 	}
 
 	/** Get a scaled version of the given image which fits into

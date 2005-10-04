@@ -20,11 +20,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.image.RenderedImage;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.File;
-import javax.media.jai.GraphicsJAI;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
@@ -45,9 +43,6 @@ public class ImageArea extends JLabel
 
 	/** Our current ImageBundle. */
 	protected ImageBundle currentImage;
-
-	/** The current rendered image source. */
-	protected RenderedImage renderedImageSource;
 
 	/** The info text about the current image. */
 	protected String imageInfoText;
@@ -101,37 +96,6 @@ public class ImageArea extends JLabel
 		worker = new Worker();
 		worker.setPriority(worker.getPriority()-1);
 		worker.start();
-	}
-
-	/** If we have a renderedImageSource, we paint that,
-	 * otherwise we let the JLabel do its thing.
-	 */
-	public void paint(Graphics g) {
-		if (renderedImageSource==null) {
-			super.paint(g);
-			return;
-		}
-		app.debugMsg("paint A");
-		GraphicsJAI gj = GraphicsJAI.createGraphicsJAI(
-			(Graphics2D)g,this);
-		AffineTransform tx = new AffineTransform();
-		if (!scaled) {
-			gj.drawRenderedImage(renderedImageSource,tx);
-			//TBD - do we need scroll bars?
-			return;
-		}
-		int rw = renderedImageSource.getWidth();
-		int rh = renderedImageSource.getHeight();
-		double xScale = getWidth()/(double)rw;
-		double yScale = getHeight()/(double)rh;
-		double scale = (xScale<yScale)?xScale:yScale;
-			//make the whole image fit in the display
-		tx.translate((getWidth()-rw*scale)/2.0,
-			     (getHeight()-rh*scale)/2.0);
-		tx.scale(scale,scale);
-		app.debugMsg("paint B");
-		gj.drawRenderedImage(renderedImageSource,tx);
-		app.debugMsg("paint C");
 	}
 
 	/** Set our image lister. */
@@ -197,19 +161,12 @@ public class ImageArea extends JLabel
 		else
 			currentImage.setDisplaySize(0,0); //no scaling
 
-		if (app.useJAI()) {
-			app.debugMsg("ShowCurrentImage X");
-			renderedImageSource =
-				currentImage.getTransformedRenderedImage();
-			repaint();
-		} else {
-			app.debugMsg("ShowCurrentImage A");
-			Image xImage = currentImage.getTransformedImage();
-			app.debugMsg("ShowCurrentImage B");
-			ImageIcon ii = new ImageIcon(xImage);
-			app.debugMsg("ShowCurrentImage C");
-			setIcon(ii);
-		}
+                app.debugMsg("ShowCurrentImage A");
+                Image xImage = currentImage.getTransformedImage();
+                app.debugMsg("ShowCurrentImage B");
+                ImageIcon ii = new ImageIcon(xImage);
+                app.debugMsg("ShowCurrentImage C");
+                setIcon(ii);
 		setText(null);
 	}
 

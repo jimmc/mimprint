@@ -1,0 +1,94 @@
+<project name="jiviewer" default="jar">
+    <target name="init">
+        <property file="build.properties"/>
+        <property file="VERSION"/>
+
+        <path id="compile.classpath">
+            <pathelement location="${class.dir}"/>
+        </path>
+    </target>
+
+    <target name="mkdirs" depends="init">
+        <mkdir dir="${class.dir}"/>
+    </target>
+
+    <target name="compile" depends="init,mkdirs">
+        <javac
+            srcdir="${src.dir}"
+            destdir="${class.dir}"
+            debug="${javac.debug}"
+            classpathref="compile.classpath"
+            source="1.4"
+        >
+            <include name="**/*.java"/>
+        </javac>
+    </target>
+
+    <!-- Create the default properties file from all of the props files -->
+    <target name="properties-default"
+	    depends="init,check-properties-default,concat-properties-default"/>
+
+    <!-- See if the properties file is up to date -->
+    <target name="check-properties-default">
+        <uptodate property="properties-default-uptodate"
+		targetfile="${resources.properties}"
+        >
+	    <srcfiles dir="${src.dir}"
+		    includes="**/*.props"
+		    excludes="**/*_*.props"
+	    />
+	    <srcfiles dir="${src.dir}"
+		    includes="jimmc/catprops/*.java"
+	    />
+	    <srcfiles dir="." includes="build.xml" />
+	</uptodate>
+    </target>
+
+    <!-- Create the properties file if it is not up to date. -->
+    <target name="concat-properties-default"
+    		unless="properties-default-uptodate">
+	<path id="prop-file-path">
+	    <fileset dir="${src.dir}">
+	    	<include name="**/*.props"/>
+	    	<exclude name="**/*_*.props"/>
+	    </fileset>
+	</path>
+	<property name="prop-files" refid="prop-file-path"/>
+	<java	classname="jimmc/catprops/CatProps"
+		classpath="${class.dir}"
+		output="${resources.properties}.tmp"
+		fork="true"
+		failonerror="true"
+	>
+	    <arg value="-sourcepath"/>
+	    <arg line="${prop-files}"/>
+	</java>
+	<!-- Now that the props have been collected, replace the VERSION
+	     and VDATE strings. -->
+	<copy file="${resources.properties}.tmp"
+		tofile="${resources.properties}">
+	    <filterset begintoken="%" endtoken="%">
+	        <filter token="VERSION" value="v${version.number}"/>
+	        <filter token="VDATE" value="${version.date}"/>
+	    </filterset>
+	</copy>
+	<delete file="${resources.properties}.tmp"/>
+    </target>
+
+    <target name="jar" depends="compile,properties-default">
+        <jar
+            jarfile="${jiviewer.jar}"
+            basedir="${class.dir}"
+        >
+            <manifest>
+                <attribute name="Main-class" value="${main.class}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete dir="${class.dir}"/>
+        <delete file="${jiviewer.jar}"/>
+    </target>
+
+</project>
