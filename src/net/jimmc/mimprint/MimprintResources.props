@@ -17,6 +17,8 @@ info.CommandHelp=Usage: jiviewer [-help]\n\
 info.ImageHelp=Available commands:\n\
 	UP - move to previous picture\n\
 	DOWN - move to next picture\n\
+        LEFT - move to end of previous dir\n\
+        RIGHT - move to start of next dir\n\
 	ESC - exit full screen mode\n\
 	Ctrl L - refresh\n\
 	f - full screen mode\n\

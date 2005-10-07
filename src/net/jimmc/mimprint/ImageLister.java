@@ -138,6 +138,12 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Set the ImageArea. */
 	public void setImageArea(ImageArea imageArea) {
 		this.imageArea = imageArea;
+                if (currentImage!=null)
+                    currentImage.setImageArea(imageArea);
+                if (nextImage!=null)
+                    nextImage.setImageArea(imageArea);
+                if (previousImage!=null)
+                    previousImage.setImageArea(imageArea);
 	}
 
 	/** Open the specified target.
@@ -382,6 +388,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	/** Here when the list selection changes. */
 	public void valueChanged(ListSelectionEvent ev) {
 		displayCurrentSelection();
+                imageArea.requestFocus();
 	}
     //End ListSelectionListener interface
 
@@ -501,6 +508,32 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		writeFileText(path,imageText);
 	}
 
+        /** Move to previous directory */
+        public void left() {
+                File newDir = getPreviousDirectory(targetDirectory);
+                if (newDir==null) {
+                        String eMsg = "No previous directory";
+                        viewer.errorDialog(eMsg);
+                        return;
+                }
+                File lastFile = getLastFileInDir(newDir);
+                if (lastFile!=null)
+                        open(lastFile);
+                else
+                        open(newDir);	//TBD - skip back farther?
+        }
+
+        /** Move to next directory */
+        public void right() {
+                File newDir = getNextDirectory(targetDirectory);
+                if (newDir==null) {
+                        String eMsg = "No next directory";
+                        viewer.errorDialog(eMsg);
+                        return;
+                }
+                open(newDir);	//TBD - skip forward farther if no imgs?
+        }
+
 	/** Move the selection up one item and show that file. */
 	public void up() {
 		move(-1);
@@ -521,20 +554,9 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 				//TBD i18n this section
 			if (!viewer.confirmDialog(prompt))
 				return;		//cancelled
-			//User is trying to move off the beginning of the list,
-			//see about moving back to the previous directory
-			File newDir = getPreviousDirectory(targetDirectory);
-			if (newDir==null) {
-				String eMsg = "No previous directory";
-				viewer.errorDialog(eMsg);
-				return;
-			}
-			//TBD - get last file in that directory
-			File lastFile = getLastFileInDir(newDir);
-			if (lastFile!=null)
-				open(lastFile);
-			else
-				open(newDir);	//TBD - skip back farther?
+                        //User is trying to move off the beginning of the list,
+                        //see about moving back to the previous directory
+                        left();
 			return;
 		}
 		if (sel>=maxIndex) {
@@ -544,13 +566,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 				return;		//cancelled
 			//User is trying to move off the end of the list,
 			//see about moving forward to the next directory
-			File newDir = getNextDirectory(targetDirectory);
-			if (newDir==null) {
-				String eMsg = "No next directory";
-				viewer.errorDialog(eMsg);
-				return;
-			}
-			open(newDir);	//TBD - skip forward farther if no imgs?
+                        right();
 			return;
 		}
 		list.setSelectedIndex(sel);
@@ -605,7 +621,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	public void displayUpdaterRun() {
 		app.debugMsg("display updater thread running");
 		while (true) {
-			//Check to see if the list selection changed will
+			//Check to see if the list selection changed while
 			//we were busy updating.  If so, don't do the wait.
 			int newSelection = list.getSelectedIndex();
 			int currentSelection = (currentImage==null)?

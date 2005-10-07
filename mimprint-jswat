@@ -1,0 +1,11 @@
+#!/bin/sh -
+DEBUG_PORT=2000
+MEM_OPTS="-Xmx128m"
+MAC_OPT_MENUBAR="-Dapple.laf.useScreenMenuBar=true"
+MAC_OPT_DOCKNAME="-Xdock:name=Jiv"
+MAC_OPT_DOCKICON="-Xdock:icon=XXX"
+MAC_OPT_ABOUTNAME="-Dcom.apple.mrj.application.apple.menu.about.name=Jiv"
+#The useScreenMenuBar flag causes ClassCastException on startup
+MAC_OPTS="$MAC_OPT_DOCKNAME $MAC_OPT_ABOUTNAME"
+JDEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=n"
+exec java $MEM_OPTS $JDEBUG $MAC_OPTS -jar jiviewer.jar "$@"

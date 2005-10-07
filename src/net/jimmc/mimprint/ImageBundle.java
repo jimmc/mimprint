@@ -57,14 +57,18 @@ public class ImageBundle {
 	 */
 	public ImageBundle(ImageArea imageArea, File file, int listIndex) {
 		app = imageArea.app;
-		this.imageArea = imageArea;
 		this.listIndex = listIndex;
-		this.toolkit = imageArea.getToolkit();
-		tracker = new MediaTracker(imageArea);
 		path = file.getAbsolutePath();
-		setDisplaySize(imageArea.getWidth(),imageArea.getHeight());
+                setImageArea(imageArea);
                 image = toolkit.createImage(path);
 	}
+
+        public void setImageArea(ImageArea imageArea) {
+            this.imageArea = imageArea;
+            this.toolkit = imageArea.getToolkit();
+            tracker = new MediaTracker(imageArea);
+            setDisplaySize(imageArea.getWidth(),imageArea.getHeight());
+        }
 
 	/** Set the size of the display for our image.
 	 * From this we calclate the scale factor.

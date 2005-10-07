@@ -38,9 +38,6 @@ public class ImageArea extends JLabel
 	/** Our Viewer. */
 	protected Viewer viewer;
 
-	/** Our ImageLister. */
-	protected ImageLister imageLister;
-
 	/** Our current ImageBundle. */
 	protected ImageBundle currentImage;
 
@@ -90,17 +87,12 @@ public class ImageArea extends JLabel
 		Toolkit toolkit = getToolkit();
 		Image cursorImage = toolkit.createImage(new byte[0]);
 		invisibleCursor = toolkit.createCustomCursor(
-				cursorImage,new Point(0,0),"");
+				cursorImage,new Point(0,0),"invisible");
 		busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 
 		worker = new Worker();
 		worker.setPriority(worker.getPriority()-1);
 		worker.start();
-	}
-
-	/** Set our image lister. */
-	public void setImageLister(ImageLister imageLister) {
-		this.imageLister = imageLister;
 	}
 
 	/** Show text instead of an image. */
@@ -187,18 +179,6 @@ public class ImageArea extends JLabel
 		viewer.infoDialog(helpText);
 	}
 
-	/** Put up an editing dialog showing the image info. */
-	public void showImageEditDialog() {
-		String imageText = imageLister.getCurrentImageFileText();
-		if (imageText==null)
-			imageText = "";
-		String title = "Info text for "+currentImage.path;
-				//TBD i18n and better title
-		String newImageText = viewer.editTextDialog(title,imageText);
-		if (newImageText==null)
-			return;		//cancelled
-		imageLister.setCurrentImageFileText(newImageText);
-	}
 
 	/** Put up a dialog showing the image info. */
 	public void showImageInfoDialog() {
@@ -236,13 +216,25 @@ public class ImageArea extends JLabel
 		int keyCode = ev.getKeyCode();
 		knownKeyPress = true;	//assume we know it
 		switch (keyCode) {
+		case KeyEvent.VK_LEFT:
+                        setCursorVisible(true);
+                        viewer.moveLeft();
+                        setCursorVisible(false);
+			break;
+		case KeyEvent.VK_RIGHT:
+                        setCursorVisible(true);
+                        viewer.moveRight();
+                        setCursorVisible(false);
+			break;
 		case KeyEvent.VK_DOWN:
-			if (imageLister!=null)
-				imageLister.down();
+                        setCursorVisible(true);
+                        viewer.moveDown();
+                        setCursorVisible(false);
 			break;
 		case KeyEvent.VK_UP:
-			if (imageLister!=null)
-				imageLister.up();
+                        setCursorVisible(true);
+                        viewer.moveUp();
+                        setCursorVisible(false);
 			break;
 		case KeyEvent.VK_ESCAPE:
 			viewer.setFullScreen(false);	//back to normal size
@@ -266,7 +258,7 @@ public class ImageArea extends JLabel
 			break;
 		case 'e':
 			setCursorVisible(true);	//turn on cursor
-			showImageEditDialog();
+			viewer.showImageEditDialog();
 			setCursorVisible(false);	//turn cursor back off
 			break;
 		case 'i':

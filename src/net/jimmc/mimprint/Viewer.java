@@ -19,33 +19,42 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.text.MessageFormat;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JWindow;
 
 /** The top window class for the jiviewer program.
  */
 public class Viewer extends JsFrame {
 	/** Our application info. */
-	protected App app;
+	private App app;
 
 	/** The list of images. */
-	protected ImageLister imageLister;
+	private ImageLister imageLister;
 
 	/** Our image display area. */
-	protected ImageArea imageArea;
+	private ImageArea imageArea;
+	private ImageArea fullImageArea;
+
+        /** Full-screen window. */
+        private JFrame fullWindow;
+            //Have to use a Frame here rather than a window; when using
+            //a window, the keyboard input is directed to the main
+            //frame (Viewer), which causes problems.
 
 	/** True if we are in full-screen-image mode. */
-	protected boolean fullImageP;
+	private boolean fullImageP;
 
 	/** The screen bounds when in normal mode. */
-	protected Rectangle normalBounds;
+	private Rectangle normalBounds;
 
 	/** The latest file opened with the File Open dialog. */
-	File currentOpenFile;
+	private File currentOpenFile;
 
 	/** Create our frame. */
 	public Viewer(App app) {
@@ -55,9 +64,17 @@ public class Viewer extends JsFrame {
 		setJMenuBar(createMenuBar());
 		initForm();
 		pack();
+                imageArea.requestFocus();
 		addWindowListener();
 		setTitleFileName("");
 	}
+
+        protected Component getDialogParent() {
+            if (fullWindow!=null)
+                return fullWindow;
+            else
+                return this;
+        }
 
 	/** Our message display text area uses a big font so we can read it
 	 * on the TV. */
@@ -108,7 +125,6 @@ public class Viewer extends JsFrame {
 		imageLister = new ImageLister(app,this);
 		imageArea = new ImageArea(app,this);
 		imageLister.setImageArea(imageArea);
-		imageArea.setImageLister(imageLister);
 		JSplitPane splitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,imageLister,imageArea);
 		splitPane.setBackground(imageArea.getBackground());
@@ -182,6 +198,10 @@ public class Viewer extends JsFrame {
 	public void setFullScreen(boolean fullImage) {
 		if (fullImage==fullImageP)
 			return;		//already in that mode
+                //imageLister.setVisible(!fullImage);
+                    //Calling setVisible gets rid of the imageLister when we
+                    //switch to full screen mode, but it doesn't come back
+                    //when we return to normal mode.
 		if (fullImage) {
 			//switching from normal mode to full-image mode
 			normalBounds = getBounds();
@@ -197,14 +217,45 @@ public class Viewer extends JsFrame {
 			int y = -yoff;
 			int w = screenSize.width + woff;
 			int h = screenSize.height + hoff;;
-			setBounds(x,y,w,h);
+			//setBounds(x,y,w,h);
+                        fullImageArea = new ImageArea(app,this);
+                        fullWindow = new JFrame();
+                        fullWindow.getContentPane().add(fullImageArea);
+                        //fullWindow.setBounds(x,y,w,h);
+                        fullWindow.setBounds(0,0,screenSize.width,screenSize.height);
+//System.out.println("desired bounds: x="+0+", y="+0+", w="+screenSize.width+", h="+screenSize.height);
+//System.out.println("desired bounds: x="+x+", y="+y+", w="+w+", h="+h);
+//java.awt.Rectangle b = fullWindow.getBounds();
+//System.out.println("actual bounds: x="+b.x+", y="+b.y+", w="+b.width+", h="+b.height);
+                        fullWindow.setBackground(fullImageArea.getBackground());
+                        imageLister.setImageArea(fullImageArea);
+                        fullWindow.show();
+                        fullImageArea.requestFocus();
+                        this.hide();
+                        imageArea.showText("see full page window for image");
 		} else {
 			//Switch back to normal bounds
-			setBounds(normalBounds.x, normalBounds.y,
-				normalBounds.width, normalBounds.height);
+			//setBounds(normalBounds.x, normalBounds.y,
+			//	normalBounds.width, normalBounds.height);
+                        imageLister.setImageArea(imageArea);
+                        fullWindow.hide();
+                        this.show();
+                        fullWindow.dispose();
+                        fullWindow = null;
+                        fullImageArea = null;
+                        imageArea.requestFocus();
 		}
 		fullImageP = fullImage;
-		validate();
+                imageLister.displayCurrentSelection();
+                try {
+                    Thread.sleep(200);  //give image updater a bit of time to run
+                } catch (InterruptedException ex) {
+                    //ignore
+                }
+                if (fullWindow!=null)
+                    fullWindow.validate();
+                else
+                    this.validate();
 	}
 
 	/** Display the specified text, allow the user to edit it.
@@ -220,7 +271,7 @@ public class Viewer extends JsFrame {
 			new JOptionPane(scroll,
 				JOptionPane.PLAIN_MESSAGE,
 				JOptionPane.OK_CANCEL_OPTION);
-		JDialog dlg = pane.createDialog(this,title);
+		JDialog dlg = pane.createDialog(getDialogParent(),title);
 		dlg.setResizable(true);
 		pane.setInitialValue(null);
 		pane.selectInitialValue();
@@ -235,6 +286,39 @@ public class Viewer extends JsFrame {
 		String newText = tx.getText();
 		return newText;
 	}
+
+	/** Put up an editing dialog showing the image info. */
+	public void showImageEditDialog() {
+            String imageText = imageLister.getCurrentImageFileText();
+            if (imageText==null)
+                    imageText = "";
+            String title = "Info text for "+imageLister.currentImage.path;
+                            //TBD i18n and better title
+            String newImageText = editTextDialog(title,imageText);
+            if (newImageText==null)
+                    return;		//cancelled
+            imageLister.setCurrentImageFileText(newImageText);
+	}
+
+        /** Move the active image up to the previous image in the lister. */
+        public void moveUp() {
+            imageLister.up();
+        }
+
+        /** Move the active image down to the next image in the lister. */
+        public void moveDown() {
+            imageLister.down();
+        }
+
+        /** Move the active image left to the previous dir in the lister. */
+        public void moveLeft() {
+            imageLister.left();
+        }
+
+        /** Move the active image right to the next dir in the lister. */
+        public void moveRight() {
+            imageLister.right();
+        }
 
 	/** Get a string from our resources. */
 	public String getResourceString(String name) {
