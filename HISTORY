@@ -1,9 +1,19 @@
-jiviewer v0.0.5  October 6, 2005
+jiviewer v0.0.5  October 9, 2005
 
+  Enhancements:
+
+  * Add 'a' command to display on an alternate screen.
   * Remove dependence on JAI, so this version now runs on MacOSX.
-  * Add build.xml and build.properties to allow building with ant.
   * Use separate window for full-screen mode, make it work better.
+
+  Bug Fixes:
+
   * Keep focus in image window so key commands always work.
+  * Fix some NPEs when problems finding image files.
+
+  Other Changes:
+
+  * Add build.xml and build.properties to allow building with ant.
 
 ----------------------------------------------------------------------
 

@@ -12,12 +12,16 @@ import jimmc.swing.MenuAction;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.Vector;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -46,9 +50,12 @@ public class Viewer extends JsFrame {
             //Have to use a Frame here rather than a window; when using
             //a window, the keyboard input is directed to the main
             //frame (Viewer), which causes problems.
+        /** Alternate screen window. */
+        private JWindow altWindow;
+        private JFrame imagePageWindow;
 
-	/** True if we are in full-screen-image mode. */
-	private boolean fullImageP;
+	/** The current screen mode. */
+	private int screenMode;
 
 	/** The screen bounds when in normal mode. */
 	private Rectangle normalBounds;
@@ -191,67 +198,125 @@ public class Viewer extends JsFrame {
 		setTitle(title);
 	}
 
+        public final static int SCREEN_NORMAL = 0;
+        public final static int SCREEN_FULL = 1;
+        public final static int SCREEN_PRINT = 2;
+        public final static int SCREEN_ALT = 3;
 	/** Set the image area to take up the full screen, or unset.
 	 * @param fullImage true to make the ImageArea take up the full
 	 *        screen, false to go back to the non-full-screen.
 	 */
-	public void setFullScreen(boolean fullImage) {
-		if (fullImage==fullImageP)
+	public void setScreenMode(int mode) {
+		if (mode==screenMode)
 			return;		//already in that mode
                 //imageLister.setVisible(!fullImage);
                     //Calling setVisible gets rid of the imageLister when we
                     //switch to full screen mode, but it doesn't come back
                     //when we return to normal mode.
-		if (fullImage) {
-			//switching from normal mode to full-image mode
-			normalBounds = getBounds();
-			Rectangle imageAreaBounds = imageArea.getBounds();
-			Point viewerRootLocation = getLocationOnScreen();
-			Point imageRootLocation=imageArea.getLocationOnScreen();
-			Dimension screenSize = getToolkit().getScreenSize();
-			int xoff = imageRootLocation.x - viewerRootLocation.x;
-			int yoff = imageRootLocation.y - viewerRootLocation.y;
-			int woff = normalBounds.width - imageAreaBounds.width;
-			int hoff = normalBounds.height - imageAreaBounds.height;
-			int x = -xoff;
-			int y = -yoff;
-			int w = screenSize.width + woff;
-			int h = screenSize.height + hoff;;
-			//setBounds(x,y,w,h);
-                        fullImageArea = new ImageArea(app,this);
-                        fullWindow = new JFrame();
-                        fullWindow.getContentPane().add(fullImageArea);
-                        //fullWindow.setBounds(x,y,w,h);
-                        fullWindow.setBounds(0,0,screenSize.width,screenSize.height);
-//System.out.println("desired bounds: x="+0+", y="+0+", w="+screenSize.width+", h="+screenSize.height);
-//System.out.println("desired bounds: x="+x+", y="+y+", w="+w+", h="+h);
-//java.awt.Rectangle b = fullWindow.getBounds();
-//System.out.println("actual bounds: x="+b.x+", y="+b.y+", w="+b.width+", h="+b.height);
-                        fullWindow.setBackground(fullImageArea.getBackground());
-                        imageLister.setImageArea(fullImageArea);
-                        fullWindow.show();
-                        fullImageArea.requestFocus();
-                        this.hide();
-                        imageArea.showText("see full page window for image");
-		} else {
-			//Switch back to normal bounds
-			//setBounds(normalBounds.x, normalBounds.y,
-			//	normalBounds.width, normalBounds.height);
-                        imageLister.setImageArea(imageArea);
-                        fullWindow.hide();
-                        this.show();
-                        fullWindow.dispose();
-                        fullWindow = null;
-                        fullImageArea = null;
-                        imageArea.requestFocus();
+                if (mode!=SCREEN_FULL) {
+                    this.show();
+                }
+                switch (mode) {
+                case SCREEN_NORMAL:
+                    {
+                    //Switch back to normal bounds
+                    //setBounds(normalBounds.x, normalBounds.y,
+                    //	normalBounds.width, normalBounds.height);
+                    imageLister.setImageArea(imageArea);
+                    fullImageArea = null;
+                    imageArea.requestFocus();
+                    }
+                    break;
+                case SCREEN_FULL:
+                    {
+                    Dimension screenSize = getToolkit().getScreenSize();
+                    fullImageArea = new ImageArea(app,this);
+                    fullWindow = new JFrame();
+                    fullWindow.getContentPane().add(fullImageArea);
+                    fullWindow.setBounds(0,0,screenSize.width,screenSize.height);
+                    fullWindow.setBackground(fullImageArea.getBackground());
+                    imageLister.setImageArea(fullImageArea);
+                    fullWindow.show();
+                    fullImageArea.requestFocus();
+                    this.hide();
+                    imageArea.showText("see full page window for image");
+                    }
+                    break;
+                case SCREEN_ALT:
+                    {
+                    GraphicsEnvironment ge = GraphicsEnvironment.
+                            getLocalGraphicsEnvironment();
+                    GraphicsDevice[] gs = ge.getScreenDevices();
+                    Vector configs = new Vector();
+                    for (int i=0; i<gs.length; i++) {
+                        GraphicsDevice gd = gs[i];
+                        GraphicsConfiguration[] gc = gd.getConfigurations();
+                        for (int j=0; j<gc.length; j++) {
+                            configs.addElement(gc[j]);
+                        }
+                    }
+                    if (configs.size()<2) {
+                        getToolkit().beep();
+                        return;         //only one display, no mode change
+                    }
+                    //TODO - if more than 2 configs, ask which one to use
+                    //For now, just use the second config
+
+                    GraphicsConfiguration gc = 
+                            (GraphicsConfiguration)configs.elementAt(1);
+                    Rectangle altScreenBounds = gc.getBounds();
+
+                    fullImageArea = new ImageArea(app,this);
+                    altWindow = new JWindow();
+                    altWindow.getContentPane().add(fullImageArea);
+                    altWindow.setBounds(altScreenBounds);
+                    altWindow.setBackground(fullImageArea.getBackground());
+                    imageLister.setImageArea(fullImageArea);
+                    altWindow.show();
+                    fullImageArea.requestFocus();
+                    imageArea.showText("see alternate screen for image");
+                    }
+                    break;
+                case SCREEN_PRINT:
+                    {
+                    ImagePage imagePage = new ImagePage();
+                    imagePage.setBackground(Color.gray);
+                    imagePage.setForeground(Color.black);
+                    imagePage.setPageColor(Color.white);
+                    imagePageWindow = new JFrame();
+                    imagePageWindow.getContentPane().add(imagePage);
+                    imagePageWindow.setBounds(300,0,300,500);
+                    imageLister.setImagePage(imagePage);
+                    imagePageWindow.show();
+                    imagePage.requestFocus();
+                    imageArea.showText("see image page window for image");
+                    }
+                    break;
 		}
-		fullImageP = fullImage;
+                if (mode!=SCREEN_FULL && fullWindow!=null) {
+                    fullWindow.hide();
+                    fullWindow.dispose();
+                    fullWindow = null;
+                }
+                if (mode!=SCREEN_ALT && altWindow!=null) {
+                    altWindow.hide();
+                    altWindow.dispose();
+                    altWindow = null;
+                }
+                if (mode!=SCREEN_PRINT && imagePageWindow!=null) {
+                    imagePageWindow.hide();
+                    imagePageWindow.dispose();
+                    imagePageWindow = null;
+                }
+		screenMode = mode;
                 imageLister.displayCurrentSelection();
                 try {
                     Thread.sleep(200);  //give image updater a bit of time to run
                 } catch (InterruptedException ex) {
                     //ignore
                 }
+                if (altWindow!=null)
+                    altWindow.validate();
                 if (fullWindow!=null)
                     fullWindow.validate();
                 else
@@ -299,6 +364,14 @@ public class Viewer extends JsFrame {
                     return;		//cancelled
             imageLister.setCurrentImageFileText(newImageText);
 	}
+
+        /** Rotate the current image. */
+        public void rotateCurrentImage(int quarters) {
+            if (fullImageArea!=null)
+                fullImageArea.rotate(quarters);
+            else
+                imageArea.rotate(quarters);
+        }
 
         /** Move the active image up to the previous image in the lister. */
         public void moveUp() {

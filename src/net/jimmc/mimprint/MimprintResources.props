@@ -21,6 +21,7 @@ info.ImageHelp=Available commands:\n\
         RIGHT - move to start of next dir\n\
 	ESC - exit full screen mode\n\
 	Ctrl L - refresh\n\
+        a - alternate screen mode\n\
 	f - full screen mode\n\
 	e - edit text about the image\n\
 	i - show info about the image\n\

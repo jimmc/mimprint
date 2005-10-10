@@ -18,7 +18,8 @@ import java.io.File;
  */
 public class ImageBundle {
 	/** The ImageArea in which our image will be displayed. */
-	protected ImageArea imageArea;
+	private ImageArea imageArea;
+        private ImagePage imagePage;
 
 	/** Our app. */
 	protected App app;
@@ -64,10 +65,19 @@ public class ImageBundle {
 	}
 
         public void setImageArea(ImageArea imageArea) {
+            this.imagePage = null;
             this.imageArea = imageArea;
             this.toolkit = imageArea.getToolkit();
             tracker = new MediaTracker(imageArea);
             setDisplaySize(imageArea.getWidth(),imageArea.getHeight());
+        }
+
+        public void setImagePage(ImagePage imagePage) {
+            this.imageArea = null;
+            this.imagePage = imagePage;
+            this.toolkit = imagePage.getToolkit();
+            tracker = new MediaTracker(imagePage);
+            setDisplaySize(0,0);
         }
 
 	/** Set the size of the display for our image.
@@ -238,7 +248,7 @@ public class ImageBundle {
 		AffineTransform transform;
 		switch (rotation) {
 		case 1:
-			dstImage = imageArea.createImage(h,w);
+			dstImage = createImage(h,w);
 			dstG = dstImage.getGraphics();
 			dstG2 = (Graphics2D)dstG;
 			transform = new AffineTransform(
@@ -246,7 +256,7 @@ public class ImageBundle {
 				(double)0, (double)w );
 			break;
 		case 2:
-			dstImage = imageArea.createImage(w,h);
+			dstImage = createImage(w,h);
 			dstG = dstImage.getGraphics();
 			dstG2 = (Graphics2D)dstG;
 			transform = new AffineTransform(
@@ -254,7 +264,7 @@ public class ImageBundle {
 				(double)w, (double)h );
 			break;
 		case 3:
-			dstImage = imageArea.createImage(h,w);
+			dstImage = createImage(h,w);
 			dstG = dstImage.getGraphics();
 			dstG2 = (Graphics2D)dstG;
 			transform = new AffineTransform(
@@ -268,6 +278,13 @@ public class ImageBundle {
 		loadCompleteImage(dstImage);		//load the whole image
 		return dstImage;
 	}
+
+        private Image createImage(int w, int h) {
+            if (imageArea!=null)
+                return imageArea.createImage(w,h);
+            else
+                return imagePage.createImage(w,h);
+        }
 }
 
 /* end */

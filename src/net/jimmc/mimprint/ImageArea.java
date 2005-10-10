@@ -237,7 +237,7 @@ public class ImageArea extends JLabel
                         setCursorVisible(false);
 			break;
 		case KeyEvent.VK_ESCAPE:
-			viewer.setFullScreen(false);	//back to normal size
+			viewer.setScreenMode(Viewer.SCREEN_NORMAL);	//back to normal size
 			break;
 		default:	//ignore
 			knownKeyPress = false;
@@ -250,8 +250,11 @@ public class ImageArea extends JLabel
 	public void keyTyped(KeyEvent ev) {
 		char ch = ev.getKeyChar();
 		switch (ch) {
+		case 'a':	//alternate-screen
+			viewer.setScreenMode(Viewer.SCREEN_ALT);
+			break;
 		case 'f':	//full-screen
-			viewer.setFullScreen(true);
+			viewer.setScreenMode(Viewer.SCREEN_FULL);
 			break;
 		case 'L'-0100:	//control-L, refresh
 			showCurrentImage();
@@ -271,14 +274,17 @@ public class ImageArea extends JLabel
 			viewer.processFileOpen();
 			setCursorVisible(false);	//turn cursor back off
 			break;
+		case 'p':	//the print screen
+			viewer.setScreenMode(Viewer.SCREEN_PRINT);
+			break;
 		case 'r':	//rotate CCW
-			rotate(1);
+			viewer.rotateCurrentImage(1);
 			break;
 		case 'R':	//rotate CW
-			rotate(-1);
+			viewer.rotateCurrentImage(-1);
 			break;
 		case 'R'-0100:	//control-R, rotate 180
-			rotate(2);
+			viewer.rotateCurrentImage(2);
 			break;
 		case 's':	//toggle "scaled" flag
 			scaled = !scaled;

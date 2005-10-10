@@ -31,47 +31,48 @@ import javax.swing.JTextArea;
  */
 public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Our App. */
-	protected App app;
+	private App app;
 
 	/** Our parent window. */
-	protected Viewer viewer;
+	private Viewer viewer;
 
 	/** The image area which displays the image. */
-	protected ImageArea imageArea;
+	private ImageArea imageArea;
+        private ImagePage imagePage;
 
 	/** Our list. */
-	protected JList list;
+	private JList list;
 
 	/** The status area. */
-	protected JTextArea statusLabel;
+	private JTextArea statusLabel;
 
 	/** The label showing the directory info. */
-	protected JTextArea dirInfoLabel;
+	private JTextArea dirInfoLabel;
 
 	/** The label showing the file info. */
-	protected JTextArea fileInfoLabel;
+	private JTextArea fileInfoLabel;
 
 	/** The current directory in which we are displaying files. */
-	protected File targetDirectory;
+	private File targetDirectory;
 
 	/** The file names we are displaying, within the targetDirectory. */
-	protected String[] fileNames;
+	private String[] fileNames;
 
 	/** The currently displayed image. */
 	protected ImageBundle currentImage;
 
 	/** The next image in the list. */
-	protected ImageBundle nextImage;
+	private ImageBundle nextImage;
 
 	/** The previous image in the list. */
-	protected ImageBundle previousImage;
+	private ImageBundle previousImage;
 
 	/** The image loader thread, used as a lock object for image loader. */
-	protected Thread imageLoader;
+	private Thread imageLoader;
 
 	/** The display updater thread, used as a lock object
 	 * for display updater. */
-	protected Thread displayUpdater;
+	private Thread displayUpdater;
 
 	/** Create a new list. */
 	public ImageLister(App app, Viewer viewer) {
@@ -138,6 +139,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Set the ImageArea. */
 	public void setImageArea(ImageArea imageArea) {
 		this.imageArea = imageArea;
+                this.imagePage = null;
                 if (currentImage!=null)
                     currentImage.setImageArea(imageArea);
                 if (nextImage!=null)
@@ -145,6 +147,18 @@ public class ImageLister extends JPanel implements ListSelectionListener {
                 if (previousImage!=null)
                     previousImage.setImageArea(imageArea);
 	}
+
+        /** Set the ImagePage. */
+        public void setImagePage(ImagePage imagePage) {
+            this.imagePage = imagePage;
+            this.imageArea = null;
+                if (currentImage!=null)
+                    currentImage.setImagePage(imagePage);
+                if (nextImage!=null)
+                    nextImage.setImagePage(imagePage);
+                if (previousImage!=null)
+                    previousImage.setImagePage(imagePage);
+        }
 
 	/** Open the specified target.
 	 * @param target The file or directory to open.
@@ -388,13 +402,16 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	/** Here when the list selection changes. */
 	public void valueChanged(ListSelectionEvent ev) {
 		displayCurrentSelection();
-                imageArea.requestFocus();
+                if (imageArea!=null)
+                    imageArea.requestFocus();
+                if (imagePage!=null)
+                    imagePage.requestFocus();
 	}
     //End ListSelectionListener interface
 
 	/** Show the currently selected file. */
 	public void displayCurrentSelection() {
-		if (imageArea==null)
+		if (imageArea==null && imagePage==null)
 			return;
 		synchronized (displayUpdater) {
 			displayUpdater.notifyAll();  //wake up updater
@@ -442,7 +459,8 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 
 		File file = new File(targetDirectory,fileNames[newSelection]);
 		if (file==null) {
-			imageArea.showText("No file");
+                        if (imageArea!=null)
+                            imageArea.showText("No file");
 			currentImage = null;
 			return;		//nothing there
 		}
@@ -488,12 +506,16 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		setFileInfo(null);	//clear info while changing
 		if (currentImage==null) {
 			path = null;
-			imageArea.showText("No image");
+                        if (imageArea!=null)
+                            imageArea.showText("No image");
 		} else {
 			path = currentImage.getPath();
 			String imageInfo = getFileInfo(path);
 			setFileInfo(imageInfo);
-			imageArea.showImage(currentImage,imageInfo);
+                        if (imageArea!=null)
+                            imageArea.showImage(currentImage,imageInfo);
+                        if (imagePage!=null)
+                            imagePage.setCurrentImage(currentImage);
 		}
 		viewer.setTitleFileName(path);
 	}
@@ -596,20 +618,20 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 			app.debugMsg("image loader thread awakened");
 			if (nextImage!=null) {
 				setStatus("Loading next image");
-				imageArea.setCursorBusy(true);
+				setCursorBusy(true);
 				app.debugMsg("imageLoader load next image");
 				nextImage.loadTransformedImage();
 				app.debugMsg("imageLoader done next image");
-				imageArea.setCursorBusy(false);
+				setCursorBusy(false);
 				setStatus("");
 			}
 			if (previousImage!=null) {
 				setStatus("Loading previous image");
-				imageArea.setCursorBusy(true);
+				setCursorBusy(true);
 				app.debugMsg("imageLoader load prev image");
 				previousImage.loadTransformedImage();
 				app.debugMsg("imageLoader done prev image");
-				imageArea.setCursorBusy(false);
+				setCursorBusy(false);
 				setStatus("");
 			}
 		}
@@ -671,16 +693,19 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		if (parentDir==null)
 			parentDir = new File(".");
 		String[] siblings = parentDir.list();
-		Arrays.sort(siblings);
-		String dirName = dir.getName();
-		int dirIndex = Arrays.binarySearch(siblings,dirName);
-		if (dirIndex<0) {
-			String msg = "Can't find dir "+dirName+
-				" in parent list";
-			throw new RuntimeException(msg);
-		}
+                int dirIndex=0;
+                if (siblings!=null) {
+                    Arrays.sort(siblings);
+                    String dirName = dir.getName();
+                    dirIndex = Arrays.binarySearch(siblings,dirName);
+                    if (dirIndex<0) {
+                            String msg = "Can't find dir "+dirName+
+                                    " in parent list";
+                            throw new RuntimeException(msg);
+                    }
+                }
 		int newDirIndex = dirIndex + move;
-		while (newDirIndex<0 || newDirIndex>=siblings.length) {
+		while (siblings==null || newDirIndex<0 || newDirIndex>=siblings.length) {
 			//We are at the end/start of our sibling directories,
 			//so recurse up the directory tree and move the
 			//parent to the next directory.
@@ -688,7 +713,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 			if (parentDir==null)
 				return null;
 			siblings = parentDir.list();
-			if (siblings.length==0)
+			if (siblings==null || siblings.length==0)
 				continue;	//no files, try next dir
 			Arrays.sort(siblings);
 			if (newDirIndex<0)	//backing up
@@ -702,10 +727,16 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	/** Given a directory, get the last image file in that directory. */
 	protected File getLastFileInDir(File dir) {
 		String[] names = getImageFileNames(dir);
-		if (names.length==0)
+		if (names==null || names.length==0)
 			return null;
 		return new File(dir,names[names.length-1]);
 	}
+
+        private void setCursorBusy(boolean busy) {
+            if (imageArea==null)
+                return;
+            imageArea.setCursorBusy(busy);
+        }
 }
 
 /* end */
