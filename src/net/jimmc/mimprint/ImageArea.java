@@ -6,6 +6,7 @@
 package jimmc.jiviewer;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ComponentEvent;
@@ -30,7 +31,7 @@ import javax.swing.SwingUtilities;
 /** A window in which we view our images.
  */
 public class ImageArea extends JLabel
-		implements KeyListener, MouseListener,
+		implements ImageWindow, KeyListener, MouseListener,
 		MouseMotionListener, ComponentListener {
 	/** Our App. */
 	protected App app;
@@ -94,6 +95,14 @@ public class ImageArea extends JLabel
 		worker.setPriority(worker.getPriority()-1);
 		worker.start();
 	}
+
+        public Component getComponent() {
+            return this;
+        }
+
+        public void advance() {
+            //do nothing
+        }
 
 	/** Show text instead of an image. */
 	public void showText(String text) {
@@ -172,13 +181,6 @@ public class ImageArea extends JLabel
 	public boolean isFocusTraversable() {
 		return true;	//allow keyboard input
 	}
-
-	/** Put up a help dialog. */
-	public void showHelpDialog() {
-		String helpText = app.getResourceString("info.ImageHelp");
-		viewer.infoDialog(helpText);
-	}
-
 
 	/** Put up a dialog showing the image info. */
 	public void showImageInfoDialog() {
@@ -297,7 +299,7 @@ public class ImageArea extends JLabel
 			break;
 		case '?':
 			setCursorVisible(true);	//turn on cursor
-			showHelpDialog();
+			viewer.showHelpDialog();
 			setCursorVisible(false);	//turn cursor back off
 			break;
 		default:		//unknown key

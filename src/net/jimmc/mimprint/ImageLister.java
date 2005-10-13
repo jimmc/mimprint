@@ -37,8 +37,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	private Viewer viewer;
 
 	/** The image area which displays the image. */
-	private ImageArea imageArea;
-        private ImagePage imagePage;
+	private ImageWindow imageWindow;
 
 	/** Our list. */
 	private JList list;
@@ -136,29 +135,16 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		app.debugMsg("display updater thread started");
 	}
 
-	/** Set the ImageArea. */
-	public void setImageArea(ImageArea imageArea) {
-		this.imageArea = imageArea;
-                this.imagePage = null;
+	/** Set the ImageWindow. */
+	public void setImageWindow(ImageWindow imageWindow) {
+		this.imageWindow = imageWindow;
                 if (currentImage!=null)
-                    currentImage.setImageArea(imageArea);
+                    currentImage.setImageWindow(imageWindow);
                 if (nextImage!=null)
-                    nextImage.setImageArea(imageArea);
+                    nextImage.setImageWindow(imageWindow);
                 if (previousImage!=null)
-                    previousImage.setImageArea(imageArea);
+                    previousImage.setImageWindow(imageWindow);
 	}
-
-        /** Set the ImagePage. */
-        public void setImagePage(ImagePage imagePage) {
-            this.imagePage = imagePage;
-            this.imageArea = null;
-                if (currentImage!=null)
-                    currentImage.setImagePage(imagePage);
-                if (nextImage!=null)
-                    nextImage.setImagePage(imagePage);
-                if (previousImage!=null)
-                    previousImage.setImagePage(imagePage);
-        }
 
 	/** Open the specified target.
 	 * @param target The file or directory to open.
@@ -207,6 +193,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		currentImage = null;
 		nextImage = null;
 		previousImage = null;
+                imageWindow.advance();
 		fileNames = getImageFileNames(targetDirectory);
 		Arrays.sort(fileNames,new ImageFileNameComparator());
 		//TBD - look up file dates, sizes, and associated text
@@ -402,16 +389,14 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	/** Here when the list selection changes. */
 	public void valueChanged(ListSelectionEvent ev) {
 		displayCurrentSelection();
-                if (imageArea!=null)
-                    imageArea.requestFocus();
-                if (imagePage!=null)
-                    imagePage.requestFocus();
+                if (imageWindow!=null)
+                    imageWindow.requestFocus();
 	}
     //End ListSelectionListener interface
 
 	/** Show the currently selected file. */
 	public void displayCurrentSelection() {
-		if (imageArea==null && imagePage==null)
+		if (imageWindow==null)
 			return;
 		synchronized (displayUpdater) {
 			displayUpdater.notifyAll();  //wake up updater
@@ -459,12 +444,12 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 
 		File file = new File(targetDirectory,fileNames[newSelection]);
 		if (file==null) {
-                        if (imageArea!=null)
-                            imageArea.showText("No file");
+                        if (imageWindow!=null)
+                            imageWindow.showText("No file");
 			currentImage = null;
 			return;		//nothing there
 		}
-		currentImage = new ImageBundle(imageArea,file,newSelection);
+		currentImage = new ImageBundle(app,imageWindow,file,newSelection);
 	}
 
 	/** Set up the next and previous images. */
@@ -478,7 +463,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 			File file = new File(targetDirectory,
 					fileNames[currentSelection+1]);
 			if (file!=null) {
-				nextImage = new ImageBundle(imageArea,
+				nextImage = new ImageBundle(app,imageWindow,
 					file,currentSelection+1);
 				synchronized(imageLoader) {
 					imageLoader.notifyAll();
@@ -490,7 +475,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 			File file = new File(targetDirectory,
 					fileNames[currentSelection-1]);
 			if (file!=null) {
-				previousImage = new ImageBundle(imageArea,
+				previousImage = new ImageBundle(app,imageWindow,
 					file, currentSelection-1);
 				synchronized(imageLoader) {
 					imageLoader.notifyAll();
@@ -506,16 +491,14 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		setFileInfo(null);	//clear info while changing
 		if (currentImage==null) {
 			path = null;
-                        if (imageArea!=null)
-                            imageArea.showText("No image");
+                        if (imageWindow!=null)
+                            imageWindow.showText("No image");
 		} else {
 			path = currentImage.getPath();
 			String imageInfo = getFileInfo(path);
 			setFileInfo(imageInfo);
-                        if (imageArea!=null)
-                            imageArea.showImage(currentImage,imageInfo);
-                        if (imagePage!=null)
-                            imagePage.setCurrentImage(currentImage);
+                        if (imageWindow!=null)
+                            imageWindow.showImage(currentImage,imageInfo);
 		}
 		viewer.setTitleFileName(path);
 	}
@@ -591,6 +574,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
                         right();
 			return;
 		}
+                imageWindow.advance();
 		list.setSelectedIndex(sel);
 		list.ensureIndexIsVisible(sel);
 		displayCurrentSelection();
@@ -733,9 +717,9 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	}
 
         private void setCursorBusy(boolean busy) {
-            if (imageArea==null)
+            if (imageWindow==null)
                 return;
-            imageArea.setCursorBusy(busy);
+            imageWindow.setCursorBusy(busy);
         }
 }
 

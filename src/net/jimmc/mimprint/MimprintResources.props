@@ -33,6 +33,7 @@ info.ImageHelp=Available commands:\n\
 
 menu.File.Exit.label=Exit
 menu.File.Open.label=Open
+menu.File.Print.label=Print
 menu.Help.label=Help
 menu.Help.About.label=About Jiviewer
 

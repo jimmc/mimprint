@@ -17,9 +17,8 @@ import java.io.File;
 /** An image in multiple sizes, plus additional information.
  */
 public class ImageBundle {
-	/** The ImageArea in which our image will be displayed. */
-	private ImageArea imageArea;
-        private ImagePage imagePage;
+	/** The ImageWindow in which our image will be displayed. */
+	private ImageWindow imageWindow;
 
 	/** Our app. */
 	protected App app;
@@ -56,28 +55,22 @@ public class ImageBundle {
 	 * @param file The file containing the image.
 	 * @param listIndex The list index of the file.
 	 */
-	public ImageBundle(ImageArea imageArea, File file, int listIndex) {
-		app = imageArea.app;
+	public ImageBundle(App app, ImageWindow imageWindow, File file, int listIndex) {
+                this.app = app;
 		this.listIndex = listIndex;
 		path = file.getAbsolutePath();
-                setImageArea(imageArea);
+                setImageWindow(imageWindow);
                 image = toolkit.createImage(path);
 	}
 
-        public void setImageArea(ImageArea imageArea) {
-            this.imagePage = null;
-            this.imageArea = imageArea;
-            this.toolkit = imageArea.getToolkit();
-            tracker = new MediaTracker(imageArea);
-            setDisplaySize(imageArea.getWidth(),imageArea.getHeight());
-        }
-
-        public void setImagePage(ImagePage imagePage) {
-            this.imageArea = null;
-            this.imagePage = imagePage;
-            this.toolkit = imagePage.getToolkit();
-            tracker = new MediaTracker(imagePage);
-            setDisplaySize(0,0);
+        public void setImageWindow(ImageWindow imageWindow) {
+            this.imageWindow = imageWindow;
+            this.toolkit = imageWindow.getToolkit();
+            tracker = new MediaTracker(imageWindow.getComponent());
+            if (imageWindow instanceof ImageArea)
+                setDisplaySize(imageWindow.getWidth(),imageWindow.getHeight());
+            else
+                setDisplaySize(0,0);    //imageWindow is page size, we don't know our area size
         }
 
 	/** Set the size of the display for our image.
@@ -135,8 +128,8 @@ public class ImageBundle {
 
 		app.debugMsg("Bundle loadTransformedImage A image="+image);
 		Image si = createScaledImage(image);
-		loadCompleteImage(si);
-		app.debugMsg("Bundle loadTransformedImage B scaledImage="+si);
+                loadCompleteImage(si);
+                app.debugMsg("Bundle loadTransformedImage B scaledImage="+si);
 		Image ri = createRotatedImage(si);
 		app.debugMsg("Bundle loadTransformedImage C txImage="+ri);
 		transformedImage = ri;
@@ -280,10 +273,7 @@ public class ImageBundle {
 	}
 
         private Image createImage(int w, int h) {
-            if (imageArea!=null)
-                return imageArea.createImage(w,h);
-            else
-                return imagePage.createImage(w,h);
+            return imageWindow.createImage(w,h);
         }
 }
 

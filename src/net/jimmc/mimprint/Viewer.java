@@ -9,6 +9,7 @@ import jimmc.swing.GridBagger;
 import jimmc.swing.JsFrame;
 import jimmc.swing.MenuAction;
 
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -27,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -41,9 +43,13 @@ public class Viewer extends JsFrame {
 	/** The list of images. */
 	private ImageLister imageLister;
 
+        private JPanel imagePane;
+        private CardLayout imagePaneLayout;
+
 	/** Our image display area. */
 	private ImageArea imageArea;
 	private ImageArea fullImageArea;
+        private ImagePage imagePage;
 
         /** Full-screen window. */
         private JFrame fullWindow;
@@ -52,7 +58,6 @@ public class Viewer extends JsFrame {
             //frame (Viewer), which causes problems.
         /** Alternate screen window. */
         private JWindow altWindow;
-        private JFrame imagePageWindow;
 
 	/** The current screen mode. */
 	private int screenMode;
@@ -116,6 +121,14 @@ public class Viewer extends JsFrame {
 		};
 		m.add(mi);
 
+		String printLabel = getResourceString("menu.File.Print.label");
+		mi = new MenuAction(printLabel) {
+			public void action() {
+				processPrint();
+			}
+		};
+		m.add(mi);
+
 		String exitLabel = getResourceString("menu.File.Exit.label");
 		mi = new MenuAction(exitLabel) {
 			public void action() {
@@ -131,9 +144,12 @@ public class Viewer extends JsFrame {
 	protected void initForm() {
 		imageLister = new ImageLister(app,this);
 		imageArea = new ImageArea(app,this);
-		imageLister.setImageArea(imageArea);
+		imageLister.setImageWindow(imageArea);
+                imagePaneLayout = new CardLayout();
+                imagePane = new JPanel(imagePaneLayout);
+                imagePane.add(imageArea,"normal");
 		JSplitPane splitPane = new JSplitPane(
-			JSplitPane.VERTICAL_SPLIT,imageLister,imageArea);
+			JSplitPane.VERTICAL_SPLIT,imageLister,imagePane);
 		splitPane.setBackground(imageArea.getBackground());
 		getContentPane().add(splitPane);
 	}
@@ -173,6 +189,14 @@ public class Viewer extends JsFrame {
 		open(currentOpenFile);		//open it
 	}
 
+        /** Process the File->Print menu command. */
+        protected void processPrint() {
+            if (screenMode!=SCREEN_PRINT) {
+                return;         //TODO - put up an error message
+            }
+            imagePage.print();
+        }
+
 	/** Closing this form exits the program. */
 	protected void processClose() {
 		processFileExit();
@@ -203,7 +227,7 @@ public class Viewer extends JsFrame {
         public final static int SCREEN_PRINT = 2;
         public final static int SCREEN_ALT = 3;
 	/** Set the image area to take up the full screen, or unset.
-	 * @param fullImage true to make the ImageArea take up the full
+	 * @param fullImage true to make the image area take up the full
 	 *        screen, false to go back to the non-full-screen.
 	 */
 	public void setScreenMode(int mode) {
@@ -222,7 +246,8 @@ public class Viewer extends JsFrame {
                     //Switch back to normal bounds
                     //setBounds(normalBounds.x, normalBounds.y,
                     //	normalBounds.width, normalBounds.height);
-                    imageLister.setImageArea(imageArea);
+                    imagePaneLayout.show(imagePane,"normal");
+                    imageLister.setImageWindow(imageArea);
                     fullImageArea = null;
                     imageArea.requestFocus();
                     }
@@ -235,7 +260,7 @@ public class Viewer extends JsFrame {
                     fullWindow.getContentPane().add(fullImageArea);
                     fullWindow.setBounds(0,0,screenSize.width,screenSize.height);
                     fullWindow.setBackground(fullImageArea.getBackground());
-                    imageLister.setImageArea(fullImageArea);
+                    imageLister.setImageWindow(fullImageArea);
                     fullWindow.show();
                     fullImageArea.requestFocus();
                     this.hide();
@@ -271,7 +296,7 @@ public class Viewer extends JsFrame {
                     altWindow.getContentPane().add(fullImageArea);
                     altWindow.setBounds(altScreenBounds);
                     altWindow.setBackground(fullImageArea.getBackground());
-                    imageLister.setImageArea(fullImageArea);
+                    imageLister.setImageWindow(fullImageArea);
                     altWindow.show();
                     fullImageArea.requestFocus();
                     imageArea.showText("see alternate screen for image");
@@ -279,17 +304,17 @@ public class Viewer extends JsFrame {
                     break;
                 case SCREEN_PRINT:
                     {
-                    ImagePage imagePage = new ImagePage();
-                    imagePage.setBackground(Color.gray);
-                    imagePage.setForeground(Color.black);
-                    imagePage.setPageColor(Color.white);
-                    imagePageWindow = new JFrame();
-                    imagePageWindow.getContentPane().add(imagePage);
-                    imagePageWindow.setBounds(300,0,300,500);
-                    imageLister.setImagePage(imagePage);
-                    imagePageWindow.show();
+                    if (imagePage==null) {
+                        imagePage = new ImagePage(this);
+                        imagePage.setBackground(Color.gray);
+                        imagePage.setForeground(Color.black);
+                        imagePage.setPageColor(Color.white);
+                        imagePane.add(imagePage,"print");
+                    }
+                    imagePaneLayout.show(imagePane,"print");
+                    imageLister.setImageWindow(imagePage);
                     imagePage.requestFocus();
-                    imageArea.showText("see image page window for image");
+                    imageArea.showText("see image pane for image");
                     }
                     break;
 		}
@@ -302,11 +327,6 @@ public class Viewer extends JsFrame {
                     altWindow.hide();
                     altWindow.dispose();
                     altWindow = null;
-                }
-                if (mode!=SCREEN_PRINT && imagePageWindow!=null) {
-                    imagePageWindow.hide();
-                    imagePageWindow.dispose();
-                    imagePageWindow = null;
                 }
 		screenMode = mode;
                 imageLister.displayCurrentSelection();
@@ -367,10 +387,19 @@ public class Viewer extends JsFrame {
 
         /** Rotate the current image. */
         public void rotateCurrentImage(int quarters) {
-            if (fullImageArea!=null)
+            switch (screenMode) {
+            case SCREEN_FULL:
+            case SCREEN_ALT:
                 fullImageArea.rotate(quarters);
-            else
+                break;
+            case SCREEN_PRINT:
+                imagePage.rotate(quarters);
+                break;
+            case SCREEN_NORMAL:
+            default:
                 imageArea.rotate(quarters);
+                break;
+            }
         }
 
         /** Move the active image up to the previous image in the lister. */
@@ -392,6 +421,12 @@ public class Viewer extends JsFrame {
         public void moveRight() {
             imageLister.right();
         }
+
+	/** Put up a help dialog. */
+	public void showHelpDialog() {
+		String helpText = app.getResourceString("info.ImageHelp");
+		infoDialog(helpText);
+	}
 
 	/** Get a string from our resources. */
 	public String getResourceString(String name) {
