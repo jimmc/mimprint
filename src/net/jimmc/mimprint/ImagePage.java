@@ -43,6 +43,7 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
+import java.util.List;
 import javax.swing.JComponent;
 
 /** A page to display a collection of images in different
@@ -153,7 +154,7 @@ public class ImagePage extends JComponent
         setDragCursor(ev);
     }
     public void dragExit(DragSourceEvent ev) {
-        System.out.println("DragSourceListener dragExit");
+        //System.out.println("DragSourceListener dragExit");
     }
     public void dragDropEnd(DragSourceDropEvent ev) {
         dragAreaIndex = -1;
@@ -176,14 +177,17 @@ public class ImagePage extends JComponent
 
     class DTListener implements DropTargetListener {
         private void checkDrop(DropTargetDragEvent ev) {
+            //printFlavors(ev);       //TODO - for debug
             int a = getDropArea(ev);
             if (a<0 || a==dragAreaIndex) {
                 //No drop in source area or outside any area
                 highlightArea(-1);
+                //System.out.println("reject drag");
                 ev.rejectDrag();
                 return;
             }
             highlightArea(a);
+            //System.out.println("accept drag");
             ev.acceptDrag(ImagePage.this.dropActions);
         }
       //The DropTargetListener interface
@@ -243,18 +247,37 @@ public class ImagePage extends JComponent
 
             if (data instanceof String) {
                 String s = (String)data;
-                System.out.println("Got drop data: "+s);
-                File f = new File(s);
-                if (f.exists()) {
-                    ImageBundle b = new ImageBundle(viewer.getApp(),
-                            ImagePage.this,f,-1);
-                    currentAreaIndex = dropAreaIndex;
-                    showImage(b,null);
+                if (dropFileName(s,dropAreaIndex)) {
                     ev.dropComplete(true);
-                    System.out.println("drop done, succeeded");
-                    return;
+                    return;     //success
                 }
-                System.out.println("No such file "+s);
+            } else if (data instanceof List) {
+                List fList = (List)data;        //list of file names
+                if (fList.size()>=1) {
+                    Object list0 = fList.get(0);
+                    if (list0 instanceof String) {
+                        if (dropFileName((String)list0,dropAreaIndex)) {
+                            ev.dropComplete(true);
+                            return;
+                        }
+                    } else if (list0 instanceof File) {
+                        File f = (File)list0;
+                        if (dropFileName(f.toString(),dropAreaIndex)) {
+                            ev.dropComplete(true);
+                            return;
+                        }
+                    } else {
+                        System.out.println("List item 0 is not a string");
+                        System.out.println("List item 0 class is "+list0.getClass().getName());
+                        System.out.println("List item 0 data is "+list0.toString());
+                    }
+                } else {
+                    System.out.println("List is empty");
+                }
+            } else {
+                //can't deal with this yet
+                System.out.println("drop data class is "+data.getClass().getName());
+                System.out.println("drop data is "+data.toString());
             }
             //not processed
             System.out.println("Rejecting drop");
@@ -263,10 +286,31 @@ public class ImagePage extends JComponent
       //End DropTargetListener interface
     }
 
+    /** Drop a file into the currently selected area.
+     * @param s The full path to the image file.
+     * @return True if the file exists, false if not.
+     */
+    private boolean dropFileName(String s, int dropAreaIndex) {
+        System.out.println("Got drop data: "+s);
+        File f = new File(s);
+        if (f.exists()) {
+            ImageBundle b = new ImageBundle(viewer.getApp(),
+                    ImagePage.this,f,-1);
+            currentAreaIndex = dropAreaIndex;
+            showImage(b,null);
+            System.out.println("drop done, succeeded");
+            return true;
+        }
+        System.out.println("No such file "+s);
+        return false;
+    }
+
     /** Get the flavors we support for drop. */
     private DataFlavor[] getDropFlavors() {
         DataFlavor[] flavors = {
-            DataFlavor.stringFlavor, DataFlavor.plainTextFlavor
+            DataFlavor.stringFlavor,
+            DataFlavor.plainTextFlavor,
+            DataFlavor.javaFileListFlavor
         };
         return flavors;
     }
@@ -280,16 +324,29 @@ public class ImagePage extends JComponent
                 break;
             }
         }
-        if (chosenFlavor==null)
+        if (chosenFlavor==null) {
+            System.out.println("No supported flavor");
             return -1;       //no support for any flavors
+        }
 
         int sourceActions = ev.getSourceActions();
-        if ((sourceActions & ImagePage.this.dropActions)==0)
+        if ((sourceActions & ImagePage.this.dropActions)==0) {
+            System.out.println("Action not supported "+sourceActions);
             return -1;       //no actions available
+        }
 
         Point p = ev.getLocation();
         int i = windowToAreaIndex(p);
+        System.out.println("area index "+i);
         return i;               // -1 if no area
+    }
+
+    private void printFlavors(DropTargetDragEvent ev) {
+        DataFlavor[] flavors = ev.getCurrentDataFlavors();
+        for (int i=0; i<flavors.length; i++) {
+            DataFlavor flavor = flavors[i];
+            System.out.println("drop flavor "+flavor);
+        }
     }
 
   //End Drag-and-drop stuff
