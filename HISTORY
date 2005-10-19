@@ -1,10 +1,16 @@
-jiviewer v0.0.5  October 9, 2005
+jiviewer v0.0.5  October 18, 2005
 
   Enhancements:
 
   * Add 'a' command to display on an alternate screen.
-  * Remove dependence on JAI, so this version now runs on MacOSX.
+  * Add 'p' command to display printable window.
+    + Display multiple images in one window.
+    + Add drag-and-drop in printable window.
+    + Add DEL/BS in printable window to clear image from an area.
+    + Add Print command to File menu to print contents of printable window.
   * Use separate window for full-screen mode, make it work better.
+  * Add View menu.
+  * Remove dependence on JAI, so this version now runs on MacOSX.
 
   Bug Fixes:
 

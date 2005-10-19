@@ -40,3 +40,5 @@
 - Add 'p' command to show ImagePage. [051007]
 - Fix some NPEs when problems reading image files. [051009]
 - Add 'a' command to display on alternate screen. [051009]
+- Add drag-and-drop in printable window. [051018]
+- Add View menu. [051018]

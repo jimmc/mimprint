@@ -20,12 +20,14 @@ info.ImageHelp=Available commands:\n\
         LEFT - move to end of previous dir\n\
         RIGHT - move to start of next dir\n\
 	ESC - exit full screen mode\n\
+        DEL, BS - clear current image (Printable mode only)\n\
 	Ctrl L - refresh\n\
         a - alternate screen mode\n\
 	f - full screen mode\n\
 	e - edit text about the image\n\
 	i - show info about the image\n\
 	o - open the file-open dialog\n\
+        p - printable screen mode\n\
 	r - rotate image 90 degrees counter-clockwise\n\
 	R - rotate image 90 degrees clockwise\n\
 	Ctrl R - rotate image 180 degrees\n\
@@ -34,8 +36,24 @@ info.ImageHelp=Available commands:\n\
 menu.File.Exit.label=Exit
 menu.File.Open.label=Open
 menu.File.Print.label=Print
+
 menu.Help.label=Help
 menu.Help.About.label=About Jiviewer
+
+menu.View.PreviousImage.label=Previous Image
+menu.View.NextImage.label=Next Image
+menu.View.PreviousDirectory.label=Previous Directory
+menu.View.NextDirectory.label=Next Directory
+menu.View.RotateMenu.label=Rotate Image
+menu.View.RotateMenu.R90.label=90 degrees CCW
+menu.View.RotateMenu.R180.label=180 degrees
+menu.View.RotateMenu.R270.label=90 degrees CW
+menu.View.ScreenModeNormal.label=Normal Screen Mode
+menu.View.ScreenModeAlternate.label=Alternate Screen Mode
+menu.View.ScreenModeFull.label=Full Screen Mode
+menu.View.ScreenModePrint.label=Printable Screen Mode
+menu.View.ShowEditDialog.label=Show Edit Dialog
+menu.View.ShowHelpDialog.label=Show Help Dialog
 
 query.Exit.prompt=Exit Jiviewer?
 query.FileToOpen=File or Directory to Open

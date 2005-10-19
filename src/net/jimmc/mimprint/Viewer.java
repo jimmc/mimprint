@@ -5,6 +5,7 @@
 
 package jimmc.jiviewer;
 
+import jimmc.swing.CheckBoxMenuAction;
 import jimmc.swing.GridBagger;
 import jimmc.swing.JsFrame;
 import jimmc.swing.MenuAction;
@@ -30,6 +31,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JWindow;
@@ -61,6 +63,12 @@ public class Viewer extends JsFrame {
 
 	/** The current screen mode. */
 	private int screenMode;
+
+        //Menu items for screen mode
+        private CheckBoxMenuAction cbmaNormal;
+        private CheckBoxMenuAction cbmaAlternate;
+        private CheckBoxMenuAction cbmaFull;
+        private CheckBoxMenuAction cbmaPrint;
 
 	/** The screen bounds when in normal mode. */
 	private Rectangle normalBounds;
@@ -104,6 +112,7 @@ public class Viewer extends JsFrame {
 	protected JMenuBar createMenuBar() {
 		JMenuBar mb = new JMenuBar();
 		mb.add(createFileMenu());
+		mb.add(createViewMenu());
 		mb.add(createHelpMenu());
 		return mb;
 	}
@@ -133,6 +142,131 @@ public class Viewer extends JsFrame {
 		mi = new MenuAction(exitLabel) {
 			public void action() {
 				processFileExit();
+			}
+		};
+		m.add(mi);
+
+		return m;
+	}
+
+	/** Create our View menu. */
+	protected JMenu createViewMenu() {
+		JMenu m = new JMenu("View");
+		MenuAction mi;
+                String label;
+
+		label = getResourceString("menu.View.ScreenModeNormal.label");
+		cbmaNormal = new CheckBoxMenuAction(label) {
+			public void action() {
+				setScreenMode(SCREEN_NORMAL);
+			}
+		};
+		m.add(cbmaNormal);
+
+		label = getResourceString("menu.View.ScreenModeAlternate.label");
+		cbmaAlternate = new CheckBoxMenuAction(label) {
+			public void action() {
+				setScreenMode(SCREEN_ALT);
+			}
+		};
+		m.add(cbmaAlternate);
+
+		label = getResourceString("menu.View.ScreenModeFull.label");
+		cbmaFull = new CheckBoxMenuAction(label) {
+			public void action() {
+				setScreenMode(SCREEN_FULL);
+			}
+		};
+		m.add(cbmaFull);
+
+		label = getResourceString("menu.View.ScreenModePrint.label");
+		cbmaPrint = new CheckBoxMenuAction(label) {
+			public void action() {
+				setScreenMode(SCREEN_PRINT);
+			}
+		};
+		m.add(cbmaPrint);
+
+                cbmaNormal.setState(true);
+
+                m.add(new JSeparator());
+
+		label = getResourceString("menu.View.PreviousImage.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveUp();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.View.NextImage.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveDown();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.View.PreviousDirectory.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveLeft();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.View.NextDirectory.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveRight();
+			}
+		};
+		m.add(mi);
+
+                m.add(new JSeparator());
+
+		label = getResourceString("menu.View.RotateMenu.label");
+                JMenu rotateMenu = new JMenu(label);
+                m.add(rotateMenu);
+
+		label = getResourceString("menu.View.RotateMenu.R90.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				rotateCurrentImage(1);
+			}
+		};
+		rotateMenu.add(mi);
+
+		label = getResourceString("menu.View.RotateMenu.R180.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				rotateCurrentImage(2);
+			}
+		};
+		rotateMenu.add(mi);
+
+		label = getResourceString("menu.View.RotateMenu.R270.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				rotateCurrentImage(-1);
+			}
+		};
+		rotateMenu.add(mi);
+
+		label = getResourceString("menu.View.ShowEditDialog.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				showImageEditDialog();
+			}
+		};
+		m.add(mi);
+
+                m.add(new JSeparator());
+
+		label = getResourceString("menu.View.ShowHelpDialog.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				showHelpDialog();
 			}
 		};
 		m.add(mi);
@@ -341,6 +475,11 @@ public class Viewer extends JsFrame {
                     fullWindow.validate();
                 else
                     this.validate();
+
+                cbmaNormal.setState(mode==SCREEN_NORMAL);
+                cbmaAlternate.setState(mode==SCREEN_ALT);
+                cbmaFull.setState(mode==SCREEN_FULL);
+                cbmaPrint.setState(mode==SCREEN_PRINT);
 	}
 
 	/** Display the specified text, allow the user to edit it.

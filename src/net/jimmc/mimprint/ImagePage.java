@@ -8,6 +8,25 @@ package jimmc.jiviewer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragGestureRecognizer;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceContext;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -17,11 +36,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.File;
 import javax.swing.JComponent;
 
 /** A page to display a collection of images in different
@@ -29,7 +50,8 @@ import javax.swing.JComponent;
  */
 public class ImagePage extends JComponent 
         implements ImageWindow, Printable, KeyListener, MouseListener,
-        MouseMotionListener, ComponentListener {
+        MouseMotionListener, ComponentListener,
+        DragGestureListener, DragSourceListener {
 
     private static final int BORDER_THICKNESS = 10;
 
@@ -39,9 +61,19 @@ public class ImagePage extends JComponent
     private int pageHeight;     //height of the page in pageUnits
     private ImagePageArea[] areas;      //the areas and images to display
     private int currentAreaIndex;       //index into areas of active area
+    private int highlightedAreaIndex;   //index of area to highlight for drop
+    private int dragAreaIndex;          //index of source for drag
     private Color pageColor;    //color of the "paper"
     private boolean knownKeyPress;
     private String imageInfoText;
+
+    //drag-and-drop stuff
+    private DragSource dragSource;
+    private DragGestureListener dgListener;
+    private DragSourceListener dsListener;
+    private DropTarget dropTarget;
+    private DropTargetListener dtListener;
+    private int dropActions = DnDConstants.ACTION_COPY_OR_MOVE;
 
     /** Create an ImagePage with no images or layout. */
     public ImagePage(Viewer viewer) {
@@ -56,7 +88,211 @@ public class ImagePage extends JComponent
         addMouseMotionListener(this);
         addComponentListener(this);
         setDefaultLayout();
+        setupDrag();
     }
+
+ //Drag-and-drop stuff
+    private void setupDrag() {
+        //enabled dragging from this component
+        dragSource = DragSource.getDefaultDragSource();
+        dgListener = this;
+        dsListener = this;
+        dragSource.createDefaultDragGestureRecognizer(
+            this,DnDConstants.ACTION_COPY_OR_MOVE, dgListener);
+
+        //enable dropping into this component
+        dtListener = new DTListener();
+        dropTarget = new DropTarget(this,dropActions,
+                dtListener, true);
+    }
+
+  //The DragGestureListener interface
+    public void dragGestureRecognized(DragGestureEvent ev) {
+        Point p = ev.getDragOrigin();
+        int a = windowToAreaIndex(p);
+        dragAreaIndex = a;
+        if (a<0)
+            return;     //not in an area, can't start a drag here
+        String path = areas[a].getImagePath();
+        if (path==null)
+            return;     //no image in this area, can't start a drag
+        try {
+            Transferable transferable = new StringSelection(path);
+            dragSource.startDrag(ev, DragSource.DefaultCopyNoDrop,
+                    transferable, dsListener);
+        } catch (InvalidDnDOperationException ex) {
+            System.err.println(ex);     //TODO - better error handling
+        }
+    }
+  //End DragGestureListener interface
+
+    private void setDragCursor(DragSourceDragEvent ev) {
+        DragSourceContext ctx = ev.getDragSourceContext();
+        int action = ev.getDropAction();
+        ctx.setCursor(null);
+        if ((action & DnDConstants.ACTION_COPY)!=0) {
+            //System.out.println("cursor Copy");
+            ctx.setCursor(DragSource.DefaultCopyDrop);
+            //TODO - we are getting here, but the cursor does not get changed
+        } else if ((action & DnDConstants.ACTION_MOVE)!=0) {
+            //System.out.println("cursor Move");
+            ctx.setCursor(DragSource.DefaultMoveDrop);
+        } else {
+            //System.out.println("cursor NoCopy");
+            ctx.setCursor(DragSource.DefaultCopyNoDrop);
+            //TODO - or MoveNoDrop?
+        }
+    }
+  //The DragSourceListener interface
+    public void dragEnter(DragSourceDragEvent ev) {
+        //System.out.println("dragEnter");
+        setDragCursor(ev);
+    }
+    public void dragOver(DragSourceDragEvent ev) {
+        //System.out.println("dragOver");
+        setDragCursor(ev);
+    }
+    public void dragExit(DragSourceEvent ev) {
+        System.out.println("DragSourceListener dragExit");
+    }
+    public void dragDropEnd(DragSourceDropEvent ev) {
+        dragAreaIndex = -1;
+        highlightArea(-1);
+        if (!ev.getDropSuccess()) {
+            System.out.println("DragDropEnd drop failed");
+            return;
+        }
+        int dropAction = ev.getDropAction();
+        if (dropAction==DnDConstants.ACTION_COPY)
+            System.out.println("COPY!");
+        else if (dropAction==DnDConstants.ACTION_MOVE)
+            System.out.println("MOVE!");
+        else
+            System.out.println("DragDropEnd no action");
+        //TODO
+    }
+    public void dropActionChanged(DragSourceDragEvent ev) { }
+  //End DragSourceListener interface
+
+    class DTListener implements DropTargetListener {
+        private void checkDrop(DropTargetDragEvent ev) {
+            int a = getDropArea(ev);
+            if (a<0 || a==dragAreaIndex) {
+                //No drop in source area or outside any area
+                highlightArea(-1);
+                ev.rejectDrag();
+                return;
+            }
+            highlightArea(a);
+            ev.acceptDrag(ImagePage.this.dropActions);
+        }
+      //The DropTargetListener interface
+        public void dragEnter(DropTargetDragEvent ev) {
+            checkDrop(ev);
+        }
+        public void dragOver(DropTargetDragEvent ev) {
+            checkDrop(ev);
+        }
+        public void dropActionChanged(DropTargetDragEvent ev) {
+            checkDrop(ev);
+        }
+        public void dragExit(DropTargetEvent ev) {
+            highlightArea(-1);
+            System.out.println("DropTargetListener dragExit");
+        }
+
+        public void drop(DropTargetDropEvent ev) {
+            System.out.println("dropped");
+            DataFlavor[] flavors = getDropFlavors();
+            DataFlavor chosenFlavor = null;
+            for (int i=0; i<flavors.length; i++) {
+                if (ev.isDataFlavorSupported(flavors[i])) {
+                    chosenFlavor = flavors[i];
+                    break;
+                }
+            }
+            if (chosenFlavor==null) {
+                ev.dropComplete(false);
+                return;       //no support for any flavors
+            }
+
+            int sourceActions = ev.getSourceActions();
+            if ((sourceActions & ImagePage.this.dropActions)==0) {
+                ev.dropComplete(false);
+                return;       //no actions available
+            }
+
+            int dropAreaIndex = windowToAreaIndex(ev.getLocation());
+            if (dropAreaIndex<0) {
+                ev.dropComplete(false); //bad area
+                return;       //no actions available
+            }
+
+            Object data = null;
+            try {
+                ev.acceptDrop(ImagePage.this.dropActions);
+                data = ev.getTransferable().getTransferData(chosenFlavor);
+                if (data==null) {
+                    throw new IllegalArgumentException("No drop data");
+                }
+            } catch (Exception ex) {
+                System.out.println("Exception accepting drop: "+ex);
+                ev.dropComplete(false);
+                return;
+            }
+
+            if (data instanceof String) {
+                String s = (String)data;
+                System.out.println("Got drop data: "+s);
+                File f = new File(s);
+                if (f.exists()) {
+                    ImageBundle b = new ImageBundle(viewer.getApp(),
+                            ImagePage.this,f,-1);
+                    currentAreaIndex = dropAreaIndex;
+                    showImage(b,null);
+                    ev.dropComplete(true);
+                    System.out.println("drop done, succeeded");
+                    return;
+                }
+                System.out.println("No such file "+s);
+            }
+            //not processed
+            System.out.println("Rejecting drop");
+            ev.dropComplete(false);
+        }
+      //End DropTargetListener interface
+    }
+
+    /** Get the flavors we support for drop. */
+    private DataFlavor[] getDropFlavors() {
+        DataFlavor[] flavors = {
+            DataFlavor.stringFlavor, DataFlavor.plainTextFlavor
+        };
+        return flavors;
+    }
+
+    private int getDropArea(DropTargetDragEvent ev) {
+        DataFlavor[] flavors = getDropFlavors();
+        DataFlavor chosenFlavor = null;
+        for (int i=0; i<flavors.length; i++) {
+            if (ev.isDataFlavorSupported(flavors[i])) {
+                chosenFlavor = flavors[i];
+                break;
+            }
+        }
+        if (chosenFlavor==null)
+            return -1;       //no support for any flavors
+
+        int sourceActions = ev.getSourceActions();
+        if ((sourceActions & ImagePage.this.dropActions)==0)
+            return -1;       //no actions available
+
+        Point p = ev.getLocation();
+        int i = windowToAreaIndex(p);
+        return i;               // -1 if no area
+    }
+
+  //End Drag-and-drop stuff
 
     public Component getComponent() {
         return this;
@@ -88,6 +324,15 @@ public class ImagePage extends JComponent
         areas[3] = new ImagePageArea(4500,5750,3500,4750);
 
         currentAreaIndex = -1;  //start with nothing selected
+        highlightedAreaIndex = -1;        //nothing highlighted
+    }
+
+    //Set the currently highlighted area (the drop target)
+    private void highlightArea(int a) {
+        if (a==highlightedAreaIndex)
+            return;             //already set
+        highlightedAreaIndex = a;
+        repaint();
     }
 
     private void repaintCurrentImage() {
@@ -124,6 +369,26 @@ public class ImagePage extends JComponent
         return true;            //allow keyboard input
     }
 
+    /** Select the image area at the specified location. */
+    public void selectArea(Point windowPoint) {
+        int i = windowToAreaIndex(windowPoint);
+        if (i<0)
+            return;     //not in an area
+        currentAreaIndex = i;
+        repaint();
+    }
+
+    /** Get the index of the area containing the window point, or -1 if not in an area. */
+    public int windowToAreaIndex(Point windowPoint) {
+        Point userPoint = windowToUser(windowPoint);
+        for (int i=0; i<areas.length; i++) {
+            if (areas[i].hit(userPoint)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /** Rotate the current image. */
     public void rotate(int quarters) {
         if (currentAreaIndex<0)
@@ -154,7 +419,8 @@ public class ImagePage extends JComponent
         for (int n=0; n<areas.length; n++) {
             //pass new g2 to each area to prevent concatenation of transforms
             Graphics2D g2c = (Graphics2D)g2.create();
-            areas[n].paint(g2c,BORDER_THICKNESS,n==currentAreaIndex,drawOutlines);
+            areas[n].paint(g2c,BORDER_THICKNESS,n==currentAreaIndex,
+                    n==highlightedAreaIndex,drawOutlines);
             g2c.dispose();
         }
     }
@@ -173,6 +439,21 @@ public class ImagePage extends JComponent
         else
             g2.translate((xscale-yscale)*userWidth/2,0);
         g2.scale(scale,scale);
+    }
+
+    /** Transform a point in window coordinates to a point in user space. */
+    private Point windowToUser(Point p) {
+        Point userP = new Point(p);
+        double xscale = ((double)getWidth())/((double)pageWidth);
+        double yscale = ((double)getHeight())/((double)pageHeight);
+        double scale = (xscale<yscale)?xscale:yscale;
+        if (xscale<yscale)
+            userP.y -= (yscale-xscale)*pageHeight/2.0;
+        else
+            userP.x -= (xscale-yscale)*pageWidth/2.0;
+        userP.x *= 1.0/scale;
+        userP.y *= 1.0/scale;
+        return userP;
     }
 
     public void setCursorBusy(boolean busy) {
@@ -303,9 +584,19 @@ public class ImagePage extends JComponent
                     viewer.showHelpDialog();
                     setCursorVisible(false);	//turn cursor back off
                     break;
+            case 0177:                  //delete
+            case 8:                     //backspace
+                    if (currentAreaIndex>=0) {
+                        //clear image from current area
+                        areas[currentAreaIndex].setImage(null);
+                        repaintCurrentImage();
+                    }
+                    break;
             default:		//unknown key
-                    if (!knownKeyPress)
-                            getToolkit().beep();
+                    if (!knownKeyPress) {
+                        System.out.println("Unknown key "+ch+" ("+((int)ch)+")");
+                        getToolkit().beep();
+                    }
                     break;
             }
     }
@@ -317,6 +608,7 @@ public class ImagePage extends JComponent
     public void mouseExited(MouseEvent ev) {}
     public void mousePressed(MouseEvent ev) {
             requestFocus();
+            selectArea(new Point(ev.getX(),ev.getY()));
     }
     public void mouseReleased(MouseEvent ev) {}
   //End MouseListener interface
