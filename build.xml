@@ -21,6 +21,7 @@
             source="1.4"
         >
             <include name="**/*.java"/>
+	    <exclude name="jimmc/swing.old/*.java"/>
         </javac>
     </target>
 
