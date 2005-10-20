@@ -292,6 +292,10 @@ public class ImagePage extends JComponent
      */
     private boolean dropFileName(String s, int dropAreaIndex) {
         System.out.println("Got drop data: "+s);
+	if (s.startsWith("file://"))
+	    s = s.substring("file://".length()); //convert URL to file path
+	while ((s.endsWith("\n"))||s.endsWith("\r"))
+	    s = s.substring(0,s.length()-1); //drop trailing newline
         File f = new File(s);
         if (f.exists()) {
             ImageBundle b = new ImageBundle(viewer.getApp(),
@@ -301,7 +305,7 @@ public class ImagePage extends JComponent
             System.out.println("drop done, succeeded");
             return true;
         }
-        System.out.println("No such file "+s);
+        System.out.println("No such file '"+s+"'");
         return false;
     }
 
@@ -337,7 +341,7 @@ public class ImagePage extends JComponent
 
         Point p = ev.getLocation();
         int i = windowToAreaIndex(p);
-        System.out.println("area index "+i);
+        //System.out.println("area index "+i);
         return i;               // -1 if no area
     }
 
