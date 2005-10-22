@@ -6,6 +6,7 @@ jiviewer v0.0.5  October 21, 2005
   * Add 'p' command to display printable window.
     + Display multiple images in one window.
     + Add drag-and-drop in printable window.
+    + Can drag from file list to printable window.
     + Add DEL/BS in printable window to clear image from an area.
     + Add Print command to File menu to print contents of printable window.
   * Use separate window for full-screen mode, make it work better.

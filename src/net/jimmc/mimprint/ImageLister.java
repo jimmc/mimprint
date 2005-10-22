@@ -10,9 +10,19 @@ import jimmc.util.MoreException;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceAdapter;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.InvalidDnDOperationException;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
@@ -37,7 +47,8 @@ import javax.swing.ListCellRenderer;
 
 /** Maintains a list of images and associated information.
  */
-public class ImageLister extends JPanel implements ListSelectionListener {
+public class ImageLister extends JPanel implements ListSelectionListener,
+            DragGestureListener {
         private final static int ICON_SIZE = 64;        //TBD - use a preference
                 //the size of each icon in the list
         private final static int ICON_LIST_WIDTH=450;
@@ -53,6 +64,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
         private JSplitPane mainSplitPane;
         private JSplitPane infoSplitPane;
         private JScrollPane listScrollPane;
+
+        private DragSourceListener dsListener;
 
 	/** The image area which displays the image. */
 	private ImageWindow imageWindow;
@@ -135,7 +148,40 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 		initImageLoader();
 		initDisplayUpdater();
+
+                setupDrag();
 	}
+
+        //Recognize dragging from the file list
+        private void setupDrag() {
+            //enable dragging from this list
+            DragSource dragSource = DragSource.getDefaultDragSource();
+            dragSource.createDefaultDragGestureRecognizer(
+                fileNameList,DnDConstants.ACTION_COPY,this);
+
+            dsListener = new DragSourceAdapter() {
+                public void dragDropEnd(DragSourceDropEvent ev) {
+                    if (imageWindow!=null)
+                        imageWindow.requestFocus();
+                }
+            };
+        }
+
+    //The DragGesture interface
+        public void dragGestureRecognized(DragGestureEvent ev) {
+            int index = fileNameList.getSelectedIndex();
+            if (index==-1)
+                return;         //no item selected for dragging
+            String path = new File(targetDirectory,fileNames[index]).toString();
+            try {
+                Transferable transferable = new StringSelection(path);
+                ev.startDrag(DragSource.DefaultCopyNoDrop,
+                        transferable, dsListener);
+            } catch (InvalidDnDOperationException ex) {
+                System.err.println(ex); //TODO - better error handling
+            }
+        }
+    //End DragGesture interface
 
         /** Show only the list, not the other status areas. */
         public void showListOnly(boolean t) {
@@ -462,19 +508,24 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
     //The ListSelectionListener interface
 	/** Here when the list selection changes. */
 	public void valueChanged(ListSelectionEvent ev) {
-		displayCurrentSelection();
-                if (imageWindow!=null)
-                    imageWindow.requestFocus();
+            displayCurrentSelection();
+            if (imageWindow!=null)
+                imageWindow.requestFocus();
 	}
     //End ListSelectionListener interface
 
 	/** Show the currently selected file. */
 	public void displayCurrentSelection() {
-		if (imageWindow==null)
-			return;
-		synchronized (displayUpdater) {
-			displayUpdater.notifyAll();  //wake up updater
-		}
+            //If we are displaying an ImagePage, don't make the
+            //selection change the window; user can drag an image
+            //from the list into the ImagePage window.
+            if (imageWindow instanceof ImagePage)
+                return;
+            if (imageWindow==null)
+                return;
+            synchronized (displayUpdater) {
+                displayUpdater.notifyAll();  //wake up updater
+            }
 	}
 
 	/** Set up our images.
@@ -649,10 +700,10 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
                         right();
 			return;
 		}
-                imageWindow.advance();
+                //imageWindow.advance();
 		fileNameList.setSelectedIndex(sel);
 		fileNameList.ensureIndexIsVisible(sel);
-		displayCurrentSelection();
+                displayCurrentSelection();
 	}
 
 	/** The image loader thread, which loads images in the background. */
