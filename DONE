@@ -43,3 +43,6 @@
 - Add drag-and-drop in printable window. [051018]
 - Add View menu. [051018]
 - Make drop from other apps work. [051019]
+- Set min image size smaller so split pane can resize it down. [051020]
+- Add "List on Left" command to View menu. [051020]
+- Add "Show Image in List" command to View menu. [051021]

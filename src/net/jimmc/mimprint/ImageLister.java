@@ -9,9 +9,13 @@ import jimmc.util.FileUtil;
 import jimmc.util.MoreException;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -19,43 +23,60 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.ListCellRenderer;
 
 /** Maintains a list of images and associated information.
  */
 public class ImageLister extends JPanel implements ListSelectionListener {
+        private final static int ICON_SIZE = 64;        //TBD - use a preference
+                //the size of each icon in the list
+        private final static int ICON_MARGIN = 10;      //TBD - use a preference
+                //the amount of space between each icon in the list
+
 	/** Our App. */
 	private App app;
 
 	/** Our parent window. */
 	private Viewer viewer;
 
+        private JSplitPane mainSplitPane;
+
 	/** The image area which displays the image. */
 	private ImageWindow imageWindow;
 
 	/** Our list. */
-	private JList list;
+	private JList fileNameList;
+
+        private int listMode;
+            public static final int MODE_NAME = 0;
+            public static final int MODE_FULL = 1;
+            private static final int MODE_MAX = MODE_FULL; //highest legal value
 
 	/** The status area. */
 	private JTextArea statusLabel;
 
-	/** The label showing the directory info. */
-	private JTextArea dirInfoLabel;
+	/** The label showing the directory info text. */
+	private JTextArea dirTextLabel;
 
-	/** The label showing the file info. */
-	private JTextArea fileInfoLabel;
+	/** The label showing the file info text. */
+	private JTextArea fileTextLabel;
 
 	/** The current directory in which we are displaying files. */
 	private File targetDirectory;
 
 	/** The file names we are displaying, within the targetDirectory. */
 	private String[] fileNames;
+        private FileInfo[] fileInfos;
 
 	/** The currently displayed image. */
 	protected ImageBundle currentImage;
@@ -81,35 +102,67 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 
 		statusLabel = new JTextArea("status here");
 		statusLabel.setEditable(false);
-		dirInfoLabel = new JTextArea("dir info here");
-		dirInfoLabel.setEditable(false);
-		fileInfoLabel = new JTextArea("file info here");
-		fileInfoLabel.setEditable(false);
+		dirTextLabel = new JTextArea("dir info here");
+		dirTextLabel.setEditable(false);
+		fileTextLabel = new JTextArea("file info here");
+		fileTextLabel.setEditable(false);
 		JSplitPane infoSplitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
-			new JScrollPane(dirInfoLabel),
-			new JScrollPane(fileInfoLabel));
+			new JScrollPane(dirTextLabel),
+			new JScrollPane(fileTextLabel));
 		//infoSplitPane.setBackground(Color.black);
 		JSplitPane statusInfoPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
 			statusLabel,infoSplitPane);
 
-		list = new JList();
-		list.addListSelectionListener(this);
-		JScrollPane listScrollPane = new JScrollPane(list);
+		fileNameList = new JList();
+		fileNameList.addListSelectionListener(this);
+		JScrollPane listScrollPane = new JScrollPane(fileNameList);
 		listScrollPane.setPreferredSize(new Dimension(600,140));
 
-		JSplitPane splitPane = new JSplitPane(
+		mainSplitPane = new JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT,
 			listScrollPane,statusInfoPane);
-		splitPane.setDividerLocation(200);
+		mainSplitPane.setDividerLocation(200);
 
 		setLayout(new BorderLayout());
-		add(splitPane);
+		add(mainSplitPane);
 
 		initImageLoader();
 		initDisplayUpdater();
 	}
+
+        /** Put the image list on the top rather than the left. */
+        public void setSplitPaneHorizontal(boolean horizontal) {
+            int newOrientation = horizontal?
+                JSplitPane.HORIZONTAL_SPLIT:JSplitPane.VERTICAL_SPLIT;
+            mainSplitPane.setOrientation(newOrientation);
+        }
+
+        /** Set the mode for what we display in the image file list. */
+        public void setListMode(int mode) {
+            if (mode<0 || mode>MODE_MAX)
+                throw new IllegalArgumentException("Bad mode");
+            if (mode==listMode)
+                return;         //no change
+            switch (mode) {
+            default:
+            case MODE_NAME:
+                fileNameList.setCellRenderer(new DefaultListCellRenderer());
+                fileNameList.setFixedCellWidth(-1);
+                fileNameList.setFixedCellHeight(-1);
+                break;
+            case MODE_FULL:
+                fileNameList.setCellRenderer(new FileListRenderer());
+                fileNameList.setFixedCellWidth(ICON_SIZE*5);
+                fileNameList.setFixedCellHeight(ICON_SIZE+ICON_MARGIN);
+                    //set fixed cell height and width to prevent the list
+                    //from rendering every item immediately
+                break;
+            }
+            listMode = mode;
+            //TODO - redisplay the list
+        }
 
 	/** Initialize our image loader thread. */
 	protected void initImageLoader() {
@@ -196,30 +249,31 @@ public class ImageLister extends JPanel implements ListSelectionListener {
                 imageWindow.advance();
 		fileNames = getImageFileNames(targetDirectory);
 		Arrays.sort(fileNames,new ImageFileNameComparator());
-		//TBD - look up file dates, sizes, and associated text
+                fileInfos = new FileInfo[fileNames.length];
+                    //Allocate space for the rest of the file info
 		if (formerTargetDirectory==null || targetDirectory==null ||
 		    !formerTargetDirectory.toString().equals(
 				targetDirectory.toString()))
 			setDirectoryInfo(targetDirectory);
-		list.setListData(fileNames);
+		fileNameList.setListData(fileNames);
 		if (fileNames.length==0) {
 			//No files in the list, so don't try to select anything
 		} else if (targetFile==null) {
 			//No file specified, so select the first file in the dir
-			list.setSelectedIndex(0);
+			fileNameList.setSelectedIndex(0);
 		} else {
 			//Find the index of the specified file and select it
 			String targetFileName = targetFile.getName();
 			int n = Arrays.binarySearch(fileNames,targetFileName);
 			if (n<0)
 				n = 0;	//if file not found, select first file
-			list.setSelectedIndex(n);
+			fileNameList.setSelectedIndex(n);
 		}
 	}
 
 	/** Display new directory info. */
 	protected void setDirectoryInfo(File dir) {
-		String dirInfo = "Directory: "+dir.toString();
+		String dirText = "Directory: "+dir.toString();
 		try {
 			File summaryFile = new File(dir,"summary.txt");
 			String dirSummary = FileUtil.readFile(summaryFile);
@@ -228,30 +282,30 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 					dirSummary = dirSummary.substring(0,
 						dirSummary.length()-1);
 				}
-				dirInfo += "\nSummary: "+dirSummary;
+				dirText += "\nSummary: "+dirSummary;
 			}
 		} catch (Exception ex) {
 			//on error, ignore summary
 		}
-		dirInfoLabel.setText(dirInfo);
+		dirTextLabel.setText(dirText);
 	}
 
 	/** Get the text associated with a file.
 	 * @return The info about the image
 	 */
-	protected String getFileInfo(String path) {
+	protected String getFileTextInfo(String path, int index) {
 		if (path==null) {
 			return null;	//no file, so no info
 		}
 		File f = new File(path);
 
 		//Start the with file name
-		String fileInfo = "File: "+f.getName(); //TBD i18n
+		String fileTextInfo = "File: "+f.getName(); //TBD i18n
 
 		//Add (N of M)
-		int imageCount = list.getModel().getSize();
-		int thisIndex = currentImage.getListIndex()+1;
-		fileInfo += "; "+thisIndex+" of "+imageCount;  //TBD i18n
+		int imageCount = fileNameList.getModel().getSize();
+		int thisIndex = index+1;
+		fileTextInfo += "; "+thisIndex+" of "+imageCount;  //TBD i18n
 
 		//Add file size and date/time    TBD i18n
 		long fileSize = f.length();
@@ -262,7 +316,7 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 			fileSizeStr = ""+(fileSize/1024)+"K";
 		else
 			fileSizeStr = ""+fileSize+"B";
-		fileInfo += "; "+fileSizeStr;
+		fileTextInfo += "; "+fileSizeStr;
 		long modTimeMillis = f.lastModified();
 		Date modDate = new Date(modTimeMillis);
 		SimpleDateFormat dFmt =
@@ -288,7 +342,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		    }
 		}
 		String dateStr = dFmt.format(modDate);
-		fileInfo += "; "+dateStr;
+		fileTextInfo += "; "+dateStr;
 
 		//Add file info text
 		String fileText = getFileText(path);
@@ -297,16 +351,16 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 				fileText = fileText.substring(
 						0,fileText.length()-1);
 			}
-			fileInfo += "\n"+fileText;
+			fileTextInfo += "\n"+fileText;
 		}
-		return fileInfo;
+		return fileTextInfo;
 	}
 
-	protected void setFileInfo(String info) {
-		//Display the info
+	protected void setFileText(String info) {
+		//Display the text for the image
 		if (info==null)
 			info = "";
-		fileInfoLabel.setText(info);
+		fileTextLabel.setText(info);
 	}
 
 	/** Write new text associated with a file.
@@ -339,8 +393,12 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		try {
 			String textPath = getTextFileNameForImage(path);
 			File f = new File(textPath);
-			return FileUtil.readFile(f);
+			String text = FileUtil.readFile(f);
+                        return text;
+                } catch (FileNotFoundException ex) {
+                        return null;    //OK if the file is not there
 		} catch (Exception ex) {
+                        System.out.println("Exception reading file "+path+": "+ex.getMessage());
 			return null;	//on any error, ignore the file
 		}
 	}
@@ -407,7 +465,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	 * @return The path to the current image.
 	 */
 	protected void setupCurrentImage() {
-		int newSelection = list.getSelectedIndex();
+		int newSelection = fileNameList.getSelectedIndex();
 		int currentSelection = (currentImage==null)?
 					-1:currentImage.getListIndex();
 		if (newSelection==currentSelection)
@@ -458,7 +516,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 			return;		//lookahead disabled
 		int currentSelection = (currentImage==null)?
 					-1:currentImage.getListIndex();
-		int maxIndex = list.getModel().getSize();
+		int maxIndex = fileNameList.getModel().getSize();
 		if (nextImage==null && currentSelection+1<maxIndex) {
 			File file = new File(targetDirectory,
 					fileNames[currentSelection+1]);
@@ -488,17 +546,18 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 	/** Display the current image. */
 	protected void displayCurrentImage() {
 		String path;
-		setFileInfo(null);	//clear info while changing
+		setFileText(null);	//clear image text while changing
 		if (currentImage==null) {
 			path = null;
                         if (imageWindow!=null)
                             imageWindow.showText("No image");
 		} else {
 			path = currentImage.getPath();
-			String imageInfo = getFileInfo(path);
-			setFileInfo(imageInfo);
+                        int index = currentImage.getListIndex();
+			String imageTextInfo = getFileTextInfo(path,index);
+			setFileText(imageTextInfo);
                         if (imageWindow!=null)
-                            imageWindow.showImage(currentImage,imageInfo);
+                            imageWindow.showImage(currentImage,imageTextInfo);
 		}
 		viewer.setTitleFileName(path);
 	}
@@ -551,9 +610,9 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 
 	/** Move the selection by the specified amount and show that file. */
 	public void move(int inc) {
-		int sel = list.getSelectedIndex();
+		int sel = fileNameList.getSelectedIndex();
 		sel += inc;
-		int maxIndex = list.getModel().getSize();
+		int maxIndex = fileNameList.getModel().getSize();
 		if (sel<0) {
 			String prompt = "At beginning; move to previous dir?";
 				//TBD i18n this section
@@ -575,8 +634,8 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 			return;
 		}
                 imageWindow.advance();
-		list.setSelectedIndex(sel);
-		list.ensureIndexIsVisible(sel);
+		fileNameList.setSelectedIndex(sel);
+		fileNameList.ensureIndexIsVisible(sel);
 		displayCurrentSelection();
 	}
 
@@ -629,7 +688,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		while (true) {
 			//Check to see if the list selection changed while
 			//we were busy updating.  If so, don't do the wait.
-			int newSelection = list.getSelectedIndex();
+			int newSelection = fileNameList.getSelectedIndex();
 			int currentSelection = (currentImage==null)?
 						-1:currentImage.getListIndex();
 			if (newSelection==currentSelection) {
@@ -662,6 +721,41 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		};
 		return dir.list(filter);
 	}
+
+        //Get the FileInfo for the specified file in the fileNames list
+        private FileInfo getFileInfo(int index) {
+            FileInfo fileInfo = fileInfos[index];
+            if (fileInfo!=null)
+                return fileInfo;        //already loaded
+            fileInfo = new FileInfo();
+            fileInfo.dir = targetDirectory;
+            fileInfo.name = fileNames[index];
+            fileInfo.text = getFileTextInfo(fileInfo.getPath(),index);
+            fileInfo.icon = getFileIcon(fileInfo.getPath());
+            fileInfos[index] = fileInfo;
+            return fileInfo;
+        }
+
+        private ImageIcon getFileIcon(String filename) {
+//System.out.println("getFileIcon "+filename);
+            Toolkit toolkit = getToolkit();
+            Image fullImage = toolkit.createImage(filename);
+            Image scaledImage = fullImage.getScaledInstance(
+                    ICON_SIZE,ICON_SIZE,Image.SCALE_FAST);
+            return new ImageIcon(scaledImage);
+        }
+        //final static ImageIcon imgIcon = new ImageIcon("/Users/jmcbeath/home/scclogo.gif");
+
+        class FileInfo {
+            File dir;           //the directory containing the file
+            String name;        //name of the file within the directory
+            String text;        //text for the image, from getFileTextInfo()
+            ImageIcon icon;     //icon for the image, or generic icon for other file types
+
+            public String getPath() {
+                return new File(dir,name).toString();
+            }
+        }
 
 	/** Given a directory, get the next sibling directory. */
 	protected File getNextDirectory(File dir) {
@@ -720,6 +814,36 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
             if (imageWindow==null)
                 return;
             imageWindow.setCursorBusy(busy);
+        }
+
+        class FileListRenderer extends JLabel implements ListCellRenderer {
+            public Component getListCellRendererComponent(JList list,
+                    Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+                FileInfo fileInfo = getFileInfo(index);
+                String fileInfoText = fileInfo.text;
+                if (fileInfoText==null)
+                    fileInfoText = "";
+                else
+                    fileInfoText = fileInfoText.replaceAll("\\n","<br>");
+                String s = "<html>"+fileInfo.name+"<br>"+fileInfoText;
+                    //label doesn't normally do newlines, so we use html and
+                    //<br> tags instead.
+                setText(s);
+                setVerticalAlignment(TOP);      //put text at top left
+                setHorizontalAlignment(LEFT);
+                setIcon(fileInfo.icon);
+                if (isSelected) {
+                    setBackground(list.getSelectionBackground());
+                    setForeground(list.getSelectionForeground());
+                } else {
+                    setBackground(list.getBackground());
+                    setForeground(list.getForeground());
+                }
+                setEnabled(list.isEnabled());
+                setFont(list.getFont());
+                return this;
+            }
         }
 }
 

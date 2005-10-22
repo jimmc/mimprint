@@ -40,10 +40,11 @@ menu.File.Print.label=Print
 menu.Help.label=Help
 menu.Help.About.label=About Jiviewer
 
-menu.View.PreviousImage.label=Previous Image
+menu.View.ListIncludeImage.label=Show Image In List
+menu.View.NextDirectory.label=Next Directory
 menu.View.NextImage.label=Next Image
 menu.View.PreviousDirectory.label=Previous Directory
-menu.View.NextDirectory.label=Next Directory
+menu.View.PreviousImage.label=Previous Image
 menu.View.RotateMenu.label=Rotate Image
 menu.View.RotateMenu.R90.label=90 degrees CCW
 menu.View.RotateMenu.R180.label=180 degrees
@@ -54,6 +55,7 @@ menu.View.ScreenModeFull.label=Full Screen Mode
 menu.View.ScreenModePrint.label=Printable Screen Mode
 menu.View.ShowEditDialog.label=Show Edit Dialog
 menu.View.ShowHelpDialog.label=Show Help Dialog
+menu.View.SplitPaneHorizontal.label=List on Left
 
 query.Exit.prompt=Exit Jiviewer?
 query.FileToOpen=File or Directory to Open

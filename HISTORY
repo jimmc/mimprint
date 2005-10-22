@@ -1,4 +1,4 @@
-jiviewer v0.0.5  October 18, 2005
+jiviewer v0.0.5  October 21, 2005
 
   Enhancements:
 
@@ -10,12 +10,16 @@ jiviewer v0.0.5  October 18, 2005
     + Add Print command to File menu to print contents of printable window.
   * Use separate window for full-screen mode, make it work better.
   * Add View menu.
+    + Menu commands for keyboard actions.
+    + List On Left command to put list of image files down the side.
+    + Show Image In List command puts image icons in the list.
   * Remove dependence on JAI, so this version now runs on MacOSX.
 
   Bug Fixes:
 
   * Keep focus in image window so key commands always work.
   * Fix some NPEs when problems finding image files.
+  * The split pane can now be used to make the image smaller.
 
   Other Changes:
 

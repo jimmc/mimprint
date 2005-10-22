@@ -45,6 +45,7 @@ public class Viewer extends JsFrame {
 	/** The list of images. */
 	private ImageLister imageLister;
 
+        private JSplitPane splitPane;
         private JPanel imagePane;
         private CardLayout imagePaneLayout;
 
@@ -69,6 +70,9 @@ public class Viewer extends JsFrame {
         private CheckBoxMenuAction cbmaAlternate;
         private CheckBoxMenuAction cbmaFull;
         private CheckBoxMenuAction cbmaPrint;
+
+        private CheckBoxMenuAction cbmaSplitPane;
+        private CheckBoxMenuAction cbmaListIncludeImage;
 
 	/** The screen bounds when in normal mode. */
 	private Rectangle normalBounds;
@@ -191,6 +195,25 @@ public class Viewer extends JsFrame {
 
                 m.add(new JSeparator());
 
+		label = getResourceString("menu.View.SplitPaneHorizontal.label");
+		cbmaSplitPane = new CheckBoxMenuAction(label) {
+			public void action() {
+				setSplitPaneHorizontal(cbmaSplitPane.getState());
+			}
+		};
+		m.add(cbmaSplitPane);
+
+		label = getResourceString("menu.View.ListIncludeImage.label");
+		cbmaListIncludeImage = new CheckBoxMenuAction(label) {
+			public void action() {
+                                int listMode = cbmaListIncludeImage.getState()?1:0;
+				imageLister.setListMode(listMode);
+			}
+		};
+		m.add(cbmaListIncludeImage);
+
+                m.add(new JSeparator());
+
 		label = getResourceString("menu.View.PreviousImage.label");
 		mi = new MenuAction(label) {
 			public void action() {
@@ -281,8 +304,9 @@ public class Viewer extends JsFrame {
 		imageLister.setImageWindow(imageArea);
                 imagePaneLayout = new CardLayout();
                 imagePane = new JPanel(imagePaneLayout);
+                imagePane.setMinimumSize(new Dimension(100,100));
                 imagePane.add(imageArea,"normal");
-		JSplitPane splitPane = new JSplitPane(
+		splitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,imageLister,imagePane);
 		splitPane.setBackground(imageArea.getBackground());
 		getContentPane().add(splitPane);
@@ -292,6 +316,14 @@ public class Viewer extends JsFrame {
 	public App getApp() {
 		return app;
 	}
+
+        /** Toggle the orientation of the top-level split pane. */
+        public void setSplitPaneHorizontal(boolean horizontal) {
+            int newOrientation = horizontal?
+                JSplitPane.HORIZONTAL_SPLIT:JSplitPane.VERTICAL_SPLIT;
+            splitPane.setOrientation(newOrientation);
+            imageLister.setSplitPaneHorizontal(!horizontal);
+        }
 
 	/** Open the specified target. */
 	public void open(String target) {
