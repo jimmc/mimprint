@@ -40,8 +40,8 @@ import javax.swing.ListCellRenderer;
 public class ImageLister extends JPanel implements ListSelectionListener {
         private final static int ICON_SIZE = 64;        //TBD - use a preference
                 //the size of each icon in the list
-        private final static int ICON_MARGIN = 10;      //TBD - use a preference
-                //the amount of space between each icon in the list
+        private final static int ICON_LIST_WIDTH=450;
+                //width of each list element when showing images and file text
 
 	/** Our App. */
 	private App app;
@@ -49,7 +49,10 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 	/** Our parent window. */
 	private Viewer viewer;
 
+        private boolean listOnly = true;
         private JSplitPane mainSplitPane;
+        private JSplitPane infoSplitPane;
+        private JScrollPane listScrollPane;
 
 	/** The image area which displays the image. */
 	private ImageWindow imageWindow;
@@ -100,30 +103,32 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		this.app = app;
 		this.viewer = viewer;
 
-		statusLabel = new JTextArea("status here");
-		statusLabel.setEditable(false);
+		//statusLabel = new JTextArea("status here");
+		//statusLabel.setEditable(false);
+                    //status line is now in viewer
 		dirTextLabel = new JTextArea("dir info here");
 		dirTextLabel.setEditable(false);
 		fileTextLabel = new JTextArea("file info here");
 		fileTextLabel.setEditable(false);
-		JSplitPane infoSplitPane = new JSplitPane(
+		infoSplitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
 			new JScrollPane(dirTextLabel),
 			new JScrollPane(fileTextLabel));
 		//infoSplitPane.setBackground(Color.black);
-		JSplitPane statusInfoPane = new JSplitPane(
-			JSplitPane.VERTICAL_SPLIT,
-			statusLabel,infoSplitPane);
+		//JSplitPane statusInfoPane = new JSplitPane(
+			//JSplitPane.VERTICAL_SPLIT,
+			//statusLabel,infoSplitPane);
 
 		fileNameList = new JList();
 		fileNameList.addListSelectionListener(this);
-		JScrollPane listScrollPane = new JScrollPane(fileNameList);
+		listScrollPane = new JScrollPane(fileNameList);
 		listScrollPane.setPreferredSize(new Dimension(600,140));
 
 		mainSplitPane = new JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT,
-			listScrollPane,statusInfoPane);
+			listScrollPane,infoSplitPane);
 		mainSplitPane.setDividerLocation(200);
+                listOnly = false;
 
 		setLayout(new BorderLayout());
 		add(mainSplitPane);
@@ -132,11 +137,21 @@ public class ImageLister extends JPanel implements ListSelectionListener {
 		initDisplayUpdater();
 	}
 
-        /** Put the image list on the top rather than the left. */
-        public void setSplitPaneHorizontal(boolean horizontal) {
-            int newOrientation = horizontal?
-                JSplitPane.HORIZONTAL_SPLIT:JSplitPane.VERTICAL_SPLIT;
-            mainSplitPane.setOrientation(newOrientation);
+        /** Show only the list, not the other status areas. */
+        public void showListOnly(boolean t) {
+            if (t==listOnly)
+                return;
+            if (t) {
+                //TODO - we should still display the directory info,
+                //so "showListOnly" is perhaps not the right thing here
+                remove(mainSplitPane);
+                add(listScrollPane);
+            } else {
+                remove(listScrollPane);
+                mainSplitPane.setLeftComponent(listScrollPane);
+                add(mainSplitPane);
+            }
+            listOnly = t;
         }
 
         /** Set the mode for what we display in the image file list. */
@@ -154,8 +169,8 @@ public class ImageLister extends JPanel implements ListSelectionListener {
                 break;
             case MODE_FULL:
                 fileNameList.setCellRenderer(new FileListRenderer());
-                fileNameList.setFixedCellWidth(ICON_SIZE*5);
-                fileNameList.setFixedCellHeight(ICON_SIZE+ICON_MARGIN);
+                fileNameList.setFixedCellWidth(ICON_LIST_WIDTH);
+                fileNameList.setFixedCellHeight(ICON_SIZE);
                     //set fixed cell height and width to prevent the list
                     //from rendering every item immediately
                 break;
@@ -385,7 +400,8 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 
 	/** Set the contents of the status area. */
 	public void setStatus(String status) {
-		statusLabel.setText(status);
+		//statusLabel.setText(status);
+                viewer.showStatus(status);
 	}
 
 	/** Get the text for the specified file. */
@@ -737,11 +753,9 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         }
 
         private ImageIcon getFileIcon(String filename) {
-//System.out.println("getFileIcon "+filename);
             Toolkit toolkit = getToolkit();
             Image fullImage = toolkit.createImage(filename);
-            Image scaledImage = fullImage.getScaledInstance(
-                    ICON_SIZE,ICON_SIZE,Image.SCALE_FAST);
+            Image scaledImage = ImageBundle.createScaledImage(fullImage,0,ICON_SIZE,ICON_SIZE);
             return new ImageIcon(scaledImage);
         }
         //final static ImageIcon imgIcon = new ImageIcon("/Users/jmcbeath/home/scclogo.gif");
@@ -816,33 +830,40 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
             imageWindow.setCursorBusy(busy);
         }
 
-        class FileListRenderer extends JLabel implements ListCellRenderer {
+        //class FileListRenderer extends JLabel implements ListCellRenderer {
+        class FileListRenderer extends DefaultListCellRenderer {
             public Component getListCellRendererComponent(JList list,
                     Object value, int index,
                     boolean isSelected, boolean cellHasFocus) {
+                JLabel cell = (JLabel)super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
                 FileInfo fileInfo = getFileInfo(index);
                 String fileInfoText = fileInfo.text;
-                if (fileInfoText==null)
-                    fileInfoText = "";
-                else
-                    fileInfoText = fileInfoText.replaceAll("\\n","<br>");
-                String s = "<html>"+fileInfo.name+"<br>"+fileInfoText;
-                    //label doesn't normally do newlines, so we use html and
-                    //<br> tags instead.
-                setText(s);
-                setVerticalAlignment(TOP);      //put text at top left
-                setHorizontalAlignment(LEFT);
-                setIcon(fileInfo.icon);
-                if (isSelected) {
-                    setBackground(list.getSelectionBackground());
-                    setForeground(list.getSelectionForeground());
+                String labelText;
+                if (fileInfoText==null) {
+                    labelText = fileInfo.name;
                 } else {
-                    setBackground(list.getBackground());
-                    setForeground(list.getForeground());
+                    fileInfoText = fileInfoText.replaceAll("\\n","<br>");
+                    labelText = "<html>"+fileInfoText+"</html>";
+                        //label doesn't normally do newlines, so we use html and
+                        //<br> tags instead.
                 }
-                setEnabled(list.isEnabled());
-                setFont(list.getFont());
-                return this;
+                cell.setText(labelText);
+                //cell.setVerticalAlignment(TOP);      //put text at top left
+                //cell.setHorizontalAlignment(LEFT);
+                cell.setIcon(fileInfo.icon);
+                /* the rest is handled by superclass...
+                if (isSelected) {
+                    cell.setBackground(list.getSelectionBackground());
+                    cell.setForeground(list.getSelectionForeground());
+                } else {
+                    cell.setBackground(list.getBackground());
+                    cell.setForeground(list.getForeground());
+                }
+                cell.setEnabled(list.isEnabled());
+                cell.setFont(list.getFont());
+                */
+                return cell;
             }
         }
 }

@@ -158,6 +158,11 @@ public class ImageBundle {
 	 */
 	protected Image createScaledImage(Image sourceImage) {
 		app.debugMsg("createScaledIimage");
+                return createScaledImage(sourceImage,rotation,displayWidth,displayHeight);
+        }
+
+        public static Image createScaledImage(Image sourceImage, int rotation,
+                        int displayWidth, int displayHeight) {
 		if (sourceImage==null)
 			return null;
 

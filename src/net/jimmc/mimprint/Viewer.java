@@ -10,6 +10,7 @@ import jimmc.swing.GridBagger;
 import jimmc.swing.JsFrame;
 import jimmc.swing.MenuAction;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -34,6 +35,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JWindow;
 
 /** The top window class for the jiviewer program.
@@ -48,6 +50,7 @@ public class Viewer extends JsFrame {
         private JSplitPane splitPane;
         private JPanel imagePane;
         private CardLayout imagePaneLayout;
+        private JTextField statusLine;
 
 	/** Our image display area. */
 	private ImageArea imageArea;
@@ -88,6 +91,12 @@ public class Viewer extends JsFrame {
 		setJMenuBar(createMenuBar());
 		initForm();
 		pack();
+
+                cbmaSplitPane.setState(true);   //start off with horizontal split
+                setSplitPaneHorizontal(cbmaSplitPane.getState());
+                cbmaListIncludeImage.setState(true);
+                imageLister.setListMode(ImageLister.MODE_FULL);
+
                 imageArea.requestFocus();
 		addWindowListener();
 		setTitleFileName("");
@@ -98,6 +107,13 @@ public class Viewer extends JsFrame {
                 return fullWindow;
             else
                 return this;
+        }
+
+        /** Show status text in our status line. */
+        public void showStatus(String s) {
+            if (s==null)
+                s = "";
+            statusLine.setText(s);
         }
 
 	/** Our message display text area uses a big font so we can read it
@@ -206,7 +222,8 @@ public class Viewer extends JsFrame {
 		label = getResourceString("menu.View.ListIncludeImage.label");
 		cbmaListIncludeImage = new CheckBoxMenuAction(label) {
 			public void action() {
-                                int listMode = cbmaListIncludeImage.getState()?1:0;
+                                int listMode = cbmaListIncludeImage.getState()?
+                                    ImageLister.MODE_FULL:ImageLister.MODE_NAME;
 				imageLister.setListMode(listMode);
 			}
 		};
@@ -309,7 +326,14 @@ public class Viewer extends JsFrame {
 		splitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,imageLister,imagePane);
 		splitPane.setBackground(imageArea.getBackground());
-		getContentPane().add(splitPane);
+
+                statusLine = new JTextField();
+                statusLine.setEditable(false);
+                statusLine.setBackground(Color.lightGray);
+
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(splitPane,BorderLayout.CENTER);
+		getContentPane().add(statusLine,BorderLayout.SOUTH);
 	}
 
 	/** Get our App. */
@@ -321,8 +345,11 @@ public class Viewer extends JsFrame {
         public void setSplitPaneHorizontal(boolean horizontal) {
             int newOrientation = horizontal?
                 JSplitPane.HORIZONTAL_SPLIT:JSplitPane.VERTICAL_SPLIT;
+            if (newOrientation==splitPane.getOrientation())
+                return;         //no change
             splitPane.setOrientation(newOrientation);
-            imageLister.setSplitPaneHorizontal(!horizontal);
+            splitPane.setDividerLocation(0.25);
+            imageLister.showListOnly(horizontal);
         }
 
 	/** Open the specified target. */
