@@ -57,13 +57,17 @@ public class ImagePage extends JComponent
     private static final int BORDER_THICKNESS = 10;
 
     private Viewer viewer;
+    private ImagePageControls controls;
+
     private String pageUnit;    //name of our units, e.g. "mil", "mm"
     private int pageWidth;      //width of the page in pageUnits
     private int pageHeight;     //height of the page in pageUnits
-    private ImagePageArea[] areas;      //the areas and images to display
-    private int currentAreaIndex;       //index into areas of active area
-    private int highlightedAreaIndex;   //index of area to highlight for drop
-    private int dragAreaIndex;          //index of source for drag
+
+    private AreaLayout areaLayout;      //our layout
+    private ImagePageArea currentArea;  //the active area
+    private ImagePageArea highlightedArea;   //the highlight area for drop
+    private ImagePageArea dragArea;          //source area for drag
+
     private Color pageColor;    //color of the "paper"
     private boolean knownKeyPress;
     private String imageInfoText;
@@ -92,6 +96,34 @@ public class ImagePage extends JComponent
         setupDrag();
     }
 
+    public void setControls(ImagePageControls controls) {
+        this.controls = controls;
+    }
+
+    public void setPageWidth(int width) {
+        this.pageWidth = width;
+        setAreaLayoutBounds();
+        areaLayout.revalidate();
+    }
+
+    public int getPageWidth() {
+        return pageWidth;
+    }
+
+    public void setPageHeight(int height) {
+        this.pageHeight = height;
+        setAreaLayoutBounds();
+        areaLayout.revalidate();
+    }
+
+    public int getPageHeight() {
+        return pageHeight;
+    }
+
+    protected AreaLayout getAreaLayout() {
+        return areaLayout;
+    }
+
  //Drag-and-drop stuff
     private void setupDrag() {
         //enabled dragging from this component
@@ -110,11 +142,11 @@ public class ImagePage extends JComponent
   //The DragGestureListener interface
     public void dragGestureRecognized(DragGestureEvent ev) {
         Point p = ev.getDragOrigin();
-        int a = windowToAreaIndex(p);
-        dragAreaIndex = a;
-        if (a<0)
+        ImagePageArea a = windowToImageArea(p);
+        dragArea = a;
+        if (a==null)
             return;     //not in an area, can't start a drag here
-        String path = areas[a].getImagePath();
+        String path = a.getImagePath();
         if (path==null)
             return;     //no image in this area, can't start a drag
         try {
@@ -157,8 +189,8 @@ public class ImagePage extends JComponent
         //System.out.println("DragSourceListener dragExit");
     }
     public void dragDropEnd(DragSourceDropEvent ev) {
-        dragAreaIndex = -1;
-        highlightArea(-1);
+        dragArea = null;
+        highlightArea(null);
         if (!ev.getDropSuccess()) {
             System.out.println("DragDropEnd drop failed");
             return;
@@ -178,10 +210,10 @@ public class ImagePage extends JComponent
     class DTListener implements DropTargetListener {
         private void checkDrop(DropTargetDragEvent ev) {
             //printFlavors(ev);       //TODO - for debug
-            int a = getDropArea(ev);
-            if (a<0 || a==dragAreaIndex) {
+            ImagePageArea a = getDropArea(ev);
+            if (a==null || a==dragArea) {
                 //No drop in source area or outside any area
-                highlightArea(-1);
+                highlightArea(null);
                 //System.out.println("reject drag");
                 ev.rejectDrag();
                 return;
@@ -201,7 +233,7 @@ public class ImagePage extends JComponent
             checkDrop(ev);
         }
         public void dragExit(DropTargetEvent ev) {
-            highlightArea(-1);
+            highlightArea(null);
             System.out.println("DropTargetListener dragExit");
         }
 
@@ -226,8 +258,8 @@ public class ImagePage extends JComponent
                 return;       //no actions available
             }
 
-            int dropAreaIndex = windowToAreaIndex(ev.getLocation());
-            if (dropAreaIndex<0) {
+            ImagePageArea dropArea = windowToImageArea(ev.getLocation());
+            if (dropArea==null) {
                 ev.dropComplete(false); //bad area
                 return;       //no actions available
             }
@@ -247,7 +279,7 @@ public class ImagePage extends JComponent
 
             if (data instanceof String) {
                 String s = (String)data;
-                if (dropFileName(s,dropAreaIndex)) {
+                if (dropFileName(s,dropArea)) {
                     ev.dropComplete(true);
                     return;     //success
                 }
@@ -256,13 +288,13 @@ public class ImagePage extends JComponent
                 if (fList.size()>=1) {
                     Object list0 = fList.get(0);
                     if (list0 instanceof String) {
-                        if (dropFileName((String)list0,dropAreaIndex)) {
+                        if (dropFileName((String)list0,dropArea)) {
                             ev.dropComplete(true);
                             return;
                         }
                     } else if (list0 instanceof File) {
                         File f = (File)list0;
-                        if (dropFileName(f.toString(),dropAreaIndex)) {
+                        if (dropFileName(f.toString(),dropArea)) {
                             ev.dropComplete(true);
                             return;
                         }
@@ -290,7 +322,7 @@ public class ImagePage extends JComponent
      * @param s The full path to the image file.
      * @return True if the file exists, false if not.
      */
-    private boolean dropFileName(String s, int dropAreaIndex) {
+    private boolean dropFileName(String s, ImagePageArea dropArea) {
         System.out.println("Got drop data: "+s);
 	if (s.startsWith("file://"))
 	    s = s.substring("file://".length()); //convert URL to file path
@@ -300,7 +332,7 @@ public class ImagePage extends JComponent
         if (f.exists()) {
             ImageBundle b = new ImageBundle(viewer.getApp(),
                     ImagePage.this,f,-1);
-            currentAreaIndex = dropAreaIndex;
+            currentArea = dropArea;
             showImage(b,null);
             System.out.println("drop done, succeeded");
             return true;
@@ -319,7 +351,7 @@ public class ImagePage extends JComponent
         return flavors;
     }
 
-    private int getDropArea(DropTargetDragEvent ev) {
+    private ImagePageArea getDropArea(DropTargetDragEvent ev) {
         DataFlavor[] flavors = getDropFlavors();
         DataFlavor chosenFlavor = null;
         for (int i=0; i<flavors.length; i++) {
@@ -330,19 +362,19 @@ public class ImagePage extends JComponent
         }
         if (chosenFlavor==null) {
             System.out.println("No supported flavor");
-            return -1;       //no support for any flavors
+            return null;       //no support for any flavors
         }
 
         int sourceActions = ev.getSourceActions();
         if ((sourceActions & ImagePage.this.dropActions)==0) {
             System.out.println("Action not supported "+sourceActions);
-            return -1;       //no actions available
+            return null;       //no actions available
         }
 
         Point p = ev.getLocation();
-        int i = windowToAreaIndex(p);
-        //System.out.println("area index "+i);
-        return i;               // -1 if no area
+        ImagePageArea a = windowToImageArea(p);
+        //System.out.println("area "+a);
+        return a;               //null if no area
     }
 
     private void printFlavors(DropTargetDragEvent ev) {
@@ -375,50 +407,58 @@ public class ImagePage extends JComponent
         pageWidth = 8500;       //American standard paper size
         pageHeight = 11000;
 
-        //areas = new ImagePageArea[1];
-        //areas[0] = new ImagePageArea(500,500,7500,10000); // 0.5 in margins
+        int spacing = 250;      //spacing between areas
+        int rowCount = 2;        //default number of rows
+        int columnCount = 2;
 
-        areas = new ImagePageArea[4];
-        areas[0] = new ImagePageArea(500,500,3500,4750);
-        areas[1] = new ImagePageArea(4500,500,3500,4750);
-        areas[2] = new ImagePageArea(500,5750,3500,4750);
-        areas[3] = new ImagePageArea(4500,5750,3500,4750);
+        AreaGridLayout gridArea = new AreaGridLayout();
+        areaLayout = gridArea;
 
-        currentAreaIndex = -1;  //start with nothing selected
-        highlightedAreaIndex = -1;        //nothing highlighted
+        setAreaLayoutBounds();
+        areaLayout.setSpacing(spacing);
+        areaLayout.setBorderThickness(BORDER_THICKNESS);
+        gridArea.setRowColumnCounts(rowCount,columnCount);
+        areaLayout.setMargin(500);
+        areaLayout.revalidate();        //set up areas
+
+        AreaSplitLayout splitArea = new AreaSplitLayout();
+        splitArea.setBorderThickness(BORDER_THICKNESS);
+        areaLayout.areas[3] = splitArea;        //hack
+
+        areaLayout.revalidate();        //make sure Split gets set up properly
+
+        currentArea = null;  //start with nothing selected
+        highlightedArea = null;        //nothing highlighted
+    }
+
+    private void setAreaLayoutBounds() {
+        areaLayout.setBounds(0,0,pageWidth,pageHeight);
     }
 
     //Set the currently highlighted area (the drop target)
-    private void highlightArea(int a) {
-        if (a==highlightedAreaIndex)
+    private void highlightArea(ImagePageArea a) {
+        if (a==highlightedArea)
             return;             //already set
-        highlightedAreaIndex = a;
+        highlightedArea = a;
         repaint();
     }
 
     private void repaintCurrentImage() {
-        if (currentAreaIndex<0)
+        if (currentArea==null)
             return;
-        //repaint(areas[currentAreaIndex].getBounds());
+        //repaint(currentArea.getBounds());
             //TODO - need to scale and translate area bounds
             // into current page coordinates
         repaint();
     }
 
     public void showImage(ImageBundle imageBundle, String imageInfo) {
-        if (currentAreaIndex<0)
-            currentAreaIndex = 0;
+        if (currentArea==null)
+            //currentArea = (first area);
+            return;     //TODO - select first area
         imageInfoText = imageInfo;
-        areas[currentAreaIndex].setImage(imageBundle);
+        currentArea.setImage(imageBundle);
         repaintCurrentImage();
-    }
-
-    /** Advance the current area to the next image, wrap from
-     * end back to start. */
-    public void advance() {
-        currentAreaIndex++;
-        if (currentAreaIndex>=areas.length)  //move to next image
-            currentAreaIndex = 0;    //wrap back to start
     }
 
     public void showText(String text) {
@@ -432,29 +472,33 @@ public class ImagePage extends JComponent
 
     /** Select the image area at the specified location. */
     public void selectArea(Point windowPoint) {
-        int i = windowToAreaIndex(windowPoint);
-        if (i<0)
+        if (controls!=null)
+            controls.selectArea(windowToUser(windowPoint));
+        ImagePageArea a = windowToImageArea(windowPoint);
+        if (a==null)
             return;     //not in an area
-        currentAreaIndex = i;
+        currentArea = a;
         repaint();
     }
 
-    /** Get the index of the area containing the window point, or -1 if not in an area. */
-    public int windowToAreaIndex(Point windowPoint) {
+    /** Return the area containing the window point, or null if not in an area. */
+    public ImagePageArea windowToImageArea(Point windowPoint) {
         Point userPoint = windowToUser(windowPoint);
-        for (int i=0; i<areas.length; i++) {
-            if (areas[i].hit(userPoint)) {
-                return i;
-            }
+        AreaLayout aa = areaLayout;
+        while (true) {  //exit loop via break
+            //Follow the tree down as far as we can
+            AreaLayout bb = aa.getArea(userPoint);
+            if (bb==null)
+                break;
+            aa = bb;
         }
-        return -1;
+        if (aa instanceof ImagePageArea)
+            return (ImagePageArea)aa;
+        return null;    //no an image area at that point
     }
 
     /** Rotate the current image. */
     public void rotate(int quarters) {
-        if (currentAreaIndex<0)
-            return;
-        ImagePageArea currentArea = areas[currentAreaIndex];
         if (currentArea==null)
             return;
         currentArea.rotate(quarters);
@@ -476,14 +520,7 @@ public class ImagePage extends JComponent
         g2.fillRect(0,0,pageWidth,pageHeight);
         g2.setColor(getForeground());
 
-        //paint each of our image page areas
-        for (int n=0; n<areas.length; n++) {
-            //pass new g2 to each area to prevent concatenation of transforms
-            Graphics2D g2c = (Graphics2D)g2.create();
-            areas[n].paint(g2c,BORDER_THICKNESS,n==currentAreaIndex,
-                    n==highlightedAreaIndex,drawOutlines);
-            g2c.dispose();
-        }
+        areaLayout.paint(g2,currentArea,highlightedArea,drawOutlines);
     }
 
     /** Given an area of specified size in user space, scale it to fit into
@@ -647,9 +684,9 @@ public class ImagePage extends JComponent
                     break;
             case 0177:                  //delete
             case 8:                     //backspace
-                    if (currentAreaIndex>=0) {
+                    if (currentArea!=null) {
                         //clear image from current area
-                        areas[currentAreaIndex].setImage(null);
+                        currentArea.setImage(null);
                         repaintCurrentImage();
                     }
                     break;

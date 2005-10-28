@@ -57,9 +57,36 @@ menu.View.ShowEditDialog.label=Show Edit Dialog
 menu.View.ShowHelpDialog.label=Show Help Dialog
 menu.View.SplitPaneHorizontal.label=List on Left
 
+pageControl.button.Delete.label=X
+pageControl.button.Delete.toolTip=Delete the layout at this level
+pageControl.button.UseGrid.label=G
+pageControl.button.UseGrid.toolTip=Use a Grid layout at this level
+pageControl.button.UseSplit.label=S
+pageControl.button.UseSplit.toolTip=Use a Split layout at this level
+
 query.Exit.prompt=Exit Jiviewer?
 query.FileToOpen=File or Directory to Open
 query.Info.title=Info
 
 title.nofile=jiviewer
 title.fileName=jiviewer: {0}
+
+toolbar.Layout.Columns.label=C:
+toolbar.Layout.Columns.toolTip=Columns in this grid
+toolbar.Layout.Height.label=H:
+toolbar.Layout.Height.toolTip=Height of the page
+toolbar.Layout.Layout.label=L:
+toolbar.Layout.Layout.toolTip=Layout to use at this level: Image, Grid or Split
+toolbar.Layout.Margins.label=Mrg:
+toolbar.Layout.Margins.toolTip=Margins at each edge of the area
+toolbar.Layout.Rows.label=R:
+toolbar.Layout.Rows.toolTip=Rows in this grid
+toolbar.Layout.Spacing.label=Spc:
+toolbar.Layout.Spacing.toolTip=Spacing between areas, same units as Page
+toolbar.Layout.SplitOrientation.label=O:
+toolbar.Layout.SplitOrientation.toolTip=Orientation: Vertical or Horizontal split
+toolbar.Layout.SplitPercent.label=Sp%:
+toolbar.Layout.SplitPercent.toolTip=Split point as percentage of top/left to bottom/right
+toolbar.Layout.Units.label=Units:
+toolbar.Layout.Width.label=W:
+toolbar.Layout.Width.toolTip=Width of the page

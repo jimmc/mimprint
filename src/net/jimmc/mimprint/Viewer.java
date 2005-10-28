@@ -27,6 +27,7 @@ import java.text.MessageFormat;
 import java.util.Vector;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -502,7 +503,15 @@ public class Viewer extends JsFrame {
                         imagePage.setBackground(Color.gray);
                         imagePage.setForeground(Color.black);
                         imagePage.setPageColor(Color.white);
-                        imagePane.add(imagePage,"print");
+                        JPanel imagePagePanel = new JPanel();
+                        imagePagePanel.setLayout(new BorderLayout());
+                        imagePagePanel.add(imagePage,BorderLayout.CENTER);
+                        ImagePageControls imagePageControls =
+                                new ImagePageControls(app,imagePage);
+                        imagePage.setControls(imagePageControls);
+                        imagePagePanel.add(imagePage,BorderLayout.CENTER);
+                        imagePagePanel.add(imagePageControls,BorderLayout.NORTH);
+                        imagePane.add(imagePagePanel,"print");
                     }
                     imagePaneLayout.show(imagePane,"print");
                     imageLister.setImageWindow(imagePage);

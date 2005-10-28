@@ -47,3 +47,5 @@
 - Add "List on Left" command to View menu. [051020]
 - Add "Show Image in List" command to View menu. [051021]
 - Make dragging from file list work. [051022]
+- Add AreaLayout abstraction with Image, Grid and Split layouts. [051027]
+- Add control bar on Image Page to allow editing page layouts. [051027]

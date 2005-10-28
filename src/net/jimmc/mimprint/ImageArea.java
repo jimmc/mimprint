@@ -100,10 +100,6 @@ public class ImageArea extends JLabel
             return this;
         }
 
-        public void advance() {
-            //do nothing
-        }
-
 	/** Show text instead of an image. */
 	public void showText(String text) {
 		setIcon(null);

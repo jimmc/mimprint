@@ -307,7 +307,6 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 		currentImage = null;
 		nextImage = null;
 		previousImage = null;
-                imageWindow.advance();
 		fileNames = getImageFileNames(targetDirectory);
 		Arrays.sort(fileNames,new ImageFileNameComparator());
                 fileInfos = new FileInfo[fileNames.length];
@@ -700,7 +699,6 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
                         right();
 			return;
 		}
-                //imageWindow.advance();
 		fileNameList.setSelectedIndex(sel);
 		fileNameList.ensureIndexIsVisible(sel);
                 displayCurrentSelection();

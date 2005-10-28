@@ -9,6 +9,8 @@ jiviewer v0.0.5  October 21, 2005
     + Can drag from file list to printable window.
     + Add DEL/BS in printable window to clear image from an area.
     + Add Print command to File menu to print contents of printable window.
+    + Control bar above Printable window allows editing the layout of
+      the images within the window.
   * Use separate window for full-screen mode, make it work better.
   * Add View menu.
     + Menu commands for keyboard actions.

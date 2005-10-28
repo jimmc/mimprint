@@ -30,9 +30,6 @@ public interface ImageWindow {
         /** Request focus for this area. */
         public void requestFocus();
 
-        /** Move to the next image area. */
-        public void advance();
-
 	/** Show text instead of an image. */
 	public void showText(String text);
 
