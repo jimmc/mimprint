@@ -6,17 +6,21 @@
 package jimmc.jiviewer;
 
 import jimmc.swing.ComboBoxAction;
+import jimmc.swing.JsSpinner;
 import jimmc.swing.JsTextField;
 
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SpinnerNumberModel;
 
 public class ImagePageControls extends JPanel {
     private App app;
     private ImagePage imagePage;
+    private boolean updatingSelected;
 
     private ComboBoxAction areaChoiceField;
     private JLabel widthLabel;
@@ -26,13 +30,13 @@ public class ImagePageControls extends JPanel {
     private JLabel unitsLabel;
     private ComboBoxAction unitsField;
     private JLabel rowCountLabel;
-    private JsTextField rowCountField;
+    private JsSpinner rowCountField;
     private JLabel columnCountLabel;
-    private JsTextField columnCountField;
+    private JsSpinner columnCountField;
     private JLabel splitOrientationLabel;
     private ComboBoxAction splitOrientationField;
     private JLabel splitPercentLabel;
-    private JsTextField splitPercentField;
+    private JsSpinner splitPercentField;
     private JLabel marginsLabel;
     private JsTextField marginsField;
     private JLabel spacingLabel;
@@ -100,16 +104,19 @@ public class ImagePageControls extends JPanel {
         //Set up the Grid fields
         rowCountLabel = makeLabel("Rows");
         add(rowCountLabel);
-        rowCountField = new JsTextField(2) {
+        SpinnerNumberModel rowCountModel = new SpinnerNumberModel(1,1,99,1);
+        rowCountField = new JsSpinner(rowCountModel) {
             public void action() {
                 setRowColumnCount();
             }
         };
+        //TODO set minimum to 1
         add(rowCountField);
 
         columnCountLabel = makeLabel("Columns");
         add(columnCountLabel);
-        columnCountField = new JsTextField(2) {
+        SpinnerNumberModel columnCountModel = new SpinnerNumberModel(1,1,99,1);
+        columnCountField = new JsSpinner(columnCountModel) {
             public void action() {
                 setRowColumnCount();
             }
@@ -132,10 +139,10 @@ public class ImagePageControls extends JPanel {
 
         splitPercentLabel = makeLabel("SplitPercent");
         add(splitPercentLabel);
-        splitPercentField = new JsTextField(4) {
+        SpinnerNumberModel percentModel = new SpinnerNumberModel(5,1,99,5);
+        splitPercentField = new JsSpinner(percentModel) {
             public void action() {
-                String s = getText();
-                int n = Integer.parseInt(s);
+                int n = ((Integer)getValue()).intValue();
                 setSplitPercentage(n);
             }
         };
@@ -264,6 +271,7 @@ public class ImagePageControls extends JPanel {
         default:
             throw new IllegalArgumentException("bad area type: "+areaType);
         }
+        updatingSelected = true;
 
         //set the visibility on our fields and labels
         widthLabel.setVisible(pageSelected);
@@ -289,13 +297,13 @@ public class ImagePageControls extends JPanel {
 
         if (index==0) {
             //Page fields
-            widthField.setText(Integer.toString(imagePage.getPageWidth()));
-            heightField.setText(Integer.toString(imagePage.getPageHeight()));
+            widthField.setText(formatPageValue(imagePage.getPageWidth()));
+            heightField.setText(formatPageValue(imagePage.getPageHeight()));
             unitsField.setSelectedIndex(imagePage.getPageUnit());
         } else {
             AreaLayout area = selectedAreas[index-1];
-            marginsField.setText(Integer.toString(area.getMargin()));
-            spacingField.setText(Integer.toString(area.getSpacing()));
+            marginsField.setText(formatPageValue(area.getMargin()));
+            spacingField.setText(formatPageValue(area.getSpacing()));
             switch (areaType) {
             case AREA_IMAGE:
                 layoutField.setSelectedIndex(0);        //TODO define constant
@@ -303,22 +311,34 @@ public class ImagePageControls extends JPanel {
             case AREA_GRID:
                 AreaGridLayout gridArea = (AreaGridLayout)area;
                 layoutField.setSelectedIndex(1);        //TODO define constant
-                rowCountField.setText(
-                        Integer.toString(gridArea.getRowCount()));
-                columnCountField.setText(
-                        Integer.toString(gridArea.getColumnCount()));
+                rowCountField.setValue(
+                        new Integer(gridArea.getRowCount()));
+                columnCountField.setValue(
+                        new Integer(gridArea.getColumnCount()));
                 break;
             case AREA_SPLIT:
                 AreaSplitLayout splitArea = (AreaSplitLayout)area;
                 layoutField.setSelectedIndex(2);        //TODO define constant
                 splitOrientationField.setSelectedIndex(
                         splitArea.getOrientation());
-                splitPercentField.setText(
-                        Integer.toString(splitArea.getSplitPercentage()));
+                splitPercentField.setValue(
+                        new Integer(splitArea.getSplitPercentage()));
                 break;
             }
         }
+        updatingSelected = false;
     }
+
+    //Given a page dimension, format it for display to the user
+    private String formatPageValue(int n) {
+        if (pageValueFormat==null) {
+            pageValueFormat = NumberFormat.getNumberInstance();
+            pageValueFormat.setMaximumFractionDigits(3);
+        }
+        double d = ((double)n)/ImagePage.UNIT_MULTIPLIER;
+        return pageValueFormat.format(new Double(d));
+    }
+    private NumberFormat pageValueFormat;
 
     private static final int AREA_PAGE = 0;
     private static final int AREA_IMAGE = 1;
@@ -431,32 +451,36 @@ public class ImagePageControls extends JPanel {
 
     private void setPageWidth(String s) {
         assertPageSelected();
-        int width = Integer.parseInt(s);
-        imagePage.setPageWidth(width);
+        double width = Double.parseDouble(s);
+        int w = (int)(width*ImagePage.UNIT_MULTIPLIER);
+        imagePage.setPageWidth(w);
         imagePage.repaint();
     }
 
     private void setPageHeight(String s) {
         assertPageSelected();
-        int height = Integer.parseInt(s);
-        imagePage.setPageHeight(height);
+        double height = Double.parseDouble(s);
+        int h = (int)(height*ImagePage.UNIT_MULTIPLIER);
+        imagePage.setPageHeight(h);
         imagePage.repaint();
     }
 
     private void setMargins(String marginStr) {
-        int margin = Integer.parseInt(marginStr);
+        double margin = Double.parseDouble(marginStr);
+        int d = (int)(margin*ImagePage.UNIT_MULTIPLIER);
             //TODO - allow specifying 4 margins separated by commas?
         AreaLayout a = getSelectedArea();
-        a.setMargin(margin);
+        a.setMargin(d);
         a.revalidate();
         imagePage.repaint();
     }
 
     private void setSpacing(String spacingStr) {
-        int spacing = Integer.parseInt(spacingStr);
+        double spacing = Double.parseDouble(spacingStr);
+        int sp = (int)(spacing*ImagePage.UNIT_MULTIPLIER);
             //TODO - allow specifying two spacings separated by commas
         AreaLayout a = getSelectedArea();
-        a.setSpacing(spacing);
+        a.setSpacing(sp);
         a.revalidate();
         imagePage.repaint();
     }
@@ -464,10 +488,10 @@ public class ImagePageControls extends JPanel {
     /** Read the row and column values from the text fields
      * and set those numbers on the grid layout. */
     private void setRowColumnCount() {
-        String s = rowCountField.getText();
-        int rowCount = Integer.parseInt(s);
-        s = columnCountField.getText();
-        int columnCount = Integer.parseInt(s);
+        if (updatingSelected)
+            return;
+        int rowCount = ((Integer)rowCountField.getValue()).intValue();
+        int columnCount = ((Integer)columnCountField.getValue()).intValue();
         AreaLayout a = getSelectedArea();
         if (a instanceof AreaGridLayout) {
             ((AreaGridLayout)a).setRowColumnCounts(rowCount,columnCount);

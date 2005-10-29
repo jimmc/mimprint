@@ -240,7 +240,7 @@ public class ImagePage extends JComponent
 
     class DTListener implements DropTargetListener {
         private void checkDrop(DropTargetDragEvent ev) {
-            //printFlavors(ev);       //TODO - for debug
+            //printFlavors(ev);       //for debug
             ImagePageArea a = getDropArea(ev);
             if (a==null || a==dragArea) {
                 //No drop in source area or outside any area
@@ -595,14 +595,63 @@ public class ImagePage extends JComponent
         //TODO
     }
 
-    /** Print this page if images. */
+    /** Print this page of images. */
     public void print() {
 	PrinterJob pJob = PrinterJob.getPrinterJob();
 	PageFormat pageFormat = pJob.defaultPage();
 	//pageFormat = pJob.validatePage(pageFormat);
 	Paper oldPaper = pageFormat.getPaper();
+        //Check the size of the printer paper to see if it matches the
+        //size of the image page.
+        double paperScale;      //dimensions of Paper object are in points
+        if (pageUnit==UNIT_INCH)
+            paperScale = 72.0;          //points per inch
+        else
+            paperScale = 72.0/2.54;     //points per cm
+        double paperWidth = oldPaper.getWidth();
+        double paperHeight = oldPaper.getHeight();
+        double paperPageWidth = paperWidth*UNIT_MULTIPLIER/paperScale;
+        double paperPageHeight = paperHeight*UNIT_MULTIPLIER/paperScale;
+        double widthDiff = Math.abs(pageWidth - paperPageWidth);
+        double heightDiff = Math.abs(pageHeight - paperPageHeight);
+        if (widthDiff>0.5/UNIT_MULTIPLIER || heightDiff>0.5/UNIT_MULTIPLIER) {
+            //Ask user if he wants to continue, and whether he wants to
+            //scale the output to fill the paper, or print at the same scale
+            //as if the right paper was there.
+            String introStr = "Page size is not set the same as paper size";
+            String pageSizeStr = "Page size is "+((double)pageWidth/UNIT_MULTIPLIER)+" by "+
+                    ((double)pageHeight/UNIT_MULTIPLIER)+" "+
+                    ((pageUnit==UNIT_INCH)?"in":"cm");
+            String paperSizeStr = "Paper size is "+(paperPageWidth/UNIT_MULTIPLIER)+" by "+
+                    (paperPageHeight/UNIT_MULTIPLIER)+" "+
+                    ((pageUnit==UNIT_INCH)?"in":"cm");
+            //TODO i18n for all these strings
+            String prompt = introStr+"\n"+pageSizeStr+"\n"+paperSizeStr;
+            String yesString = "Scale images to fiil paper";
+            String noString = "Print at specified page size";
+            String cancelString = "Cancel";
+            int response = viewer.yncDialog(prompt,yesString,noString,cancelString);
+            switch (response) {
+            case 0:     //yes, scale to fill paper
+                break;          //leave paper size alone
+            case 1:     //no, use original specified size
+                paperWidth *= pageWidth/paperPageWidth;
+                paperHeight *= pageHeight/paperPageHeight;
+                break;
+            case 2:     //cancel
+            default:
+                return;         //cancelled
+            }
+            try { Thread.sleep(10); }catch(InterruptedException ex){}
+                //Curious bug on MacOSX: after going through the above
+                //dialog the first time and selecting cancel, the next
+                //time through when selecting Yes or No, the following
+                //print dialog just blinks up on the screen momentarily
+                //and self-cancels.  Adding this brief sleep seems to
+                //cure the problem.
+        }
 	Paper newPaper = new PaperNoMargin();
-	newPaper.setSize(oldPaper.getWidth(),oldPaper.getHeight());
+	newPaper.setSize(paperWidth,paperHeight);
 	pageFormat.setPaper(newPaper);
 	pJob.setPrintable(this,pageFormat);
 	if (!pJob.printDialog())
