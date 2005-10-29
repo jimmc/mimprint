@@ -17,8 +17,6 @@ import javax.swing.JPanel;
 public class ImagePageControls extends JPanel {
     private App app;
     private ImagePage imagePage;
-    private int rowCount = 2;     //TODO
-    private int columnCount = 2;     //TODO
 
     private ComboBoxAction areaChoiceField;
     private JLabel widthLabel;
@@ -54,7 +52,7 @@ public class ImagePageControls extends JPanel {
         setLayout(new FlowLayout(FlowLayout.LEFT));
         addFields();
         selectedAreas = new AreaLayout[0]; //no areas selected
-        updateAreaChoiceField();
+        updateAreaChoiceField(false);
     }
 
     /** Create and add all of our fields. */
@@ -91,10 +89,11 @@ public class ImagePageControls extends JPanel {
         add(unitsLabel);
         unitsField = new ComboBoxAction(app) {
             public void action() {
-                //unitsSelected(getValue());    //TODO
+                unitsSelected(getSelectedIndex());
             }
         };
-        Object[] initialUnitsItems = { "in", "cm" };     //TODO i18n
+        Object[] initialUnitsItems = { "cm", "in" };
+            //These match the values of UNIT_CM and UNIT_INCH in ImagePage.
         unitsField.setItems(initialUnitsItems);
         add(unitsField);
 
@@ -103,9 +102,7 @@ public class ImagePageControls extends JPanel {
         add(rowCountLabel);
         rowCountField = new JsTextField(2) {
             public void action() {
-                String s = getText();
-                int n = Integer.parseInt(s);
-                setRowCount(n);
+                setRowColumnCount();
             }
         };
         add(rowCountField);
@@ -114,9 +111,7 @@ public class ImagePageControls extends JPanel {
         add(columnCountLabel);
         columnCountField = new JsTextField(2) {
             public void action() {
-                String s = getText();
-                int n = Integer.parseInt(s);
-                setColumnCount(n);
+                setRowColumnCount();
             }
         };
         add(columnCountField);
@@ -126,10 +121,12 @@ public class ImagePageControls extends JPanel {
         add(splitOrientationLabel);
         splitOrientationField = new ComboBoxAction(app) {
             public void action() {
-                //splitOrientationSelected(getValue());    //TODO
+                splitOrientationSelected(getSelectedIndex());
             }
         };
         Object[] initialOrientationItems = { "V", "H" };     //TODO i18n
+            //These values match the VERTICAL and HORIZONTAL values
+            //in AreaSplitLayout.
         splitOrientationField.setItems(initialOrientationItems);
         add(splitOrientationField);
 
@@ -196,7 +193,7 @@ public class ImagePageControls extends JPanel {
         if (!aa.hit(point)) {
             System.out.println("Not in top-level areaLayout");
             selectedAreas = new AreaLayout[0]; //no areas selected
-            updateAreaChoiceField();
+            updateAreaChoiceField(false);
             return;
         }
         Vector v = new Vector();
@@ -208,31 +205,44 @@ public class ImagePageControls extends JPanel {
         System.out.println("Area list size: "+v.size());
         selectedAreas = new AreaLayout[v.size()];
         v.copyInto(selectedAreas);
-        updateAreaChoiceField();
+        updateAreaChoiceField(false);
     }
 
     //After updating the selectedAreas array, update the areaChoiceField
     //to match it and set the selected item to be the last one
     //in the list.
-    private void updateAreaChoiceField() {
+    private void updateAreaChoiceField(boolean keepSelection) {
+        int oldSelectionIndex = areaChoiceField.getSelectedIndex();
         int numChoices = 1+selectedAreas.length;
         String[] areaChoiceStrs = new String[numChoices];
-        areaChoiceStrs[0] = "Page";     //TODO i18n
+        areaChoiceStrs[0] = "1. Page";     //TODO i18n
         for (int i=0; i<selectedAreas.length; i++) {
-            areaChoiceStrs[i+1] = getAreaTypeString(i+1);
-                //TODO - add some info such as bounding box?
+            areaChoiceStrs[i+1] = Integer.toString(i+2)+". "+
+                    getAreaTypeString(i+1);
+                    //TODO - add some info such as bounding box?
         }
         areaChoiceField.setItems(areaChoiceStrs);
-        areaChoiceField.setSelectedIndex(areaChoiceStrs.length-1);
-                //select the last item in the list,
+        int newSelectionIndex;
+        if (keepSelection)
+            newSelectionIndex = oldSelectionIndex;
+        else
+            newSelectionIndex = areaChoiceStrs.length - 1;
+        areaChoiceField.setSelectedIndex(newSelectionIndex);
+                //select the last (or same) item in the list,
                 //this also calls the action method which
                 //calls areaSelected(int).
+    }
+
+    //Here when the user selected the units for the page.
+    private void unitsSelected(int index) {
+        System.out.println("Setting units to "+index);
+        imagePage.setPageUnit(index);
     }
 
     //Here when the user selects an item from the area choice list,
     //or when we call setSelectedIndex on it.
     private void areaSelected(int index) {
-        System.out.println("selection: "+index);        //TODO
+        System.out.println("selection: "+index);
         boolean pageSelected = false;
         boolean gridSelected = false;
         boolean splitSelected = false;
@@ -281,7 +291,7 @@ public class ImagePageControls extends JPanel {
             //Page fields
             widthField.setText(Integer.toString(imagePage.getPageWidth()));
             heightField.setText(Integer.toString(imagePage.getPageHeight()));
-            //TODO set unitsField
+            unitsField.setSelectedIndex(imagePage.getPageUnit());
         } else {
             AreaLayout area = selectedAreas[index-1];
             marginsField.setText(Integer.toString(area.getMargin()));
@@ -347,7 +357,61 @@ public class ImagePageControls extends JPanel {
 
     private void layoutSelected(int layoutTypeIndex) {
         System.out.println("Selected layout: "+layoutTypeIndex);
-        //TODO - change the layout type of the currently selected area
+        AreaLayout area = getSelectedArea();
+        int selectedIndex = areaChoiceField.getSelectedIndex();
+        int areaType = getAreaType(selectedIndex);
+        int newAreaType = layoutIndexToAreaType(layoutTypeIndex);
+        if (newAreaType==areaType)
+            return;             //no change
+        AreaLayout newArea;
+        switch (newAreaType) {
+        case AREA_IMAGE:
+            newArea = new ImagePageArea(0,0,0,0);
+            break;
+        case AREA_GRID:
+            AreaGridLayout newGridArea = new AreaGridLayout();
+            newGridArea.setRowColumnCounts(2,2);
+            newArea = newGridArea;
+            break;
+        case AREA_SPLIT:
+            newArea = new AreaSplitLayout();
+            break;
+        default:
+            throw new RuntimeException("bad newAreaType "+newAreaType);
+        }
+        //Copy some atttributes from old area to new area
+        newArea.setBorderThickness(area.getBorderThickness());
+        newArea.setMargin(area.getMargin());
+        newArea.setBounds(area.getBounds());
+        newArea.setSpacing(area.getSpacing());
+        //If we are replacing a simple image and its spacing
+        //was zero, put in something which we think will be
+        //a better default value.
+        if (newArea.getSpacing()==0 && area instanceof ImagePageArea) {
+            if (selectedIndex==1)
+                newArea.setSpacing(10*area.getBorderThickness());
+            else {
+                AreaLayout parentArea = selectedAreas[selectedIndex-2];
+                newArea.setSpacing(parentArea.getSpacing());
+            }
+        }
+        newArea.revalidate();   //recalculate bounds etc
+        if (selectedIndex==1) {
+            //top level area, contained in page
+            imagePage.setAreaLayout(newArea);
+        } else {
+            AreaLayout parentArea = selectedAreas[selectedIndex-2];
+            parentArea.replaceArea(area,newArea);
+        }
+        selectedAreas[selectedIndex-1] = newArea;
+        updateAreaChoiceField(true);    //fix label in area choice list
+        areaSelected(areaChoiceField.getSelectedIndex()); //fix area property fields
+        imagePage.repaint();
+    }
+    private int layoutIndexToAreaType(int index) {
+        int[] types = { AREA_IMAGE, AREA_GRID, AREA_SPLIT };
+            //this must match the initialLayoutItems
+        return types[index];
     }
 
     /** Get the currently selected area. */
@@ -397,8 +461,13 @@ public class ImagePageControls extends JPanel {
         imagePage.repaint();
     }
 
-    private void setRowCount(int rowCount) {
-        this.rowCount = rowCount;
+    /** Read the row and column values from the text fields
+     * and set those numbers on the grid layout. */
+    private void setRowColumnCount() {
+        String s = rowCountField.getText();
+        int rowCount = Integer.parseInt(s);
+        s = columnCountField.getText();
+        int columnCount = Integer.parseInt(s);
         AreaLayout a = getSelectedArea();
         if (a instanceof AreaGridLayout) {
             ((AreaGridLayout)a).setRowColumnCounts(rowCount,columnCount);
@@ -407,11 +476,10 @@ public class ImagePageControls extends JPanel {
         }
     }
 
-    private void setColumnCount(int columnCount) {
-        this.columnCount = columnCount;
+    private void splitOrientationSelected(int index) {
         AreaLayout a = getSelectedArea();
-        if (a instanceof AreaGridLayout) {
-            ((AreaGridLayout)a).setRowColumnCounts(rowCount,columnCount);
+        if (a instanceof AreaSplitLayout) {
+            ((AreaSplitLayout)a).setOrientation(index);
             a.revalidate();
             imagePage.repaint();
         }

@@ -92,6 +92,22 @@ public abstract class AreaLayout {
         return borderThickness;
     }
 
+    /** Replace one of our areas with a new area.
+     * @param oldArea The area to be replaced.
+     * @param newArea The new area to put in its place.
+     * @return True if we found and replaced the old area,
+     *         false if we did not find the old area.
+     */
+    public boolean replaceArea(AreaLayout oldArea, AreaLayout newArea) {
+        for (int i=0; i<areas.length; i++) {
+            if (areas[i]==oldArea) {
+                areas[i] = newArea;
+                return true;
+            }
+        }
+        return false;   //not found
+    }
+
     /** Make sure our areas are correct.
      * Call this after calling any of the setXxx methods
      * that change any geometry parameters.

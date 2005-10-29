@@ -49,3 +49,4 @@
 - Make dragging from file list work. [051022]
 - Add AreaLayout abstraction with Image, Grid and Split layouts. [051027]
 - Add control bar on Image Page to allow editing page layouts. [051027]
+- Implement layout type change in control bar. [051028]

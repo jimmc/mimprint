@@ -59,7 +59,13 @@ public class ImagePage extends JComponent
     private Viewer viewer;
     private ImagePageControls controls;
 
-    private String pageUnit;    //name of our units, e.g. "mil", "mm"
+    private int pageUnit;    //name of our units, e.g. "in", "cm"
+        public final static int UNIT_CM = 0;    //metric
+        public final static int UNIT_INCH = 1;  //english
+        public final static int UNIT_MULTIPLIER = 1000;
+    //The actual values we store in our various dimension fields
+    //are the units times the multiplier.  For example, we
+    //would represent 8.5 inches as 8500.
     private int pageWidth;      //width of the page in pageUnits
     private int pageHeight;     //height of the page in pageUnits
 
@@ -100,6 +106,27 @@ public class ImagePage extends JComponent
         this.controls = controls;
     }
 
+    /** Set the page units.
+     * @param unit One of UNIT_CM or UNIT_INCH.
+     */
+    public void setPageUnit(int unit) {
+        if (unit==pageUnit)
+            return;     //no change
+        switch (unit) {
+        case UNIT_CM:
+        case UNIT_INCH:
+            pageUnit = unit;
+            break;
+        default:
+            throw new IllegalArgumentException("bad units "+unit);
+        }
+    }
+
+    /** Get the current page units, either UNIT_CM or UNIT_INCH. */
+    public int getPageUnit() {
+        return pageUnit;
+    }
+
     public void setPageWidth(int width) {
         this.pageWidth = width;
         setAreaLayoutBounds();
@@ -118,6 +145,10 @@ public class ImagePage extends JComponent
 
     public int getPageHeight() {
         return pageHeight;
+    }
+
+    protected void setAreaLayout(AreaLayout areaLayout) {
+        this.areaLayout = areaLayout;
     }
 
     protected AreaLayout getAreaLayout() {
@@ -403,29 +434,31 @@ public class ImagePage extends JComponent
 
     /** Set up the default area layout. */
     private void setDefaultLayout() {
-        pageUnit = "mil";     // 1/10000 of an inch
+        pageUnit = UNIT_INCH;
         pageWidth = 8500;       //American standard paper size
         pageHeight = 11000;
 
+        int margin = 500;       //margin on outer edges
         int spacing = 250;      //spacing between areas
         int rowCount = 2;        //default number of rows
         int columnCount = 2;
 
-        AreaGridLayout gridArea = new AreaGridLayout();
-        areaLayout = gridArea;
+        //areaLayout = new AreaGridLayout();
+        areaLayout = new ImagePageArea(0,0,0,0);
 
         setAreaLayoutBounds();
+        areaLayout.setMargin(margin);
         areaLayout.setSpacing(spacing);
         areaLayout.setBorderThickness(BORDER_THICKNESS);
-        gridArea.setRowColumnCounts(rowCount,columnCount);
-        areaLayout.setMargin(500);
+        if (areaLayout instanceof AreaGridLayout)
+            ((AreaGridLayout)areaLayout).setRowColumnCounts(rowCount,columnCount);
         areaLayout.revalidate();        //set up areas
 
-        AreaSplitLayout splitArea = new AreaSplitLayout();
-        splitArea.setBorderThickness(BORDER_THICKNESS);
-        areaLayout.areas[3] = splitArea;        //hack
-
-        areaLayout.revalidate();        //make sure Split gets set up properly
+        //For testing, throw in a Split
+        //AreaSplitLayout splitArea = new AreaSplitLayout();
+        //splitArea.setBorderThickness(BORDER_THICKNESS);
+        //areaLayout.areas[3] = splitArea;        //hack
+        //areaLayout.revalidate();        //make sure Split gets set up properly
 
         currentArea = null;  //start with nothing selected
         highlightedArea = null;        //nothing highlighted
