@@ -54,7 +54,7 @@ public class ImagePage extends JComponent
         MouseMotionListener, ComponentListener,
         DragGestureListener, DragSourceListener {
 
-    private static final int BORDER_THICKNESS = 10;
+    private static final int BORDER_THICKNESS = 20;
 
     private Viewer viewer;
     private ImagePageControls controls;
@@ -71,7 +71,7 @@ public class ImagePage extends JComponent
 
     private AreaLayout areaLayout;      //our layout
     private ImagePageArea currentArea;  //the active area
-    private ImagePageArea highlightedArea;   //the highlight area for drop
+    private AreaLayout highlightedArea;   //the highlight area for drop
     private ImagePageArea dragArea;          //source area for drag
 
     private Color pageColor;    //color of the "paper"
@@ -221,7 +221,7 @@ public class ImagePage extends JComponent
     }
     public void dragDropEnd(DragSourceDropEvent ev) {
         dragArea = null;
-        highlightArea(null);
+        setHighlightedArea(null);
         if (!ev.getDropSuccess()) {
             System.out.println("DragDropEnd drop failed");
             return;
@@ -244,12 +244,12 @@ public class ImagePage extends JComponent
             ImagePageArea a = getDropArea(ev);
             if (a==null || a==dragArea) {
                 //No drop in source area or outside any area
-                highlightArea(null);
+                setHighlightedArea(null);
                 //System.out.println("reject drag");
                 ev.rejectDrag();
                 return;
             }
-            highlightArea(a);
+            setHighlightedArea(a);
             //System.out.println("accept drag");
             ev.acceptDrag(ImagePage.this.dropActions);
         }
@@ -264,7 +264,7 @@ public class ImagePage extends JComponent
             checkDrop(ev);
         }
         public void dragExit(DropTargetEvent ev) {
-            highlightArea(null);
+            setHighlightedArea(null);
             System.out.println("DropTargetListener dragExit");
         }
 
@@ -469,7 +469,7 @@ public class ImagePage extends JComponent
     }
 
     //Set the currently highlighted area (the drop target)
-    private void highlightArea(ImagePageArea a) {
+    protected void setHighlightedArea(AreaLayout a) {
         if (a==highlightedArea)
             return;             //already set
         highlightedArea = a;

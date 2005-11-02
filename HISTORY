@@ -1,13 +1,13 @@
-jiviewer v0.0.5  October 21, 2005
+jiviewer v0.1.0  November 1, 2005
 
   Enhancements:
 
   * Add 'a' command to display on an alternate screen.
   * Add 'p' command to display printable window.
     + Display multiple images in one window.
-    + Add drag-and-drop in printable window.
-    + Can drag from file list to printable window.
-    + Add DEL/BS in printable window to clear image from an area.
+    + Drag-and-drop in printable window to copy images between areas.
+    + Can drag images from file list to printable window.
+    + DEL/BS in printable window clears image from an area.
     + Add Print command to File menu to print contents of printable window.
     + Control bar above Printable window allows editing the layout of
       the images within the window.

@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.ImageIcon;
@@ -44,12 +45,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 
 /** Maintains a list of images and associated information.
  */
 public class ImageLister extends JPanel implements ListSelectionListener,
             DragGestureListener {
-        private final static int ICON_SIZE = 64;        //TBD - use a preference
+        protected final static int ICON_SIZE = 64;     //TBD - use a preference
                 //the size of each icon in the list
         private final static int ICON_LIST_WIDTH=450;
                 //width of each list element when showing images and file text
@@ -72,6 +74,7 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 
 	/** Our list. */
 	private JList fileNameList;
+        private IconLoader iconLoader;
 
         private int listMode;
             public static final int MODE_NAME = 0;
@@ -147,6 +150,7 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 		add(mainSplitPane);
 
 		initImageLoader();
+                initIconLoader();
 		initDisplayUpdater();
 
                 setupDrag();
@@ -215,8 +219,8 @@ public class ImageLister extends JPanel implements ListSelectionListener,
                 break;
             case MODE_FULL:
                 fileNameList.setCellRenderer(new FileListRenderer());
-                fileNameList.setFixedCellWidth(ICON_LIST_WIDTH);
-                fileNameList.setFixedCellHeight(ICON_SIZE);
+                //fileNameList.setFixedCellWidth(ICON_LIST_WIDTH);
+                //fileNameList.setFixedCellHeight(ICON_SIZE);
                     //set fixed cell height and width to prevent the list
                     //from rendering every item immediately
                 break;
@@ -236,6 +240,14 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 		imageLoader.start();
 		app.debugMsg("image loader thread started");
 	}
+
+        /** Initialize our icon loader thread. */
+        private void initIconLoader() {
+            iconLoader = new IconLoader(this);
+            iconLoader.setPriority(iconLoader.getPriority()-3);
+            iconLoader.start();
+            app.debugMsg("icon loader thread started");
+        }
 
 	/** Initialize a thread to update our display. */
 	protected void initDisplayUpdater() {
@@ -351,23 +363,30 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 	}
 
 	/** Get the text associated with a file.
+         * @param path The path to the image file.
+         * @param index The index of this image in the current list (for "N of M" label).
+         * @param moreLines True to format with more newlines, false with fewer.
 	 * @return The info about the image
 	 */
-	protected String getFileTextInfo(String path, int index) {
+	private String getFileTextInfo(String path, int index, boolean moreLines) {
 		if (path==null) {
 			return null;	//no file, so no info
 		}
 		File f = new File(path);
 
+                StringBuffer sb = new StringBuffer();
+
 		//Start the with file name
-		String fileTextInfo = "File: "+f.getName(); //TBD i18n
+                if (!moreLines)
+                    sb.append("File: ");        //TODO i18n
+                sb.append(f.getName());
 
 		//Add (N of M)
 		int imageCount = fileNameList.getModel().getSize();
 		int thisIndex = index+1;
-		fileTextInfo += "; "+thisIndex+" of "+imageCount;  //TBD i18n
+		sb.append("; "+thisIndex+" of "+imageCount);  //TBD i18n
 
-		//Add file size and date/time    TBD i18n
+		//Add file size
 		long fileSize = f.length();
 		String fileSizeStr;
 		if (fileSize>1024*1024*10)	//>10M
@@ -376,7 +395,10 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 			fileSizeStr = ""+(fileSize/1024)+"K";
 		else
 			fileSizeStr = ""+fileSize+"B";
-		fileTextInfo += "; "+fileSizeStr;
+		sb.append("; ");
+                sb.append(fileSizeStr);
+
+                //Add file modification date/time
 		long modTimeMillis = f.lastModified();
 		Date modDate = new Date(modTimeMillis);
 		SimpleDateFormat dFmt =
@@ -402,7 +424,11 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		    }
 		}
 		String dateStr = dFmt.format(modDate);
-		fileTextInfo += "; "+dateStr;
+                if (moreLines)
+                    sb.append("\n");
+                else
+                    sb.append("; ");
+                sb.append(dateStr);
 
 		//Add file info text
 		String fileText = getFileText(path);
@@ -411,9 +437,10 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 				fileText = fileText.substring(
 						0,fileText.length()-1);
 			}
-			fileTextInfo += "\n"+fileText;
+			sb.append("\n");
+                        sb.append(fileText);
 		}
-		return fileTextInfo;
+		return sb.toString();
 	}
 
 	protected void setFileText(String info) {
@@ -620,7 +647,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		} else {
 			path = currentImage.getPath();
                         int index = currentImage.getListIndex();
-			String imageTextInfo = getFileTextInfo(path,index);
+			String imageTextInfo = getFileTextInfo(path,index,false);
 			setFileText(imageTextInfo);
                         if (imageWindow!=null)
                             imageWindow.showImage(currentImage,imageTextInfo);
@@ -787,6 +814,11 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		return dir.list(filter);
 	}
 
+        /** Get the list of file infos. */
+        protected FileInfo[] getFileInfoList() {
+            return fileInfos;
+        }
+
         //Get the FileInfo for the specified file in the fileNames list
         private FileInfo getFileInfo(int index) {
             FileInfo fileInfo = fileInfos[index];
@@ -795,30 +827,37 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
             fileInfo = new FileInfo();
             fileInfo.dir = targetDirectory;
             fileInfo.name = fileNames[index];
-            fileInfo.text = getFileTextInfo(fileInfo.getPath(),index);
-            fileInfo.icon = getFileIcon(fileInfo.getPath());
+            fileInfo.text = getFileTextInfo(fileInfo.getPath(),index,true);
+            //leave icon null, let iconLoader fill it in
             fileInfos[index] = fileInfo;
+            iconLoader.moreIcons();         //tell iconLoader to load icons
             return fileInfo;
         }
 
-        private ImageIcon getFileIcon(String filename) {
-            Toolkit toolkit = getToolkit();
-            Image fullImage = toolkit.createImage(filename);
-            Image scaledImage = ImageBundle.createScaledImage(fullImage,0,ICON_SIZE,ICON_SIZE);
-            return new ImageIcon(scaledImage);
-        }
-        //final static ImageIcon imgIcon = new ImageIcon("/Users/jmcbeath/home/scclogo.gif");
-
-        class FileInfo {
-            File dir;           //the directory containing the file
-            String name;        //name of the file within the directory
-            String text;        //text for the image, from getFileTextInfo()
-            ImageIcon icon;     //icon for the image, or generic icon for other file types
-
-            public String getPath() {
-                return new File(dir,name).toString();
+        /** Here when the iconLoader has loaded another icon.
+         * @param fileInfos The list of file items the icon loader is
+         *        working on.
+         * @param n The index into that list of the loaded icon.
+         * @return True if we are still using that list, false if
+         *         we have moved on to another list.
+         */
+        public boolean iconLoaded(FileInfo[] fileInfos, int n) {
+            if (fileInfos!=this.fileInfos) {
+                //Our list of files has changed, ignore this call
+                //and let the caller know.
+                return false;
             }
+            //Refresh that list item
+            //We just want to tell the list to recalculate the size
+            //of the cell we have just updated, but we can't fire off
+            //a change notification here because that method of the
+            //model is protected.  Calling revalidate doesn't do the
+            //trick, so we hack it by setting the renderer again.
+            fileNameList.setCellRenderer(new FileListRenderer());
+            return true;
         }
+
+        //final static ImageIcon imgIcon = new ImageIcon("/Users/jmcbeath/home/scclogo.gif");
 
 	/** Given a directory, get the next sibling directory. */
 	protected File getNextDirectory(File dir) {

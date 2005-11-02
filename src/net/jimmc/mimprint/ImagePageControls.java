@@ -300,8 +300,10 @@ public class ImagePageControls extends JPanel {
             widthField.setText(formatPageValue(imagePage.getPageWidth()));
             heightField.setText(formatPageValue(imagePage.getPageHeight()));
             unitsField.setSelectedIndex(imagePage.getPageUnit());
+            imagePage.setHighlightedArea(null);
         } else {
             AreaLayout area = selectedAreas[index-1];
+            imagePage.setHighlightedArea(area);
             marginsField.setText(formatPageValue(area.getMargin()));
             spacingField.setText(formatPageValue(area.getSpacing()));
             switch (areaType) {

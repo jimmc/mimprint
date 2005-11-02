@@ -50,13 +50,14 @@ public class Viewer extends JsFrame {
 
         private JSplitPane splitPane;
         private JPanel imagePane;
-        private CardLayout imagePaneLayout;
+        //private CardLayout imagePaneLayout;
         private JTextField statusLine;
 
 	/** Our image display area. */
 	private ImageArea imageArea;
 	private ImageArea fullImageArea;
         private ImagePage imagePage;
+        private JPanel imagePagePanel;
 
         /** Full-screen window. */
         private JFrame fullWindow;
@@ -320,10 +321,16 @@ public class Viewer extends JsFrame {
 		imageLister = new ImageLister(app,this);
 		imageArea = new ImageArea(app,this);
 		imageLister.setImageWindow(imageArea);
-                imagePaneLayout = new CardLayout();
-                imagePane = new JPanel(imagePaneLayout);
+                //There is a bug in Java that causes drag-and-drop not
+                //to work correctly in a CardLayout, so we don't use it.
+                //Instead, we just add and remove the children as we
+                //want to display them.
+                //imagePaneLayout = new CardLayout();
+                //imagePane = new JPanel(imagePaneLayout);
+                imagePane = new JPanel(new BorderLayout());
                 imagePane.setMinimumSize(new Dimension(100,100));
-                imagePane.add(imageArea,"normal");
+                //imagePane.add(imageArea,"normal");
+                imagePane.add(imageArea,BorderLayout.CENTER);
 		splitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,imageLister,imagePane);
 		splitPane.setBackground(imageArea.getBackground());
@@ -440,7 +447,10 @@ public class Viewer extends JsFrame {
                     //Switch back to normal bounds
                     //setBounds(normalBounds.x, normalBounds.y,
                     //	normalBounds.width, normalBounds.height);
-                    imagePaneLayout.show(imagePane,"normal");
+                    //imagePaneLayout.show(imagePane,"normal");
+                    if (imagePagePanel!=null)
+                        imagePane.remove(imagePagePanel);
+                    imagePane.add(imageArea);
                     imageLister.setImageWindow(imageArea);
                     fullImageArea = null;
                     imageArea.requestFocus();
@@ -503,7 +513,7 @@ public class Viewer extends JsFrame {
                         imagePage.setBackground(Color.gray);
                         imagePage.setForeground(Color.black);
                         imagePage.setPageColor(Color.white);
-                        JPanel imagePagePanel = new JPanel();
+                        imagePagePanel = new JPanel();
                         imagePagePanel.setLayout(new BorderLayout());
                         imagePagePanel.add(imagePage,BorderLayout.CENTER);
                         ImagePageControls imagePageControls =
@@ -511,9 +521,11 @@ public class Viewer extends JsFrame {
                         imagePage.setControls(imagePageControls);
                         imagePagePanel.add(imagePage,BorderLayout.CENTER);
                         imagePagePanel.add(imagePageControls,BorderLayout.NORTH);
-                        imagePane.add(imagePagePanel,"print");
+                        //imagePane.add(imagePagePanel,"print");
                     }
-                    imagePaneLayout.show(imagePane,"print");
+                    //imagePaneLayout.show(imagePane,"print");
+                    imagePane.remove(imageArea);
+                    imagePane.add(imagePagePanel,BorderLayout.CENTER);
                     imageLister.setImageWindow(imagePage);
                     imagePage.requestFocus();
                     imageArea.showText("see image pane for image");

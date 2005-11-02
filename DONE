@@ -50,3 +50,4 @@
 - Add AreaLayout abstraction with Image, Grid and Split layouts. [051027]
 - Add control bar on Image Page to allow editing page layouts. [051027]
 - Implement layout type change in control bar. [051028]
+- Add icon loader thread so list with icons appears faster. [051101]
