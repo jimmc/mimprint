@@ -23,6 +23,7 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.Vector;
 import javax.swing.JDialog;
@@ -59,6 +60,8 @@ public class Viewer extends JsFrame {
         private ImagePage imagePage;
         private JPanel imagePagePanel;
 
+        private ImagePageControls imagePageControls;
+
         /** Full-screen window. */
         private JFrame fullWindow;
             //Have to use a Frame here rather than a window; when using
@@ -69,6 +72,9 @@ public class Viewer extends JsFrame {
 
 	/** The current screen mode. */
 	private int screenMode;
+
+        private JMenu layoutMenu;
+        private MenuAction printMenuItem;
 
         //Menu items for screen mode
         private CheckBoxMenuAction cbmaNormal;
@@ -84,6 +90,8 @@ public class Viewer extends JsFrame {
 
 	/** The latest file opened with the File Open dialog. */
 	private File currentOpenFile;
+
+        private File lastSaveLayoutTemplateFile;
 
 	/** Create our frame. */
 	public Viewer(App app) {
@@ -134,6 +142,9 @@ public class Viewer extends JsFrame {
 	protected JMenuBar createMenuBar() {
 		JMenuBar mb = new JMenuBar();
 		mb.add(createFileMenu());
+		mb.add(createImageMenu());
+		mb.add(layoutMenu=createLayoutMenu());
+                layoutMenu.setEnabled(false);
 		mb.add(createViewMenu());
 		mb.add(createHelpMenu());
 		return mb;
@@ -141,7 +152,7 @@ public class Viewer extends JsFrame {
 
 	/** Create our File menu. */
 	protected JMenu createFileMenu() {
-		JMenu m = new JMenu("File");
+		JMenu m = new JMenu(getResourceString("menu.File.label"));
 		MenuAction mi;
 
 		String openLabel = getResourceString("menu.File.Open.label");
@@ -153,11 +164,13 @@ public class Viewer extends JsFrame {
 		m.add(mi);
 
 		String printLabel = getResourceString("menu.File.Print.label");
-		mi = new MenuAction(printLabel) {
+		mi = printMenuItem = new MenuAction(printLabel) {
 			public void action() {
 				processPrint();
 			}
 		};
+                printMenuItem.setEnabled(false);
+                    //only enabled when we are showing the Printable window
 		m.add(mi);
 
 		String exitLabel = getResourceString("menu.File.Exit.label");
@@ -171,9 +184,105 @@ public class Viewer extends JsFrame {
 		return m;
 	}
 
+	/** Create our Image menu. */
+	protected JMenu createImageMenu() {
+		JMenu m = new JMenu(getResourceString("menu.Image.label"));
+		MenuAction mi;
+                String label;
+
+		label = getResourceString("menu.Image.PreviousImage.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveUp();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.Image.NextImage.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveDown();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.Image.PreviousDirectory.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveLeft();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.Image.NextDirectory.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				moveRight();
+			}
+		};
+		m.add(mi);
+
+                m.add(new JSeparator());
+
+		label = getResourceString("menu.Image.RotateMenu.label");
+                JMenu rotateMenu = new JMenu(label);
+                m.add(rotateMenu);
+
+		label = getResourceString("menu.Image.RotateMenu.R90.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				rotateCurrentImage(1);
+			}
+		};
+		rotateMenu.add(mi);
+
+		label = getResourceString("menu.Image.RotateMenu.R180.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				rotateCurrentImage(2);
+			}
+		};
+		rotateMenu.add(mi);
+
+		label = getResourceString("menu.Image.RotateMenu.R270.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				rotateCurrentImage(-1);
+			}
+		};
+		rotateMenu.add(mi);
+
+		label = getResourceString("menu.Image.ShowEditDialog.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				showImageEditDialog();
+			}
+		};
+		m.add(mi);
+
+                return m;
+        }
+
+	/** Create our Layout menu. */
+	protected JMenu createLayoutMenu() {
+		JMenu m = new JMenu(getResourceString("menu.Layout.label"));
+		MenuAction mi;
+                String label;
+
+		label = getResourceString("menu.Layout.SaveTemplateAs.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				saveLayoutTemplateAs();
+			}
+		};
+		m.add(mi);
+
+                return m;
+        }
+
 	/** Create our View menu. */
 	protected JMenu createViewMenu() {
-		JMenu m = new JMenu("View");
+		JMenu m = new JMenu(getResourceString("menu.View.label"));
 		MenuAction mi;
                 String label;
 
@@ -230,78 +339,6 @@ public class Viewer extends JsFrame {
 			}
 		};
 		m.add(cbmaListIncludeImage);
-
-                m.add(new JSeparator());
-
-		label = getResourceString("menu.View.PreviousImage.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				moveUp();
-			}
-		};
-		m.add(mi);
-
-		label = getResourceString("menu.View.NextImage.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				moveDown();
-			}
-		};
-		m.add(mi);
-
-		label = getResourceString("menu.View.PreviousDirectory.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				moveLeft();
-			}
-		};
-		m.add(mi);
-
-		label = getResourceString("menu.View.NextDirectory.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				moveRight();
-			}
-		};
-		m.add(mi);
-
-                m.add(new JSeparator());
-
-		label = getResourceString("menu.View.RotateMenu.label");
-                JMenu rotateMenu = new JMenu(label);
-                m.add(rotateMenu);
-
-		label = getResourceString("menu.View.RotateMenu.R90.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				rotateCurrentImage(1);
-			}
-		};
-		rotateMenu.add(mi);
-
-		label = getResourceString("menu.View.RotateMenu.R180.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				rotateCurrentImage(2);
-			}
-		};
-		rotateMenu.add(mi);
-
-		label = getResourceString("menu.View.RotateMenu.R270.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				rotateCurrentImage(-1);
-			}
-		};
-		rotateMenu.add(mi);
-
-		label = getResourceString("menu.View.ShowEditDialog.label");
-		mi = new MenuAction(label) {
-			public void action() {
-				showImageEditDialog();
-			}
-		};
-		m.add(mi);
 
                 m.add(new JSeparator());
 
@@ -392,8 +429,9 @@ public class Viewer extends JsFrame {
 
         /** Process the File->Print menu command. */
         protected void processPrint() {
+            //We should only get here if we are in SCREEN_PRINT mode
             if (screenMode!=SCREEN_PRINT) {
-                return;         //TODO - put up an error message
+                return;
             }
             imagePage.print();
         }
@@ -516,8 +554,7 @@ public class Viewer extends JsFrame {
                         imagePagePanel = new JPanel();
                         imagePagePanel.setLayout(new BorderLayout());
                         imagePagePanel.add(imagePage,BorderLayout.CENTER);
-                        ImagePageControls imagePageControls =
-                                new ImagePageControls(app,imagePage);
+                        imagePageControls = new ImagePageControls(app,imagePage);
                         imagePage.setControls(imagePageControls);
                         imagePagePanel.add(imagePage,BorderLayout.CENTER);
                         imagePagePanel.add(imagePageControls,BorderLayout.NORTH);
@@ -555,6 +592,9 @@ public class Viewer extends JsFrame {
                     fullWindow.validate();
                 else
                     this.validate();
+
+                layoutMenu.setEnabled(mode==SCREEN_PRINT);
+                printMenuItem.setEnabled(mode==SCREEN_PRINT);
 
                 cbmaNormal.setState(mode==SCREEN_NORMAL);
                 cbmaAlternate.setState(mode==SCREEN_ALT);
@@ -639,6 +679,21 @@ public class Viewer extends JsFrame {
         /** Move the active image right to the next dir in the lister. */
         public void moveRight() {
             imageLister.right();
+        }
+
+        /** Save the current layout to a named file. */
+        private void saveLayoutTemplateAs() {
+            String prompt = getResourceString("prompt.SaveLayoutTemplateAs");
+            File f = fileSaveDialog(prompt,lastSaveLayoutTemplateFile);
+            if (f==null)
+                return;
+            lastSaveLayoutTemplateFile = f;
+            PrintWriter pw = getPrintWriterFor(f);
+            if (pw==null)
+                return;         //cancelled
+            imagePage.writeLayoutTemplate(pw);
+            pw.close();
+            showStatus("Saved template to file "+f);    //TODO i18n
         }
 
 	/** Put up a help dialog. */

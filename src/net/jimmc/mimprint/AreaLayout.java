@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.PrintWriter;
 
 /** A collection of image areas or nested AreaLayouts.
  * Subclasses must provide a way to define the areas.
@@ -121,6 +122,9 @@ public abstract class AreaLayout {
      */
     public abstract void revalidate();
 
+    /** Get the name of this element in an XML file. */
+    public abstract String getTemplateElementName();
+
     /** Revalidate all of our children areas. */
     protected void revalidateChildren() {
         for (int i=0; i<areas.length; i++)
@@ -207,5 +211,37 @@ public abstract class AreaLayout {
                 //right line without corners
         if (oldColor!=null)
             g2.setColor(oldColor); //restore previous color
+    }
+
+    protected void writeTemplate(PrintWriter pw, int indent) {
+        pw.print(getIndentString(indent));
+        pw.print("<"+getTemplateElementName());
+        writeTemplateElementAttributes(pw,indent);
+        if (areas!=null) {
+            pw.println(">");
+            for (int i=0; i<areas.length; i++) {
+                areas[i].writeTemplate(pw,indent+1);
+            }
+            printlnIndented(pw,indent,"</"+getTemplateElementName()+">");
+        } else {
+            pw.println("/>");
+        }
+    }
+
+    protected void writeTemplateElementAttributes(PrintWriter pw, int indent) {
+        pw.print(" margin=\""+PageLayout.formatPageValue(margin)+"\"");
+        pw.print(" spacing=\""+PageLayout.formatPageValue(spacing)+"\"");
+    }
+
+    protected void printlnIndented(PrintWriter pw, int indent, String s) {
+        pw.print(getIndentString(indent));
+        pw.println(s);
+    }
+
+    protected String getIndentString(int indent) {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0; i<indent; i++)
+            sb.append("    ");
+        return sb.toString();
     }
 }

@@ -97,7 +97,7 @@ public class ImagePageControls extends JPanel {
             }
         };
         Object[] initialUnitsItems = { "cm", "in" };
-            //These match the values of UNIT_CM and UNIT_INCH in ImagePage.
+            //These match the values of PageLayout.UNIT_CM and PageLayout.UNIT_INCH in ImagePage.
         unitsField.setItems(initialUnitsItems);
         add(unitsField);
 
@@ -195,21 +195,21 @@ public class ImagePageControls extends JPanel {
      * @param point A point in our coordinate system.
      */
     public void selectArea(Point point) {
-        System.out.println("ImagePageControl.selectArea("+point+")");
+//System.out.println("ImagePageControl.selectArea("+point+")");
         AreaLayout aa = imagePage.getAreaLayout();
         if (!aa.hit(point)) {
-            System.out.println("Not in top-level areaLayout");
+//System.out.println("Not in top-level areaLayout");
             selectedAreas = new AreaLayout[0]; //no areas selected
             updateAreaChoiceField(false);
             return;
         }
         Vector v = new Vector();
         do {
-            System.out.println("Add area "+aa);
+//System.out.println("Add area "+aa);
             v.addElement(aa);
             aa = aa.getArea(point);
         } while (aa!=null);
-        System.out.println("Area list size: "+v.size());
+//System.out.println("Area list size: "+v.size());
         selectedAreas = new AreaLayout[v.size()];
         v.copyInto(selectedAreas);
         updateAreaChoiceField(false);
@@ -242,14 +242,14 @@ public class ImagePageControls extends JPanel {
 
     //Here when the user selected the units for the page.
     private void unitsSelected(int index) {
-        System.out.println("Setting units to "+index);
+//System.out.println("Setting units to "+index);
         imagePage.setPageUnit(index);
     }
 
     //Here when the user selects an item from the area choice list,
     //or when we call setSelectedIndex on it.
     private void areaSelected(int index) {
-        System.out.println("selection: "+index);
+//System.out.println("selection: "+index);
         boolean pageSelected = false;
         boolean gridSelected = false;
         boolean splitSelected = false;
@@ -332,15 +332,9 @@ public class ImagePageControls extends JPanel {
     }
 
     //Given a page dimension, format it for display to the user
-    private String formatPageValue(int n) {
-        if (pageValueFormat==null) {
-            pageValueFormat = NumberFormat.getNumberInstance();
-            pageValueFormat.setMaximumFractionDigits(3);
-        }
-        double d = ((double)n)/ImagePage.UNIT_MULTIPLIER;
-        return pageValueFormat.format(new Double(d));
+    protected String formatPageValue(int n) {
+        return imagePage.formatPageValue(n);
     }
-    private NumberFormat pageValueFormat;
 
     private static final int AREA_PAGE = 0;
     private static final int AREA_IMAGE = 1;
@@ -378,7 +372,7 @@ public class ImagePageControls extends JPanel {
     }
 
     private void layoutSelected(int layoutTypeIndex) {
-        System.out.println("Selected layout: "+layoutTypeIndex);
+//System.out.println("Selected layout: "+layoutTypeIndex);
         AreaLayout area = getSelectedArea();
         int selectedIndex = areaChoiceField.getSelectedIndex();
         int areaType = getAreaType(selectedIndex);
@@ -454,7 +448,7 @@ public class ImagePageControls extends JPanel {
     private void setPageWidth(String s) {
         assertPageSelected();
         double width = Double.parseDouble(s);
-        int w = (int)(width*ImagePage.UNIT_MULTIPLIER);
+        int w = (int)(width*PageLayout.UNIT_MULTIPLIER);
         imagePage.setPageWidth(w);
         imagePage.repaint();
     }
@@ -462,14 +456,14 @@ public class ImagePageControls extends JPanel {
     private void setPageHeight(String s) {
         assertPageSelected();
         double height = Double.parseDouble(s);
-        int h = (int)(height*ImagePage.UNIT_MULTIPLIER);
+        int h = (int)(height*PageLayout.UNIT_MULTIPLIER);
         imagePage.setPageHeight(h);
         imagePage.repaint();
     }
 
     private void setMargins(String marginStr) {
         double margin = Double.parseDouble(marginStr);
-        int d = (int)(margin*ImagePage.UNIT_MULTIPLIER);
+        int d = (int)(margin*PageLayout.UNIT_MULTIPLIER);
             //TODO - allow specifying 4 margins separated by commas?
         AreaLayout a = getSelectedArea();
         a.setMargin(d);
@@ -479,7 +473,7 @@ public class ImagePageControls extends JPanel {
 
     private void setSpacing(String spacingStr) {
         double spacing = Double.parseDouble(spacingStr);
-        int sp = (int)(spacing*ImagePage.UNIT_MULTIPLIER);
+        int sp = (int)(spacing*PageLayout.UNIT_MULTIPLIER);
             //TODO - allow specifying two spacings separated by commas
         AreaLayout a = getSelectedArea();
         a.setSpacing(sp);

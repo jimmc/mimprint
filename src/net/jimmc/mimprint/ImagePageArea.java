@@ -23,6 +23,10 @@ public class ImagePageArea extends AreaLayout {
         setBounds(x,y,width,height);
     }
 
+    public String getTemplateElementName() {
+        return "imageLayout";
+    }
+
     /** We are always valid. */
     public void revalidate() {
         //do nothing

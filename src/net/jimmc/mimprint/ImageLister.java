@@ -365,10 +365,10 @@ public class ImageLister extends JPanel implements ListSelectionListener,
 	/** Get the text associated with a file.
          * @param path The path to the image file.
          * @param index The index of this image in the current list (for "N of M" label).
-         * @param moreLines True to format with more newlines, false with fewer.
+         * @param useHtml True to format with for HTML, false for plain text.
 	 * @return The info about the image
 	 */
-	private String getFileTextInfo(String path, int index, boolean moreLines) {
+	private String getFileTextInfo(String path, int index, boolean useHtml) {
 		if (path==null) {
 			return null;	//no file, so no info
 		}
@@ -377,9 +377,15 @@ public class ImageLister extends JPanel implements ListSelectionListener,
                 StringBuffer sb = new StringBuffer();
 
 		//Start the with file name
-                if (!moreLines)
+                if (useHtml) {
+                    sb.append("<html>");
+                    sb.append("<b>");
+                    sb.append(f.getName());
+                    sb.append("</b>");
+                } else {
                     sb.append("File: ");        //TODO i18n
-                sb.append(f.getName());
+                    sb.append(f.getName());
+                }
 
 		//Add (N of M)
 		int imageCount = fileNameList.getModel().getSize();
@@ -424,11 +430,14 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 		    }
 		}
 		String dateStr = dFmt.format(modDate);
-                if (moreLines)
-                    sb.append("\n");
-                else
+                if (useHtml) {
+                    sb.append("<br><i>");
+                    sb.append(dateStr);
+                    sb.append("</i>");
+                } else {
                     sb.append("; ");
-                sb.append(dateStr);
+                    sb.append(dateStr);
+                }
 
 		//Add file info text
 		String fileText = getFileText(path);
@@ -438,8 +447,12 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
 						0,fileText.length()-1);
 			}
 			sb.append("\n");
+                        if (useHtml)
+                            fileText = fileText.replaceAll("\\n","<br>");
                         sb.append(fileText);
 		}
+                if (useHtml)
+                    sb.append("</html>");
 		return sb.toString();
 	}
 
@@ -931,8 +944,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
                 if (fileInfoText==null) {
                     labelText = fileInfo.name;
                 } else {
-                    fileInfoText = fileInfoText.replaceAll("\\n","<br>");
-                    labelText = "<html>"+fileInfoText+"</html>";
+                    labelText = fileInfoText;
                         //label doesn't normally do newlines, so we use html and
                         //<br> tags instead.
                 }

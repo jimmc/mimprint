@@ -11,11 +11,14 @@ jiviewer v0.1.0  November 1, 2005
     + Add Print command to File menu to print contents of printable window.
     + Control bar above Printable window allows editing the layout of
       the images within the window.
+    + Layout menu allows saving layout templates out to files.
   * Use separate window for full-screen mode, make it work better.
   * Add View menu.
-    + Menu commands for keyboard actions.
+    + Menu commands for keyboard actions such as screen mode.
     + List On Left command to put list of image files down the side.
     + Show Image In List command puts image icons in the list.
+  * Add Image menu.
+    + Menu commands for keyboard actions such as rotate image.
   * Remove dependence on JAI, so this version now runs on MacOSX.
 
   Bug Fixes:

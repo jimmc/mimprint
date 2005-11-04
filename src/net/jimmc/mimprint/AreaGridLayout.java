@@ -8,6 +8,7 @@ package jimmc.jiviewer;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.PrintWriter;
 
 /** A regular array of areas. */
 public class AreaGridLayout extends AreaLayout {
@@ -23,6 +24,10 @@ public class AreaGridLayout extends AreaLayout {
 
     public AreaGridLayout() {
         super();
+    }
+
+    public String getTemplateElementName() {
+        return "gridLayout";
     }
 
     /** Set the number of areas in each dimension.
@@ -103,5 +108,11 @@ public class AreaGridLayout extends AreaLayout {
                     // then save the old as the new
             }
         }
+    }
+
+    protected void writeTemplateElementAttributes(PrintWriter pw, int indent) {
+        super.writeTemplateElementAttributes(pw,indent);
+        pw.print(" rows=\""+rowCount+"\"");
+        pw.print(" columns=\""+columnCount+"\"");
     }
 }

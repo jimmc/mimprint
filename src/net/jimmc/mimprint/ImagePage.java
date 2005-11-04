@@ -43,6 +43,7 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.List;
 import javax.swing.JComponent;
 
@@ -53,23 +54,13 @@ public class ImagePage extends JComponent
         implements ImageWindow, Printable, KeyListener, MouseListener,
         MouseMotionListener, ComponentListener,
         DragGestureListener, DragSourceListener {
-
-    private static final int BORDER_THICKNESS = 20;
+        //TODO - use inner classes for interfaces
 
     private Viewer viewer;
     private ImagePageControls controls;
 
-    private int pageUnit;    //name of our units, e.g. "in", "cm"
-        public final static int UNIT_CM = 0;    //metric
-        public final static int UNIT_INCH = 1;  //english
-        public final static int UNIT_MULTIPLIER = 1000;
-    //The actual values we store in our various dimension fields
-    //are the units times the multiplier.  For example, we
-    //would represent 8.5 inches as 8500.
-    private int pageWidth;      //width of the page in pageUnits
-    private int pageHeight;     //height of the page in pageUnits
+    private PageLayout pageLayout;      //our layout
 
-    private AreaLayout areaLayout;      //our layout
     private ImagePageArea currentArea;  //the active area
     private AreaLayout highlightedArea;   //the highlight area for drop
     private ImagePageArea dragArea;          //source area for drag
@@ -90,6 +81,7 @@ public class ImagePage extends JComponent
     public ImagePage(Viewer viewer) {
         super();
         this.viewer = viewer;
+        pageLayout = new PageLayout();
         setBackground(Color.gray);      //neutral background
         setForeground(Color.black);     //black text
         setPageColor(Color.white);      //white "paper"
@@ -106,53 +98,44 @@ public class ImagePage extends JComponent
         this.controls = controls;
     }
 
-    /** Set the page units.
-     * @param unit One of UNIT_CM or UNIT_INCH.
-     */
-    public void setPageUnit(int unit) {
-        if (unit==pageUnit)
-            return;     //no change
-        switch (unit) {
-        case UNIT_CM:
-        case UNIT_INCH:
-            pageUnit = unit;
-            break;
-        default:
-            throw new IllegalArgumentException("bad units "+unit);
-        }
+    public void writeLayoutTemplate(PrintWriter pw) {
+        pageLayout.writeLayoutTemplate(pw);
     }
 
-    /** Get the current page units, either UNIT_CM or UNIT_INCH. */
+    /** Set the page units.
+     * @param unit One of PageLayout.UNIT_CM or PageLayout.UNIT_INCH.
+     */
+    public void setPageUnit(int unit) {
+        pageLayout.setPageUnit(unit);
+    }
+
+    /** Get the current page units, either PageLayout.UNIT_CM or PageLayout.UNIT_INCH. */
     public int getPageUnit() {
-        return pageUnit;
+        return pageLayout.getPageUnit();
     }
 
     public void setPageWidth(int width) {
-        this.pageWidth = width;
-        setAreaLayoutBounds();
-        areaLayout.revalidate();
+        pageLayout.setPageWidth(width);
     }
 
     public int getPageWidth() {
-        return pageWidth;
+        return pageLayout.getPageWidth();
     }
 
     public void setPageHeight(int height) {
-        this.pageHeight = height;
-        setAreaLayoutBounds();
-        areaLayout.revalidate();
+        pageLayout.setPageHeight(height);
     }
 
     public int getPageHeight() {
-        return pageHeight;
+        return pageLayout.getPageHeight();
     }
 
     protected void setAreaLayout(AreaLayout areaLayout) {
-        this.areaLayout = areaLayout;
+        pageLayout.setAreaLayout(areaLayout);
     }
 
     protected AreaLayout getAreaLayout() {
-        return areaLayout;
+        return pageLayout.getAreaLayout();
     }
 
  //Drag-and-drop stuff
@@ -233,7 +216,7 @@ public class ImagePage extends JComponent
             System.out.println("MOVE!");
         else
             System.out.println("DragDropEnd no action");
-        //TODO
+        //TODO - need to do anything here to handle the drag end?
     }
     public void dropActionChanged(DragSourceDragEvent ev) { }
   //End DragSourceListener interface
@@ -434,38 +417,10 @@ public class ImagePage extends JComponent
 
     /** Set up the default area layout. */
     private void setDefaultLayout() {
-        pageUnit = UNIT_INCH;
-        pageWidth = 8500;       //American standard paper size
-        pageHeight = 11000;
-
-        int margin = 500;       //margin on outer edges
-        int spacing = 250;      //spacing between areas
-        int rowCount = 2;        //default number of rows
-        int columnCount = 2;
-
-        //areaLayout = new AreaGridLayout();
-        areaLayout = new ImagePageArea(0,0,0,0);
-
-        setAreaLayoutBounds();
-        areaLayout.setMargin(margin);
-        areaLayout.setSpacing(spacing);
-        areaLayout.setBorderThickness(BORDER_THICKNESS);
-        if (areaLayout instanceof AreaGridLayout)
-            ((AreaGridLayout)areaLayout).setRowColumnCounts(rowCount,columnCount);
-        areaLayout.revalidate();        //set up areas
-
-        //For testing, throw in a Split
-        //AreaSplitLayout splitArea = new AreaSplitLayout();
-        //splitArea.setBorderThickness(BORDER_THICKNESS);
-        //areaLayout.areas[3] = splitArea;        //hack
-        //areaLayout.revalidate();        //make sure Split gets set up properly
+        pageLayout.setDefaultLayout();
 
         currentArea = null;  //start with nothing selected
         highlightedArea = null;        //nothing highlighted
-    }
-
-    private void setAreaLayoutBounds() {
-        areaLayout.setBounds(0,0,pageWidth,pageHeight);
     }
 
     //Set the currently highlighted area (the drop target)
@@ -495,7 +450,7 @@ public class ImagePage extends JComponent
     }
 
     public void showText(String text) {
-        //TODO
+        //TODO - display the text
     }
 
     //Override from JComponent
@@ -517,7 +472,7 @@ public class ImagePage extends JComponent
     /** Return the area containing the window point, or null if not in an area. */
     public ImagePageArea windowToImageArea(Point windowPoint) {
         Point userPoint = windowToUser(windowPoint);
-        AreaLayout aa = areaLayout;
+        AreaLayout aa = getAreaLayout();
         while (true) {  //exit loop via break
             //Follow the tree down as far as we can
             AreaLayout bb = aa.getArea(userPoint);
@@ -545,15 +500,15 @@ public class ImagePage extends JComponent
 
     private void paint(Graphics g, int devWidth, int devHeight, boolean drawOutlines) {
         Graphics2D g2 = (Graphics2D)g;
-        scaleAndTranslate(g2,pageWidth,pageHeight,devWidth,devHeight);
+        scaleAndTranslate(g2,getPageWidth(),getPageHeight(),devWidth,devHeight);
             //scale and translate the page to fit the component size
         g2.setColor(getBackground());
         g2.fillRect(0,0,devWidth,devHeight); //clear to background
         g2.setColor(pageColor);
-        g2.fillRect(0,0,pageWidth,pageHeight);
+        g2.fillRect(0,0,getPageWidth(),getPageHeight());
         g2.setColor(getForeground());
 
-        areaLayout.paint(g2,currentArea,highlightedArea,drawOutlines);
+        getAreaLayout().paint(g2,currentArea,highlightedArea,drawOutlines);
     }
 
     /** Given an area of specified size in user space, scale it to fit into
@@ -575,24 +530,28 @@ public class ImagePage extends JComponent
     /** Transform a point in window coordinates to a point in user space. */
     private Point windowToUser(Point p) {
         Point userP = new Point(p);
-        double xscale = ((double)getWidth())/((double)pageWidth);
-        double yscale = ((double)getHeight())/((double)pageHeight);
+        double xscale = ((double)getWidth())/((double)getPageWidth());
+        double yscale = ((double)getHeight())/((double)getPageHeight());
         double scale = (xscale<yscale)?xscale:yscale;
         if (xscale<yscale)
-            userP.y -= (yscale-xscale)*pageHeight/2.0;
+            userP.y -= (yscale-xscale)*getPageHeight()/2.0;
         else
-            userP.x -= (xscale-yscale)*pageWidth/2.0;
+            userP.x -= (xscale-yscale)*getPageWidth()/2.0;
         userP.x *= 1.0/scale;
         userP.y *= 1.0/scale;
         return userP;
     }
 
     public void setCursorBusy(boolean busy) {
-        //TODO
+        //TODO - set cursor busy
     }
 
     private void setCursorVisible(boolean visible) {
-        //TODO
+        //TODO - set cursor visible
+    }
+
+    protected String formatPageValue(int n) {
+        return pageLayout.formatPageValue(n);
     }
 
     /** Print this page of images. */
@@ -604,27 +563,27 @@ public class ImagePage extends JComponent
         //Check the size of the printer paper to see if it matches the
         //size of the image page.
         double paperScale;      //dimensions of Paper object are in points
-        if (pageUnit==UNIT_INCH)
+        if (getPageUnit()==PageLayout.UNIT_INCH)
             paperScale = 72.0;          //points per inch
         else
             paperScale = 72.0/2.54;     //points per cm
         double paperWidth = oldPaper.getWidth();
         double paperHeight = oldPaper.getHeight();
-        double paperPageWidth = paperWidth*UNIT_MULTIPLIER/paperScale;
-        double paperPageHeight = paperHeight*UNIT_MULTIPLIER/paperScale;
-        double widthDiff = Math.abs(pageWidth - paperPageWidth);
-        double heightDiff = Math.abs(pageHeight - paperPageHeight);
-        if (widthDiff>0.5/UNIT_MULTIPLIER || heightDiff>0.5/UNIT_MULTIPLIER) {
+        double paperPageWidth = paperWidth*PageLayout.UNIT_MULTIPLIER/paperScale;
+        double paperPageHeight = paperHeight*PageLayout.UNIT_MULTIPLIER/paperScale;
+        double widthDiff = Math.abs(getPageWidth() - paperPageWidth);
+        double heightDiff = Math.abs(getPageHeight() - paperPageHeight);
+        if (widthDiff>0.5/PageLayout.UNIT_MULTIPLIER || heightDiff>0.5/PageLayout.UNIT_MULTIPLIER) {
             //Ask user if he wants to continue, and whether he wants to
             //scale the output to fill the paper, or print at the same scale
             //as if the right paper was there.
             String introStr = "Page size is not set the same as paper size";
-            String pageSizeStr = "Page size is "+((double)pageWidth/UNIT_MULTIPLIER)+" by "+
-                    ((double)pageHeight/UNIT_MULTIPLIER)+" "+
-                    ((pageUnit==UNIT_INCH)?"in":"cm");
-            String paperSizeStr = "Paper size is "+(paperPageWidth/UNIT_MULTIPLIER)+" by "+
-                    (paperPageHeight/UNIT_MULTIPLIER)+" "+
-                    ((pageUnit==UNIT_INCH)?"in":"cm");
+            String pageSizeStr = "Page size is "+((double)getPageWidth()/PageLayout.UNIT_MULTIPLIER)+" by "+
+                    ((double)getPageHeight()/PageLayout.UNIT_MULTIPLIER)+" "+
+                    ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm");
+            String paperSizeStr = "Paper size is "+(paperPageWidth/PageLayout.UNIT_MULTIPLIER)+" by "+
+                    (paperPageHeight/PageLayout.UNIT_MULTIPLIER)+" "+
+                    ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm");
             //TODO i18n for all these strings
             String prompt = introStr+"\n"+pageSizeStr+"\n"+paperSizeStr;
             String yesString = "Scale images to fiil paper";
@@ -635,8 +594,8 @@ public class ImagePage extends JComponent
             case 0:     //yes, scale to fill paper
                 break;          //leave paper size alone
             case 1:     //no, use original specified size
-                paperWidth *= pageWidth/paperPageWidth;
-                paperHeight *= pageHeight/paperPageHeight;
+                paperWidth *= getPageWidth()/paperPageWidth;
+                paperHeight *= getPageHeight()/paperPageHeight;
                 break;
             case 2:     //cancel
             default:

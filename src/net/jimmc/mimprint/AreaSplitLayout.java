@@ -8,6 +8,7 @@ package jimmc.jiviewer;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.PrintWriter;
 
 /** Like AWT SplitPane, split into two areas of possibly unequal size. */
 public class AreaSplitLayout extends AreaLayout {
@@ -23,6 +24,10 @@ public class AreaSplitLayout extends AreaLayout {
         super();
         valid = false;
         splitPercent = 50;
+    }
+
+    public String getTemplateElementName() {
+        return "splitLayout";
     }
 
     /** Set the split percentage.
@@ -113,5 +118,12 @@ public class AreaSplitLayout extends AreaLayout {
             toAreas[i] = fromArea;
                 //then use old as new
         }
+    }
+
+    protected void writeTemplateElementAttributes(PrintWriter pw, int indent) {
+        super.writeTemplateElementAttributes(pw,indent);
+        String orientationStr = (orientation==VERTICAL)?"V":"H";
+        pw.print(" orientation=\""+orientationStr+"\"");
+        pw.print(" splitPercent=\""+splitPercent+"\"");
     }
 }

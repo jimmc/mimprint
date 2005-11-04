@@ -33,6 +33,7 @@ info.ImageHelp=Available commands:\n\
 	Ctrl R - rotate image 180 degrees\n\
 	x - exit from Jiviewer\n
 
+menu.File.label=File
 menu.File.Exit.label=Exit
 menu.File.Open.label=Open
 menu.File.Print.label=Print
@@ -40,20 +41,26 @@ menu.File.Print.label=Print
 menu.Help.label=Help
 menu.Help.About.label=About Jiviewer
 
+menu.Image.label=Image
+menu.Image.NextDirectory.label=Next Directory
+menu.Image.NextImage.label=Next Image
+menu.Image.PreviousDirectory.label=Previous Directory
+menu.Image.PreviousImage.label=Previous Image
+menu.Image.RotateMenu.label=Rotate Image
+menu.Image.RotateMenu.R90.label=90 degrees CCW
+menu.Image.RotateMenu.R180.label=180 degrees
+menu.Image.RotateMenu.R270.label=90 degrees CW
+menu.Image.ShowEditDialog.label=Show Edit Dialog
+
+menu.Layout.label=Layout
+menu.Layout.SaveTemplateAs.label=Save Template As...
+
+menu.View.label=View
 menu.View.ListIncludeImage.label=Show Image In List
-menu.View.NextDirectory.label=Next Directory
-menu.View.NextImage.label=Next Image
-menu.View.PreviousDirectory.label=Previous Directory
-menu.View.PreviousImage.label=Previous Image
-menu.View.RotateMenu.label=Rotate Image
-menu.View.RotateMenu.R90.label=90 degrees CCW
-menu.View.RotateMenu.R180.label=180 degrees
-menu.View.RotateMenu.R270.label=90 degrees CW
 menu.View.ScreenModeNormal.label=Normal Screen Mode
 menu.View.ScreenModeAlternate.label=Alternate Screen Mode
 menu.View.ScreenModeFull.label=Full Screen Mode
 menu.View.ScreenModePrint.label=Printable Screen Mode
-menu.View.ShowEditDialog.label=Show Edit Dialog
 menu.View.ShowHelpDialog.label=Show Help Dialog
 menu.View.SplitPaneHorizontal.label=List on Left
 
@@ -63,6 +70,8 @@ pageControl.button.UseGrid.label=G
 pageControl.button.UseGrid.toolTip=Use a Grid layout at this level
 pageControl.button.UseSplit.label=S
 pageControl.button.UseSplit.toolTip=Use a Split layout at this level
+
+prompt.SaveLayoutTemplateAs=Save Layout Template As...
 
 query.Exit.prompt=Exit Jiviewer?
 query.FileToOpen=File or Directory to Open

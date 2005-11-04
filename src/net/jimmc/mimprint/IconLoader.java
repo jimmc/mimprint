@@ -19,7 +19,7 @@ public class IconLoader extends Thread {
     }
 
     public void run() {
-System.out.println("running iconLoader");
+//System.out.println("running iconLoader");
         while (true) {  //keep running unilt the app exits
             FileInfo[] fileInfos = getFileInfoList();
             int updatedCount = loadFileInfos(fileInfos);
@@ -32,7 +32,7 @@ System.out.println("running iconLoader");
      * we should go look for more images to load.
      */
     public synchronized void moreIcons() {
-System.out.println("moreIcons");
+//System.out.println("moreIcons");
         this.notify();
     }
 
@@ -50,19 +50,19 @@ System.out.println("moreIcons");
                 continue;       //icon already loaded
             return;             //found one that needs loading
         }
-System.out.println("waitForMoreIcons");
+//System.out.println("waitForMoreIcons");
         try {
             this.wait();
         } catch (InterruptedException ex) {
             System.out.println("Wait interrupted");
         }
-System.out.println("waitForMoreIcons done");
+//System.out.println("waitForMoreIcons done");
     }
 
     //Notify the lister that it should update the display on
     //an item in its list.
     private boolean notifyLister(FileInfo[] fileInfos, int n) {
-System.out.println("notifyLister");
+//System.out.println("notifyLister");
         return lister.iconLoaded(fileInfos,n);
     }
 
@@ -72,7 +72,7 @@ System.out.println("notifyLister");
 
     //Load all icons that are ready to be loaded
     private int loadFileInfos(FileInfo[] fileInfos) {
-System.out.println("loadFileInfos");
+//System.out.println("loadFileInfos");
         if (fileInfos==null)
             return 0;
         int updatedCount = 0;
