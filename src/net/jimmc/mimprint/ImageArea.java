@@ -85,16 +85,20 @@ public class ImageArea extends JLabel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addComponentListener(this);
-		Toolkit toolkit = getToolkit();
-		Image cursorImage = toolkit.createImage(new byte[0]);
-		invisibleCursor = toolkit.createCustomCursor(
-				cursorImage,new Point(0,0),"invisible");
-		busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+                initCursors();
 
 		worker = new Worker();
 		worker.setPriority(worker.getPriority()-1);
 		worker.start();
 	}
+
+        private void initCursors() {
+		Toolkit toolkit = getToolkit();
+		Image cursorImage = toolkit.createImage(new byte[0]);
+		invisibleCursor = toolkit.createCustomCursor(
+				cursorImage,new Point(0,0),"invisible");
+		busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+        }
 
         public Component getComponent() {
             return this;

@@ -7,6 +7,7 @@ package jimmc.jiviewer;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -36,12 +37,14 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
@@ -51,10 +54,7 @@ import javax.swing.JComponent;
  * areas on the page.
  */
 public class ImagePage extends JComponent 
-        implements ImageWindow, Printable, KeyListener, MouseListener,
-        MouseMotionListener, ComponentListener,
-        DragGestureListener, DragSourceListener {
-        //TODO - use inner classes for interfaces
+        implements ImageWindow, Printable {
 
     private Viewer viewer;
     private ImagePageControls controls;
@@ -77,6 +77,11 @@ public class ImagePage extends JComponent
     private DropTargetListener dtListener;
     private int dropActions = DnDConstants.ACTION_COPY_OR_MOVE;
 
+    private Cursor busyCursor;
+    private Cursor invisibleCursor;
+    private boolean cursorBusy;
+    private boolean cursorVisible;
+
     /** Create an ImagePage with no images or layout. */
     public ImagePage(Viewer viewer) {
         super();
@@ -86,12 +91,21 @@ public class ImagePage extends JComponent
         setForeground(Color.black);     //black text
         setPageColor(Color.white);      //white "paper"
         setPreferredSize(new Dimension(425,550));
-        addKeyListener(this);
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addComponentListener(this);
+        addKeyListener(new ImagePageKeyListener());
+        addMouseListener(new ImagePageMouseListener());
+        addMouseMotionListener(new ImagePageMouseMotionListener());
+        addComponentListener(new ImagePageComponentListener());
+        initCursors();
         setDefaultLayout();
         setupDrag();
+    }
+
+    private void initCursors() {
+        Toolkit toolkit = getToolkit();
+        Image cursorImage = toolkit.createImage(new byte[0]);
+        invisibleCursor = toolkit.createCustomCursor(
+                cursorImage,new Point(0,0),"invisible");
+        busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
     }
 
     public void setControls(ImagePageControls controls) {
@@ -142,8 +156,8 @@ public class ImagePage extends JComponent
     private void setupDrag() {
         //enabled dragging from this component
         dragSource = DragSource.getDefaultDragSource();
-        dgListener = this;
-        dsListener = this;
+        dgListener = new ImagePageDragGestureListener();
+        dsListener = new ImagePageDragSourceListener();
         dragSource.createDefaultDragGestureRecognizer(
             this,DnDConstants.ACTION_COPY_OR_MOVE, dgListener);
 
@@ -153,6 +167,7 @@ public class ImagePage extends JComponent
                 dtListener, true);
     }
 
+  class ImagePageDragGestureListener implements DragGestureListener {
   //The DragGestureListener interface
     public void dragGestureRecognized(DragGestureEvent ev) {
         Point p = ev.getDragOrigin();
@@ -172,6 +187,7 @@ public class ImagePage extends JComponent
         }
     }
   //End DragGestureListener interface
+  }
 
     private void setDragCursor(DragSourceDragEvent ev) {
         DragSourceContext ctx = ev.getDragSourceContext();
@@ -190,6 +206,8 @@ public class ImagePage extends JComponent
             //TODO - or MoveNoDrop?
         }
     }
+
+  class ImagePageDragSourceListener implements DragSourceListener {
   //The DragSourceListener interface
     public void dragEnter(DragSourceDragEvent ev) {
         //System.out.println("dragEnter");
@@ -220,6 +238,7 @@ public class ImagePage extends JComponent
     }
     public void dropActionChanged(DragSourceDragEvent ev) { }
   //End DragSourceListener interface
+  }
 
     class DTListener implements DropTargetListener {
         private void checkDrop(DropTargetDragEvent ev) {
@@ -542,12 +561,27 @@ public class ImagePage extends JComponent
         return userP;
     }
 
+    /** Set the cursor to a busy cursor. */
     public void setCursorBusy(boolean busy) {
-        //TODO - set cursor busy
+        cursorBusy = busy;
+        if (busy) {
+                setCursor(busyCursor);
+        } else {
+                setCursorVisible(cursorVisible);
+        }
     }
 
-    private void setCursorVisible(boolean visible) {
-        //TODO - set cursor visible
+    /** Make the cursor visible or invisible.
+     * If busy-cursor has been set, cursor is always visible.
+     */
+    public void setCursorVisible(boolean visible) {
+        cursorVisible = visible;
+        if (cursorBusy)
+            return;		//busy takes priority over invisible
+        if (visible)
+            setCursor(null);
+        else
+            setCursor(invisibleCursor);
     }
 
     protected String formatPageValue(int n) {
@@ -577,6 +611,7 @@ public class ImagePage extends JComponent
             //Ask user if he wants to continue, and whether he wants to
             //scale the output to fill the paper, or print at the same scale
             //as if the right paper was there.
+            //TODO i18n for all the strings in the print dialog
             String introStr = "Page size is not set the same as paper size";
             String pageSizeStr = "Page size is "+((double)getPageWidth()/PageLayout.UNIT_MULTIPLIER)+" by "+
                     ((double)getPageHeight()/PageLayout.UNIT_MULTIPLIER)+" "+
@@ -584,7 +619,6 @@ public class ImagePage extends JComponent
             String paperSizeStr = "Paper size is "+(paperPageWidth/PageLayout.UNIT_MULTIPLIER)+" by "+
                     (paperPageHeight/PageLayout.UNIT_MULTIPLIER)+" "+
                     ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm");
-            //TODO i18n for all these strings
             String prompt = introStr+"\n"+pageSizeStr+"\n"+paperSizeStr;
             String yesString = "Scale images to fiil paper";
             String noString = "Print at specified page size";
@@ -635,6 +669,7 @@ public class ImagePage extends JComponent
     }
   //End Printable interface
 
+  class ImagePageKeyListener implements KeyListener {
   //The KeyListener interface
     public void keyPressed(KeyEvent ev) {
         setCursorVisible(false);	//turn off cursor on any key
@@ -740,7 +775,9 @@ public class ImagePage extends JComponent
             }
     }
   //End KeyListener interface
+  }
 
+  class ImagePageMouseListener implements MouseListener {
   //The MouseListener interface
     public void mouseClicked(MouseEvent ev) {}
     public void mouseEntered(MouseEvent ev) {}
@@ -751,7 +788,9 @@ public class ImagePage extends JComponent
     }
     public void mouseReleased(MouseEvent ev) {}
   //End MouseListener interface
+  }
 
+  class ImagePageMouseMotionListener implements MouseMotionListener {
   //The MouseMotionListener interface
     public void mouseDragged(MouseEvent ev){
             setCursorVisible(true); //turn cursor back on
@@ -760,7 +799,9 @@ public class ImagePage extends JComponent
             setCursorVisible(true); //turn cursor back on
     }
   //End MouseMotionListener interface
+  }
 
+  class ImagePageComponentListener implements ComponentListener {
   //The ComponentListener interface
     public void componentHidden(ComponentEvent ev){}
     public void componentMoved(ComponentEvent ev){}
@@ -770,6 +811,7 @@ public class ImagePage extends JComponent
     }
     public void componentShown(ComponentEvent ev){}
   //End ComponentListener interface
+  }
 
   class PaperNoMargin extends Paper {
         //Force our paper's imageable area to the full size
