@@ -10,6 +10,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.PrintWriter;
 
+import org.xml.sax.Attributes;
+
 /** A regular array of areas. */
 public class AreaGridLayout extends AreaLayout {
 
@@ -28,6 +30,25 @@ public class AreaGridLayout extends AreaLayout {
 
     public String getTemplateElementName() {
         return "gridLayout";
+    }
+
+    public void setXmlAttributes(Attributes attrs) {
+        String rowsStr = attrs.getValue("rows");
+        String colsStr = attrs.getValue("columns");
+        if (rowsStr==null || colsStr==null ||
+                rowsStr.trim().equals("") || colsStr.trim().equals("")) {
+            throw new IllegalArgumentException(
+                "rows and columns attributes are both required on gridLayout"); //TODO i18n
+        }
+        int rows = Integer.parseInt(rowsStr);
+        int cols = Integer.parseInt(colsStr);
+        setRowColumnCounts(rows,cols);
+        
+        super.setXmlAttributes(attrs);
+
+        allocateAreas(rowCount*columnCount);
+        areasColumnCount = columnCount;
+        areasRowCount = rowCount;
     }
 
     /** Set the number of areas in each dimension.

@@ -10,6 +10,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.PrintWriter;
 
+import org.xml.sax.Attributes;
+
 /** Like AWT SplitPane, split into two areas of possibly unequal size. */
 public class AreaSplitLayout extends AreaLayout {
 
@@ -28,6 +30,34 @@ public class AreaSplitLayout extends AreaLayout {
 
     public String getTemplateElementName() {
         return "splitLayout";
+    }
+
+    public void setXmlAttributes(Attributes attrs) {
+        String splitPercentStr = attrs.getValue("splitPercent");
+        if (splitPercentStr!=null)
+            setSplitPercentage(splitPercentStr);
+        String orientationStr = attrs.getValue("orientation");
+        if (orientationStr!=null)
+            setOrientation(orientationStr);
+
+        super.setXmlAttributes(attrs);
+
+        allocateAreas(2);
+    }
+
+    private void setSplitPercentage(String splitPercentStr) {
+        int splitPercent = Integer.parseInt(splitPercentStr);
+        setSplitPercentage(splitPercent);
+    }
+
+    private void setOrientation(String orientationStr) {
+        if (orientationStr.trim().equalsIgnoreCase("H"))
+            setOrientation(HORIZONTAL);
+        else if (orientationStr.trim().equalsIgnoreCase("V"))
+            setOrientation(VERTICAL);
+        else
+            throw new IllegalArgumentException("Bad splitLayout orientation "+orientationStr);
+                //TODO i18n
     }
 
     /** Set the split percentage.

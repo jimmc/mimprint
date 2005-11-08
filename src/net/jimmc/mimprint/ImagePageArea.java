@@ -23,6 +23,11 @@ public class ImagePageArea extends AreaLayout {
         setBounds(x,y,width,height);
     }
 
+    /** Create an image area with no size info. */
+    public ImagePageArea() {
+        this(0,0,0,0);
+    }
+
     public String getTemplateElementName() {
         return "imageLayout";
     }

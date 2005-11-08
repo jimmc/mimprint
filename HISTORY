@@ -1,9 +1,8 @@
-jiviewer v0.1.0  November 1, 2005
+jiviewer v0.1.0  November 7, 2005
 
   Enhancements:
 
-  * Add 'a' command to display on an alternate screen.
-  * Add 'p' command to display printable window.
+  * Add Printing capability through use of Printable window.
     + Display multiple images in one window.
     + Drag-and-drop in printable window to copy images between areas.
     + Can drag images from file list to printable window.
@@ -11,14 +10,19 @@ jiviewer v0.1.0  November 1, 2005
     + Add Print command to File menu to print contents of printable window.
     + Control bar above Printable window allows editing the layout of
       the images within the window.
-    + Layout menu allows saving layout templates out to files.
-  * Use separate window for full-screen mode, make it work better.
+    + Layout menu allows saving/loading layout templates to/from files.
+    + Add 'p' command to display printable window.
+  * Add Image menu.
+    + Menu commands for keyboard actions such as rotate image.
+  * Add Layout menu.
+    + Save Template and Load Template commands allow saving the
+      current layout to an XML file dna reading it back later.
   * Add View menu.
     + Menu commands for keyboard actions such as screen mode.
     + List On Left command to put list of image files down the side.
     + Show Image In List command puts image icons in the list.
-  * Add Image menu.
-    + Menu commands for keyboard actions such as rotate image.
+  * Add 'a' command to display on an alternate screen.
+  * Use separate window for full-screen mode, make it work better.
   * Remove dependence on JAI, so this version now runs on MacOSX.
 
   Bug Fixes:

@@ -110,7 +110,6 @@ public class ImagePageControls extends JPanel {
                 setRowColumnCount();
             }
         };
-        //TODO set minimum to 1
         add(rowCountField);
 
         columnCountLabel = makeLabel("Columns");
@@ -345,7 +344,7 @@ public class ImagePageControls extends JPanel {
         if (index==0)
             return AREA_PAGE;
         AreaLayout a = selectedAreas[index-1];
-        //TODO - the following probably should just be an overridden method
+        //TODO - make an AreaLayout method to get type int
         if (a instanceof ImagePageArea)
             return AREA_IMAGE;
         if (a instanceof AreaGridLayout)

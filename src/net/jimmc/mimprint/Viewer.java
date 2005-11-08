@@ -92,6 +92,7 @@ public class Viewer extends JsFrame {
 	private File currentOpenFile;
 
         private File lastSaveLayoutTemplateFile;
+        private File lastLoadLayoutTemplateFile;
 
 	/** Create our frame. */
 	public Viewer(App app) {
@@ -273,6 +274,14 @@ public class Viewer extends JsFrame {
 		mi = new MenuAction(label) {
 			public void action() {
 				saveLayoutTemplateAs();
+			}
+		};
+		m.add(mi);
+
+		label = getResourceString("menu.Layout.LoadTemplate.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				loadLayoutTemplate();
 			}
 		};
 		m.add(mi);
@@ -694,6 +703,20 @@ public class Viewer extends JsFrame {
             imagePage.writeLayoutTemplate(pw);
             pw.close();
             showStatus("Saved template to file "+f);    //TODO i18n
+        }
+
+        /** Load a layout from a named file. */
+        private void loadLayoutTemplate() {
+            String prompt = getResourceString("prompt.LoadLayoutTemplate");
+            File f = fileOpenDialog(prompt,lastLoadLayoutTemplateFile);
+            if (f==null)
+                return;
+            lastLoadLayoutTemplateFile = f;
+            PageLayout pageLayout = new PageLayout();
+            pageLayout.loadLayoutTemplate(f);
+                //TODO - check return status here rather than using exception?
+            imagePage.setPageLayout(pageLayout);
+            showStatus("Loaded template from file "+f);    //TODO i18n
         }
 
 	/** Put up a help dialog. */

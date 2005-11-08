@@ -108,6 +108,14 @@ public class ImagePage extends JComponent
         busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
     }
 
+    public void setPageLayout(PageLayout pageLayout) {
+        this.pageLayout = pageLayout;
+        setHighlightedArea(null);
+        currentArea = null;
+        repaint();
+        controls.selectArea(new Point(0,0));    //reset page control bar
+    }
+
     public void setControls(ImagePageControls controls) {
         this.controls = controls;
     }

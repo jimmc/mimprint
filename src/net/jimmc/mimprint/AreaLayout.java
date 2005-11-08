@@ -11,6 +11,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.PrintWriter;
 
+import org.xml.sax.Attributes;
+
 /** A collection of image areas or nested AreaLayouts.
  * Subclasses must provide a way to define the areas.
  */
@@ -35,9 +37,44 @@ public abstract class AreaLayout {
     //Our areas or sublayouts
     protected AreaLayout areas[];
 
+    private int numAreas;       //number of areas set into areas
+        //this is used when loading from an XML file
+
     public AreaLayout() {
         selectedColor = Color.blue;
         highlightedColor = Color.green;
+    }
+
+    /** Allocate our array of areas.
+     * @param n The number of areas to allocated.
+     */
+    protected void allocateAreas(int n) {
+        areas = new AreaLayout[n];
+        numAreas = 0;
+    }
+
+    /** Add an area to our list.
+     * This is used when loading from an XML file.
+     */
+    protected void addAreaLayout(AreaLayout area) {
+        if (areas==null)
+            throw new RuntimeException("areas not yet allocated");
+        if (numAreas>=areas.length)
+            throw new RuntimeException("too many areas added");
+        if (areas[numAreas]!=null)
+            throw new RuntimeException("area["+numAreas+"] already allocated");
+        areas[numAreas++] = area;
+    }
+
+    /** Used during construction from an XML file.
+     */
+    public void setXmlAttributes(Attributes attrs) {
+        String marginStr = attrs.getValue("margin");
+        if (marginStr!=null)
+            setMargin(PageLayout.parsePageValue(marginStr));
+        String spacingStr = attrs.getValue("spacing");
+        if (spacingStr!=null)
+            setSpacing(PageLayout.parsePageValue(spacingStr));
     }
 
     /** Set the bounding area for this AreaLayout within our parent. */

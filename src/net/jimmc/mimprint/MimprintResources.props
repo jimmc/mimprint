@@ -53,6 +53,7 @@ menu.Image.RotateMenu.R270.label=90 degrees CW
 menu.Image.ShowEditDialog.label=Show Edit Dialog
 
 menu.Layout.label=Layout
+menu.Layout.LoadTemplate.label=Load Template...
 menu.Layout.SaveTemplateAs.label=Save Template As...
 
 menu.View.label=View
@@ -71,6 +72,7 @@ pageControl.button.UseGrid.toolTip=Use a Grid layout at this level
 pageControl.button.UseSplit.label=S
 pageControl.button.UseSplit.toolTip=Use a Split layout at this level
 
+prompt.LoadLayoutTemplate=Load Layout Template...
 prompt.SaveLayoutTemplateAs=Save Layout Template As...
 
 query.Exit.prompt=Exit Jiviewer?

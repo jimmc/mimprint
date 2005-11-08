@@ -53,3 +53,4 @@
 - Add icon loader thread so list with icons appears faster. [051101]
 - Split Image menu off of View menu. [051102]
 - Add Layout menu, add Save Template menu command. [051103]
+- Add Load Template menu command. [051107]
