@@ -30,9 +30,7 @@ import javax.swing.SwingUtilities;
 
 /** A window in which we view our images.
  */
-public class ImageArea extends JLabel
-		implements ImageWindow, KeyListener, MouseListener,
-		MouseMotionListener, ComponentListener {
+public class ImageArea extends JLabel implements ImageWindow {
 	/** Our App. */
 	protected App app;
 
@@ -81,10 +79,10 @@ public class ImageArea extends JLabel
 			if (biggerFont!=null)
 				setFont(biggerFont);
 		}
-		addKeyListener(this);
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addComponentListener(this);
+		addKeyListener(new ImageAreaKeyListener());
+		addMouseListener(new ImageAreaMouseListener());
+		addMouseMotionListener(new ImageAreaMouseMotionListener());
+		addComponentListener(new ImageAreaComponentListener());
                 initCursors();
 
 		worker = new Worker();
@@ -139,31 +137,35 @@ public class ImageArea extends JLabel
 	/** Redisplay the current image. */
 	public void showCurrentImage() {
 		if (SwingUtilities.isEventDispatchThread()) {
-			//Run this outside the event thread
-			worker.invoke(new WorkerTask(this) {
-				public void run() {
-					ImageArea a = (ImageArea)getData();
-					a.showCurrentImage();
-				}
-			});
-			return;
+                    //Run this outside the event thread
+                    worker.invoke(new WorkerTask(this) {
+                        public void run() {
+                            ImageArea a = (ImageArea)getData();
+                            a.showCurrentImage();
+                        }
+                    });
+                    return;
 		}
 
 		setIcon(null);
 		if (currentImage==null) {
-			setText("No image");	//i18n
-			return;		//nothing there
+                    setText("No image");	//i18n
+                    return;		//nothing there
 		}
 		setText("Loading image...");	//i18n
 
 		//make sure the image size is correct
 		if (scaled)
-			currentImage.setDisplaySize(getWidth(),getHeight());
+                    currentImage.setDisplaySize(getWidth(),getHeight());
 		else
-			currentImage.setDisplaySize(0,0); //no scaling
+                    currentImage.setDisplaySize(0,0); //no scaling
 
                 app.debugMsg("ShowCurrentImage A");
                 Image xImage = currentImage.getTransformedImage();
+                if (xImage==null) {
+                    setText("Null image");
+                    return;
+                }
                 app.debugMsg("ShowCurrentImage B");
                 ImageIcon ii = new ImageIcon(xImage);
                 app.debugMsg("ShowCurrentImage C");
@@ -212,6 +214,7 @@ public class ImageArea extends JLabel
 			setCursor(invisibleCursor);
 	}
 
+    class ImageAreaKeyListener implements KeyListener {
     //The KeyListener interface
     	public void keyPressed(KeyEvent ev) {
 		setCursorVisible(false);	//turn off cursor on any key
@@ -241,6 +244,9 @@ public class ImageArea extends JLabel
 		case KeyEvent.VK_ESCAPE:
 			viewer.setScreenMode(Viewer.SCREEN_NORMAL);	//back to normal size
 			break;
+                case KeyEvent.VK_ENTER:
+                        viewer.activateSelection();
+                        break;
 		default:	//ignore
 			knownKeyPress = false;
 			break;
@@ -252,6 +258,9 @@ public class ImageArea extends JLabel
 	public void keyTyped(KeyEvent ev) {
 		char ch = ev.getKeyChar();
 		switch (ch) {
+                case ' ':       //activate selection
+                        viewer.activateSelection();
+                        break;
 		case 'a':	//alternate-screen
 			viewer.setScreenMode(Viewer.SCREEN_ALT);
 			break;
@@ -309,7 +318,9 @@ public class ImageArea extends JLabel
 		}
 	}
     //End KeyListener interface
+    }
 
+    class ImageAreaMouseListener implements MouseListener {
     //The MouseListener interface
     	public void mouseClicked(MouseEvent ev) {}
     	public void mouseEntered(MouseEvent ev) {}
@@ -319,7 +330,9 @@ public class ImageArea extends JLabel
 	}
     	public void mouseReleased(MouseEvent ev) {}
     //End MouseListener interface
+    }
 
+    class ImageAreaMouseMotionListener implements MouseMotionListener {
     //The MouseMotionListener interface
 	public void mouseDragged(MouseEvent ev){
 		setCursorVisible(true);	//turn cursor back on
@@ -328,7 +341,9 @@ public class ImageArea extends JLabel
 		setCursorVisible(true);	//turn cursor back on
 	}
     //End MouseMotionListener interface
+    }
 
+    class ImageAreaComponentListener implements ComponentListener {
     //The ComponentListener interface
 	public void componentHidden(ComponentEvent ev){}
 	public void componentMoved(ComponentEvent ev){}
@@ -338,6 +353,7 @@ public class ImageArea extends JLabel
 	}
 	public void componentShown(ComponentEvent ev){}
     //End ComponentListener interface
+    }
 }
 
 /* end */

@@ -116,6 +116,10 @@ public class ImagePage extends JComponent
         controls.selectArea(new Point(0,0));    //reset page control bar
     }
 
+    public PageLayout getPageLayout() {
+        return pageLayout;
+    }
+
     public void setControls(ImagePageControls controls) {
         this.controls = controls;
     }
@@ -527,10 +531,10 @@ public class ImagePage extends JComponent
 
     private void paint(Graphics g, int devWidth, int devHeight, boolean drawOutlines) {
         Graphics2D g2 = (Graphics2D)g;
-        scaleAndTranslate(g2,getPageWidth(),getPageHeight(),devWidth,devHeight);
-            //scale and translate the page to fit the component size
         g2.setColor(getBackground());
         g2.fillRect(0,0,devWidth,devHeight); //clear to background
+        scaleAndTranslate(g2,getPageWidth(),getPageHeight(),devWidth,devHeight);
+            //scale and translate the page to fit the component size
         g2.setColor(pageColor);
         g2.fillRect(0,0,getPageWidth(),getPageHeight());
         g2.setColor(getForeground());
@@ -707,6 +711,9 @@ public class ImagePage extends JComponent
         case KeyEvent.VK_ESCAPE:
             viewer.setScreenMode(Viewer.SCREEN_NORMAL);	//back to normal size
             break;
+        case KeyEvent.VK_ENTER:
+            viewer.activateSelection();
+            break;
         default:	//ignore
             knownKeyPress = false;
             break;
@@ -718,6 +725,9 @@ public class ImagePage extends JComponent
     public void keyTyped(KeyEvent ev) {
             char ch = ev.getKeyChar();
             switch (ch) {
+            case ' ':   //activate selection
+                    viewer.activateSelection();
+                    break;
             case 'a':	//alternate-screen
                     viewer.setScreenMode(Viewer.SCREEN_ALT);
                     break;

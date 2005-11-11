@@ -54,3 +54,5 @@
 - Split Image menu off of View menu. [051102]
 - Add Layout menu, add Save Template menu command. [051103]
 - Add Load Template menu command. [051107]
+- Add viewing of templates in dir list. [051110]
+- Add Edit Description command in Layout menu. [051110]

@@ -176,6 +176,7 @@ public class ImageBundle {
 			//The image has not yet started loading, so we don't
 			//know it's size.  Wait just a bit.
 			if (waitCount++>100) {
+                                System.out.println("Timed out waiting to load image");
 				return null;	//can't get it
 			}
 			try {

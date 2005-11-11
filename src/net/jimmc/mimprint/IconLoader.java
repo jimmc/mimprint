@@ -5,8 +5,12 @@
 
 package jimmc.jiviewer;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.awt.Toolkit;
+import java.io.File;
 import javax.swing.ImageIcon;
 
 /** A background thread to load image icons.
@@ -44,11 +48,8 @@ public class IconLoader extends Thread {
         FileInfo[] fileInfos = getFileInfoList();
         for (int i=0; fileInfos!=null && i<fileInfos.length; i++) {
             FileInfo fi = fileInfos[i];
-            if (fi==null)
-                continue;       //that list item not yet visible
-            if (fi.icon!=null)
-                continue;       //icon already loaded
-            return;             //found one that needs loading
+            if (needsIcon(fi))
+                return;             //found one that needs loading
         }
 //System.out.println("waitForMoreIcons");
         try {
@@ -78,11 +79,9 @@ public class IconLoader extends Thread {
         int updatedCount = 0;
         for (int i=0; i<fileInfos.length; i++) {
             FileInfo fi = fileInfos[i];
-            if (fi==null)
-                continue;       //that list item not yet visible
-            if (fi.icon!=null)
-                continue;       //icon already loaded
-            fi.icon = getFileIcon(fi.getPath());
+            if (!needsIcon(fi))
+                continue;
+            fi.icon = getFileIcon(fi,i);
             if (!notifyLister(fileInfos,i)) {
                 //The list in lister changed, don't
                 //bother loading the rest of these icons
@@ -93,9 +92,48 @@ public class IconLoader extends Thread {
         return updatedCount;
     }
 
+    private boolean needsIcon(FileInfo fi) {
+        if (fi==null)
+            return false;       //that list item not yet visible
+        if (fi.icon!=null)
+            return false;       //icon already loaded
+        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.JIV)
+            return false;       //only load icons for image files and our own files
+        return true;
+    }
+
     //Load the icon for the specified file.
-    private ImageIcon getFileIcon(String filename) {
+    private ImageIcon getFileIcon(FileInfo fileInfo, int index) {
+        String filename = fileInfo.getPath();
         Toolkit toolkit = lister.getToolkit();
+        if (filename.toLowerCase().endsWith(".jiv")) {
+            PageLayout pageLayout = new PageLayout();
+            pageLayout.loadLayoutTemplate(new File(filename));
+            //TODO - check to make sure it got loaded correctly,
+            //catch exceptions and put in an error icon
+            String desc = pageLayout.getDescription();
+            if (desc!=null) {
+                fileInfo.text = desc;
+                fileInfo.html = lister.getFileTextInfo(fileInfo,index,true);
+                    //update html if text got updated
+            }
+            BufferedImage image = new BufferedImage(ImageLister.ICON_SIZE,
+                    ImageLister.ICON_SIZE,BufferedImage.TYPE_BYTE_INDEXED);
+            Graphics2D g2 = image.createGraphics();
+            //Scale the layout to fit in the imate
+            g2.setColor(Color.white);   //we use gray in the real layout background,
+                    //but white looks better here
+            g2.fillRect(0,0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE); //clear to background
+            ImagePage.scaleAndTranslate(g2,
+                    pageLayout.getPageWidth(),pageLayout.getPageHeight(),
+                    ImageLister.ICON_SIZE,ImageLister.ICON_SIZE);
+            g2.setColor(Color.white);
+            g2.fillRect(0,0,pageLayout.getPageWidth(),pageLayout.getPageHeight());
+            g2.setColor(Color.black);
+            pageLayout.getAreaLayout().paint(g2,null,null,true);
+                //paint the layout into the image
+            return new ImageIcon(image);
+        }
         Image fullImage = toolkit.createImage(filename);
         Image scaledImage = ImageBundle.createScaledImage(fullImage,
                 0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE);

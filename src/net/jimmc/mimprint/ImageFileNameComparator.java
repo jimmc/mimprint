@@ -5,11 +5,18 @@
 
 package jimmc.jiviewer;
 
+import java.io.File;
 import java.util.Comparator;
 
-/** Compare two image file names to see hwo they should be ordered.
+/** Compare two image file names to see how they should be ordered.
  */
 public class ImageFileNameComparator implements Comparator {
+        private File dir;    //the directory in which we are comparing
+
+        public ImageFileNameComparator(File dir) {
+            this.dir = dir;
+        }
+
 	/** Compare the two objects, which must be strings.
 	 * We skip over leading non-numeric chars until we come to digits,
 	 * then interpret those as an integer and compare those integers.

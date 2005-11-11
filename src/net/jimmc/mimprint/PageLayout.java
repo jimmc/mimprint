@@ -168,7 +168,7 @@ public class PageLayout {
         } catch (Exception ex) {
             throw new RuntimeException("Exception creating SAXParser",ex);
         }
-System.out.println("Created SAXParser");        //TODO - parse the file
+System.out.println("Created SAXParser");
         DefaultHandler handler = new PageLayoutHandler();
         try {
             parser.parse(f,handler);
@@ -198,6 +198,8 @@ System.out.println("Created SAXParser");        //TODO - parse the file
 
     class PageLayoutHandler extends DefaultHandler {
         private Stack areaStack;
+        private String lastText;        //most recent parsed text
+
         public void startDocument() {
 System.out.println("startDocument");
             areaStack  = new Stack();
@@ -211,7 +213,9 @@ System.out.println("endDocument");
                 String qName, Attributes attributes) {
 System.out.println("startElement "+uri+","+localName+","+
                     qName+",attrs="+attributes);
-            if (qName.equals("page"))
+            if (qName.equals("description"))
+                ;       //ignore the start, pick up the text on the end
+            else if (qName.equals("page"))
                 loadPageAttributes(attributes);
             else {
                 AreaLayout newArea = AreaLayoutFactory.newAreaLayout(qName);
@@ -243,16 +247,25 @@ System.out.println("startElement "+uri+","+localName+","+
                         "page unit must be \"cm\" or \"in\""); //TODO i18n
         }
 
+        public void characters(char[] ch, int start, int end) {
+            lastText = new String(ch,start,end);
+        }
+
         public void endElement(String uri, String localName,
                 String qName) {
 System.out.println("endElement "+uri+","+localName+","+
                     qName);
-            if (qName.equals("page")) {
+            //TODO - validate end element matches start element
+            if (qName.equals("description")) {
+                if (lastText!=null)
+                    setDescription(lastText);
+                return;
+            } else if (qName.equals("page")) {
                 if (currentArea!=null)
                     throw new RuntimeException("Expected area end element before </page>"); //TODO i18n
                 return;         //done with the page
             } else {
-                //TODO - validate end element matches start element
+                ;       //nothing here
             }
             AreaLayout newArea = currentArea;
             currentArea = (AreaLayout)areaStack.pop();

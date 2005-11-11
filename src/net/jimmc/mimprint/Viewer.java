@@ -286,6 +286,14 @@ public class Viewer extends JsFrame {
 		};
 		m.add(mi);
 
+		label = getResourceString("menu.Layout.EditDescription.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				editLayoutDescription();
+			}
+		};
+		m.add(mi);
+
                 return m;
         }
 
@@ -406,6 +414,11 @@ public class Viewer extends JsFrame {
             imageLister.showListOnly(horizontal);
         }
 
+        /** Activate the currently selected item in the list. */
+        public void activateSelection() {
+            imageLister.activateSelection();
+        }
+
 	/** Open the specified target. */
 	public void open(String target) {
 		currentOpenFile = new File(target);
@@ -426,10 +439,7 @@ public class Viewer extends JsFrame {
 	/** Process the File->Open menu command. */
 	protected void processFileOpen() {
 		String msg = getResourceString("query.FileToOpen");
-		String dflt = null;
-		if (currentOpenFile!=null)
-			dflt = currentOpenFile.getAbsolutePath();
-		File newOpenFile = fileOpenDialog(msg,dflt);
+		File newOpenFile = fileOrDirectoryOpenDialog(msg,currentOpenFile);
 		if (newOpenFile==null)
 			return;		//nothing specified
 		currentOpenFile = newOpenFile;
@@ -712,11 +722,38 @@ public class Viewer extends JsFrame {
             if (f==null)
                 return;
             lastLoadLayoutTemplateFile = f;
+            loadLayoutTemplate(f);
+        }
+
+        //Load the specified layout template
+        public void loadLayoutTemplate(File f) {
+            if (imagePage==null) {
+                showStatus("No Printable page");        //TODO i18n
+                return;
+            }
             PageLayout pageLayout = new PageLayout();
             pageLayout.loadLayoutTemplate(f);
                 //TODO - check return status here rather than using exception?
             imagePage.setPageLayout(pageLayout);
             showStatus("Loaded template from file "+f);    //TODO i18n
+        }
+
+        //Edit the description of the current page layout
+        private void editLayoutDescription() {
+            if (imagePage==null) {
+                showStatus("No Printable page");        //TODO i18n
+                return;
+            }
+            PageLayout pageLayout = imagePage.getPageLayout();
+            String text = pageLayout.getDescription();
+            if (text==null)
+                    text = "";
+            String title = "Page Description";
+                            //TBD i18n and better title
+            String newText = editTextDialog(title,text);
+            if (newText==null)
+                    return;		//cancelled
+            pageLayout.setDescription(newText);
         }
 
 	/** Put up a help dialog. */
