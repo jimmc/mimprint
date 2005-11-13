@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.Toolkit;
+import java.net.URL;
 import java.io.File;
 import javax.swing.ImageIcon;
 
@@ -97,44 +98,71 @@ public class IconLoader extends Thread {
             return false;       //that list item not yet visible
         if (fi.icon!=null)
             return false;       //icon already loaded
-        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.JIV)
-            return false;       //only load icons for image files and our own files
+//        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.JIV)
+//            return false;       //only load icons for image files and our own files
         return true;
     }
 
     //Load the icon for the specified file.
     private ImageIcon getFileIcon(FileInfo fileInfo, int index) {
-        String filename = fileInfo.getPath();
-        Toolkit toolkit = lister.getToolkit();
-        if (filename.toLowerCase().endsWith(".jiv")) {
-            PageLayout pageLayout = new PageLayout();
-            pageLayout.loadLayoutTemplate(new File(filename));
-            //TODO - check to make sure it got loaded correctly,
-            //catch exceptions and put in an error icon
-            String desc = pageLayout.getDescription();
-            if (desc!=null) {
-                fileInfo.text = desc;
-                fileInfo.html = lister.getFileTextInfo(fileInfo,index,true);
-                    //update html if text got updated
-            }
-            BufferedImage image = new BufferedImage(ImageLister.ICON_SIZE,
-                    ImageLister.ICON_SIZE,BufferedImage.TYPE_BYTE_INDEXED);
-            Graphics2D g2 = image.createGraphics();
-            //Scale the layout to fit in the imate
-            g2.setColor(Color.white);   //we use gray in the real layout background,
-                    //but white looks better here
-            g2.fillRect(0,0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE); //clear to background
-            ImagePage.scaleAndTranslate(g2,
-                    pageLayout.getPageWidth(),pageLayout.getPageHeight(),
-                    ImageLister.ICON_SIZE,ImageLister.ICON_SIZE);
-            g2.setColor(Color.white);
-            g2.fillRect(0,0,pageLayout.getPageWidth(),pageLayout.getPageHeight());
-            g2.setColor(Color.black);
-            pageLayout.getAreaLayout().paint(g2,null,null,true);
-                //paint the layout into the image
-            return new ImageIcon(image);
+        if (fileInfo.isDirectory())
+            return getDirectoryIcon(fileInfo);
+        if (fileInfo.getPath().toLowerCase().endsWith(".jiv"))
+            return getJivIcon(fileInfo);
+        //Assume anything else is an image file
+        return getImageFileIcon(fileInfo);
+    }
+
+    private ImageIcon getDirectoryIcon(FileInfo fileInfo) {
+        String resName;
+        if (fileInfo.name.equals("."))
+            resName = "folder-open.gif";
+        else if (fileInfo.name.equals(".."))
+            resName = "folder-up.gif";
+        else
+            resName = "folder.gif";
+            //TODO - if folder has a summary.txt file,
+            //use icon to indicate folder containing photos
+        URL u = getClass().getResource(resName);
+        if (u==null) {
+            System.out.println("No URL found for "+resName);
+            return null;        //TODO what here?
         }
-        Image fullImage = toolkit.createImage(filename);
+        Toolkit toolkit = lister.getToolkit();
+        Image image = toolkit.getImage(u);
+        return new ImageIcon(image);
+    }
+
+    private ImageIcon getJivIcon(FileInfo fileInfo) {
+        PageLayout pageLayout = new PageLayout();
+        pageLayout.loadLayoutTemplate(fileInfo.getFile());
+        //TODO - check to make sure it got loaded correctly,
+        //catch exceptions and put in an error icon
+        String desc = pageLayout.getDescription();
+        if (desc!=null) {
+            fileInfo.setText(desc);  //also updates html
+        }
+        BufferedImage image = new BufferedImage(ImageLister.ICON_SIZE,
+                ImageLister.ICON_SIZE,BufferedImage.TYPE_BYTE_INDEXED);
+        Graphics2D g2 = image.createGraphics();
+        //Scale the layout to fit in the imate
+        g2.setColor(Color.white);   //we use gray in the real layout background,
+                //but white looks better here
+        g2.fillRect(0,0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE); //clear to background
+        ImagePage.scaleAndTranslate(g2,
+                pageLayout.getPageWidth(),pageLayout.getPageHeight(),
+                ImageLister.ICON_SIZE,ImageLister.ICON_SIZE);
+        g2.setColor(Color.white);
+        g2.fillRect(0,0,pageLayout.getPageWidth(),pageLayout.getPageHeight());
+        g2.setColor(Color.black);
+        pageLayout.getAreaLayout().paint(g2,null,null,true);
+            //paint the layout into the image
+        return new ImageIcon(image);
+    }
+
+    private ImageIcon getImageFileIcon(FileInfo fileInfo) {
+        Toolkit toolkit = lister.getToolkit();
+        Image fullImage = toolkit.createImage(fileInfo.getPath());
         Image scaledImage = ImageBundle.createScaledImage(fullImage,
                 0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE);
         return new ImageIcon(scaledImage);

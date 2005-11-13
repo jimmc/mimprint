@@ -27,12 +27,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.SimpleTimeZone;
-import java.util.TimeZone;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
@@ -386,111 +381,6 @@ public class ImageLister extends JPanel {
         dirTextLabel.setText(dirText);
     }
 
-    /** Get the text associated with a file.
-     * @param path The path to the image file.
-     * @param index The index of this image in the current list (for "N of M" label).
-     * @param useHtml True to format with for HTML, false for plain text.
-     * @return The info about the image
-     */
-    protected String getFileTextInfo(FileInfo fileInfo, int index, boolean useHtml) {
-        String path = fileInfo.getPath();
-        if (path==null) {
-            return null;	//no file, so no info
-        }
-        File f = new File(path);
-
-        StringBuffer sb = new StringBuffer();
-
-        //Start the with file name
-        String fn = f.getName();
-        if (fn.equals(".")) {
-            try {
-                fn = f.getCanonicalPath();
-            } catch (IOException ex) {
-                //ignore errors here, leave fn as it was
-            }
-        }
-        else if (fn.equals(".."))
-            fn = "Up to Parent";        //TODO i18n
-        if (useHtml) {
-            sb.append("<html>");
-            sb.append("<b>");
-            sb.append(fn);
-            sb.append("</b>");
-        } else {
-            sb.append("File: ");        //TODO i18n
-            sb.append(fn);
-        }
-
-        //Add (N of M)
-        int imageCount = fileNameList.getModel().getSize();
-        int thisIndex = index+1;
-        sb.append("; "+thisIndex+" of "+imageCount);  //TBD i18n
-
-        //Add file size
-        long fileSize = f.length();
-        String fileSizeStr;
-        if (fileSize>1024*1024*10)	//>10M
-            fileSizeStr = ""+(fileSize/(1024*1024))+"M";
-        else if (fileSize>1024*10)	//>10K
-            fileSizeStr = ""+(fileSize/1024)+"K";
-        else
-            fileSizeStr = ""+fileSize+"B";
-        sb.append("; ");
-        sb.append(fileSizeStr);
-
-        //Add file modification date/time
-        long modTimeMillis = f.lastModified();
-        Date modDate = new Date(modTimeMillis);
-        SimpleDateFormat dFmt =
-                (SimpleDateFormat)DateFormat.getDateTimeInstance();
-        String tzPath = getTimeZoneFileNameForImage(path);
-        File tzFile = new File(tzPath);
-        if (tzFile.exists()) {
-            try {
-                //What a hack... the SimpleDateFormat code doesn't
-                //do the right time-zone calculations, it uses
-                //TimeZone.getRawOffset, which just gets the first
-                //offset in the timezone.  We need it to get the
-                //offset for the specified time.
-                TimeZone tz = new ZoneInfo(tzFile);
-                int zOff = tz.getOffset(modTimeMillis);
-                SimpleTimeZone stz =	
-                        new SimpleTimeZone(zOff,tz.getID());
-                dFmt.setTimeZone(stz);
-                dFmt.applyPattern(dFmt.toPattern()+" zzzz");
-            } catch (IOException ex) {
-System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
-                //do nothing to change timezone or format
-            }
-        }
-        String dateStr = dFmt.format(modDate);
-        if (useHtml) {
-            sb.append("<br><i>");
-            sb.append(dateStr);
-            sb.append("</i>");
-            sb.append("<br>");
-        } else {
-            sb.append("; ");
-            sb.append(dateStr);
-        }
-
-        //Add file info text
-        String fileText = fileInfo.text;
-        if (fileText!=null) {
-            if (fileText.endsWith("\n")) {
-                fileText = fileText.substring(0,fileText.length()-1);
-            }
-            sb.append("\n");
-            if (useHtml)
-                fileText = fileText.replaceAll("\\n","<br>");
-            sb.append(fileText);
-        }
-        if (useHtml)
-            sb.append("</html>");
-        return sb.toString();
-    }
-
     protected void setFileText(String info) {
         //Display the text for the image
         if (info==null)
@@ -509,7 +399,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         if (text.length()>0 && !text.endsWith("\n"))
             text = text + "\n";	//terminate with a newline
         try {
-            String textPath = getTextFileNameForImage(path);
+            String textPath = FileInfo.getTextFileNameForImage(path);
             File f = new File(textPath);
             FileUtil.writeFile(f,text);
         } catch (Exception ex) {
@@ -524,23 +414,6 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         viewer.showStatus(status);
     }
 
-    /** Get the text for the specified file. */
-    private String getFileText(String path) {
-        try {
-            String textPath = getTextFileNameForImage(path);
-            if (textPath==null)
-                return null;
-            File f = new File(textPath);
-            String text = FileUtil.readFile(f);
-            return text;
-        } catch (FileNotFoundException ex) {
-            return null;    //OK if the file is not there
-        } catch (Exception ex) {
-            System.out.println("Exception reading file "+path+": "+ex.getMessage());
-            return null;	//on any error, ignore the file
-        }
-    }
-
     /** True if the file name is for an image file that we recognize. */
     public boolean isImageFileName(String name) {
         int dotPos = name.lastIndexOf('.');
@@ -552,48 +425,6 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
             return true;
         }
         return false;
-    }
-
-    /** True if we recognize the file as being one of ours. */
-    public boolean isOurFileName(String name) {
-        int dotPos = name.lastIndexOf('.');
-        if (dotPos<0)
-            return false;	//no extension
-        String extension = name.substring(dotPos+1).toLowerCase();
-        if (extension.equals("jiv")) {
-            return true;
-        }
-        return false;
-    }
-
-    /** Get the name of the text file which contains the info
-     * about the specified image file.
-     * @param path The path to the image file.
-     * @return The text file name, or null if we can't figure it out.
-     */
-    protected String getTextFileNameForImage(String path) {
-        File f = new File(path);
-        if (f.isDirectory())
-            return path+File.separator+"summary.txt";
-        int dot = path.lastIndexOf('.');
-        if (dot<0)
-            return null;
-        String textPath = path.substring(0,dot+1)+"txt";
-        return textPath;
-    }
-
-    /** Get the name of the timezone file for the image.
-     * @param path The path to the image file.
-     * @return The timezone file name, or null if we can't figure it out.
-     */
-    protected String getTimeZoneFileNameForImage(String path) {
-        int sl = path.lastIndexOf(File.separator);
-        if (sl<0)
-            path = "."+File.separator;
-        else
-            path = path.substring(0,sl+1);
-        String tzPath = path+"TZ";
-        return tzPath;
     }
 
     class ImageListerListSelectionListener implements ListSelectionListener {
@@ -629,8 +460,6 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
             break;
         case FileInfo.IMAGE:
             displayCurrentSelection();
-            if (imageWindow!=null)
-                imageWindow.requestFocus();
             break;
         case FileInfo.JIV:
             //If the user selected this item, open it,
@@ -641,6 +470,8 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         default:    //ignore unknown stuff
             break;
         }
+        if (imageWindow!=null)
+            imageWindow.requestFocus();
     }
 
     /** Show the currently selected file. */
@@ -760,8 +591,9 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
     }
 
     protected String getCurrentImageFileText() {
-        String path = currentImage.getPath();
-        return getFileText(path);
+        int index = currentImage.getListIndex();
+        FileInfo fileInfo = getFileInfo(index);
+        return fileInfo.text;
     }
 
     protected void setCurrentImageFileText(String imageText) {
@@ -917,7 +749,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         FilenameFilter filter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return isImageFileName(name) ||
-                    isOurFileName(name) ||
+                    FileInfo.isOurFileName(name) ||
                     new File(dir,name).isDirectory();
             }
         };
@@ -941,21 +773,10 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         FileInfo fileInfo = fileInfos[index];
         if (fileInfo!=null)
             return fileInfo;        //already loaded
-        fileInfo = new FileInfo();
-        fileInfo.dir = targetDirectory;
-        fileInfo.name = fileNames[index];
-        File f = new File(fileInfo.dir,fileInfo.name);
-        //If not a directory, assume it is an image file,
-        //until we get around to implementing other stuff.
-        if (f.isDirectory()) {
-            fileInfo.type = FileInfo.DIR;
-        } else if (isOurFileName(fileInfo.name)) {
-            fileInfo.type = FileInfo.JIV;       //our own file
-        } else
-            fileInfo.type = FileInfo.IMAGE;
-        fileInfo.text = getFileText(fileInfo.getPath());
-        fileInfo.html = getFileTextInfo(fileInfo,index,true);
-        fileInfo.info = getFileTextInfo(fileInfo,index,false);
+        int totalCount = fileNameList.getModel().getSize();
+        fileInfo = new FileInfo(index,totalCount,targetDirectory,fileNames[index]);
+        fileInfo.loadInfo();
+
         //leave icon null, let iconLoader fill it in
         fileInfos[index] = fileInfo;
         iconLoader.moreIcons();         //tell iconLoader to load icons

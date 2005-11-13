@@ -168,7 +168,7 @@ public class PageLayout {
         } catch (Exception ex) {
             throw new RuntimeException("Exception creating SAXParser",ex);
         }
-System.out.println("Created SAXParser");
+//System.out.println("Created SAXParser");
         DefaultHandler handler = new PageLayoutHandler();
         try {
             parser.parse(f,handler);
@@ -201,18 +201,18 @@ System.out.println("Created SAXParser");
         private String lastText;        //most recent parsed text
 
         public void startDocument() {
-System.out.println("startDocument");
+//System.out.println("startDocument");
             areaStack  = new Stack();
         }
 
         public void endDocument() {
-System.out.println("endDocument");
+//System.out.println("endDocument");
         }
 
         public void startElement(String uri, String localName,
                 String qName, Attributes attributes) {
-System.out.println("startElement "+uri+","+localName+","+
-                    qName+",attrs="+attributes);
+//System.out.println("startElement "+uri+","+localName+","+
+//                    qName+",attrs="+attributes);
             if (qName.equals("description"))
                 ;       //ignore the start, pick up the text on the end
             else if (qName.equals("page"))
@@ -253,8 +253,7 @@ System.out.println("startElement "+uri+","+localName+","+
 
         public void endElement(String uri, String localName,
                 String qName) {
-System.out.println("endElement "+uri+","+localName+","+
-                    qName);
+//System.out.println("endElement "+uri+","+localName+","+qName);
             //TODO - validate end element matches start element
             if (qName.equals("description")) {
                 if (lastText!=null)
