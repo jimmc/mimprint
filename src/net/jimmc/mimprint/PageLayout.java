@@ -56,13 +56,12 @@ public class PageLayout {
         //areaLayout = new AreaGridLayout();
         areaLayout = new ImagePageArea(0,0,0,0);
 
-        setAreaLayoutBounds();
         areaLayout.setMargin(margin);
         areaLayout.setSpacing(spacing);
         areaLayout.setBorderThickness(BORDER_THICKNESS);
         if (areaLayout instanceof AreaGridLayout)
             ((AreaGridLayout)areaLayout).setRowColumnCounts(rowCount,columnCount);
-        areaLayout.revalidate();        //set up areas
+        setAreaLayout(areaLayout);
 
         //For testing, throw in a Split
         //AreaSplitLayout splitArea = new AreaSplitLayout();
@@ -136,6 +135,11 @@ public class PageLayout {
         setAreaLayoutBounds();
         areaLayout.setBorderThickness(BORDER_THICKNESS);
         areaLayout.revalidate();
+        areaLayout.setParent(null);     //top level layout
+        areaLayout.setTreeLocation(null);
+        areaLayout.setSubTreeLocations();
+        areaLayout.setTreeDepth(0);
+        areaLayout.setSubTreeDepths();
     }
 
     protected AreaLayout getAreaLayout() {

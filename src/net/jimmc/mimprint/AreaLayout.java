@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.PrintWriter;
+import java.util.Vector;
 
 import org.xml.sax.Attributes;
 
@@ -34,6 +35,14 @@ public abstract class AreaLayout {
     private Color selectedColor;
     private Color highlightedColor;
 
+    //The depth of this area within the tree
+    private int treeDepth;
+    //The tree location string of this area
+    private String treeLocation;
+
+    //Our parent area
+    protected AreaLayout parent;
+
     //Our areas or sublayouts
     protected AreaLayout areas[];
 
@@ -43,6 +52,81 @@ public abstract class AreaLayout {
     public AreaLayout() {
         selectedColor = Color.blue;
         highlightedColor = Color.green;
+    }
+
+    /** Set our parent layout.
+     * @param parent Our parent layout, or null if we are the top level layout.
+     */
+    protected void setParent(AreaLayout parent) {
+        this.parent = parent;
+    }
+
+    /** Get our parent layout.
+     * @return parent Our parent layout, or null if we are the top level layout.
+     */
+    protected AreaLayout getParent() {
+        return parent;
+    }
+
+    /** Set the tree depth of this area. */
+    protected void setTreeDepth(int n) {
+        this.treeDepth = n;
+    }
+
+    /** Get the tree depth of this area. */
+    public int getTreeDepth() {
+        return treeDepth;
+    }
+
+    /** Assign tree depths for all of our subs.
+     * This assumes our own depth has already been set.
+     * Recurses down the tree.
+     */
+    public void setSubTreeDepths() {
+        if (areas==null)
+            return;     //no subareas
+        for (int i=0; i<areas.length; i++) {
+            areas[i].setParent(this);
+            areas[i].setTreeDepth(this.treeDepth+1);
+            areas[i].setSubTreeDepths();
+        }
+    }
+
+    /** Set the tree location of this area. */
+    protected void setTreeLocation(String s) {
+        if (s==null)
+            s = "";
+        this.treeLocation = s;
+    }
+
+    /** Get the tree location of this area. */
+    public String getTreeLocation() {
+        return treeLocation;
+    }
+
+    /** Assign tree locations for all of our subs.
+     * This assumes our own location has already been set.
+     * Recurses down the tree.
+     */
+    public void setSubTreeLocations() {
+        if (areas==null)
+            return;     //no subareas
+        for (int i=0; i<areas.length; i++) {
+            String sub = getSubTreeLocationPart(i);
+            areas[i].setParent(this);
+            areas[i].setTreeLocation(this.treeLocation+sub);
+            areas[i].setSubTreeLocations();
+        }
+    }
+
+    //Get the sublocation for one of our items based on the area index
+    //of that item.
+    protected String getSubTreeLocationPart(int index) {
+        if (index<0)
+            return "?";
+        if (index<26)
+            return "abcdefghijklmnopqrstuvwxyz".substring(index,index+1);
+        return "."+Integer.toString(index+1);
     }
 
     /** Allocate our array of areas.
@@ -64,6 +148,18 @@ public abstract class AreaLayout {
         if (areas[numAreas]!=null)
             throw new RuntimeException("area["+numAreas+"] already allocated");
         areas[numAreas++] = area;
+    }
+
+    /** Get a list of our sub areas, recursively.
+     * Add to the specified Vector.
+     */
+    protected void getAreaList(Vector v) {
+        if (areas==null)
+            return;
+        for (int i=0; i<areas.length; i++) {
+            v.addElement(areas[i]);
+            areas[i].getAreaList(v);
+        }
     }
 
     /** Used during construction from an XML file.
@@ -147,6 +243,12 @@ public abstract class AreaLayout {
         for (int i=0; i<areas.length; i++) {
             if (areas[i]==oldArea) {
                 areas[i] = newArea;
+                String sub = getSubTreeLocationPart(i);
+                areas[i].setParent(this);
+                areas[i].setTreeLocation(this.treeLocation+sub);
+                areas[i].setSubTreeLocations();
+                areas[i].setTreeDepth(this.treeDepth+1);
+                areas[i].setSubTreeDepths();
                 return true;
             }
         }
@@ -166,6 +268,8 @@ public abstract class AreaLayout {
     protected void revalidateChildren() {
         for (int i=0; i<areas.length; i++)
             areas[i].revalidate();
+        setSubTreeLocations();
+        setSubTreeDepths();
     }
 
     /** True if the specified point is within our bounds and margin.

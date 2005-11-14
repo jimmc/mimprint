@@ -44,7 +44,7 @@ public class ImagePageControls extends JPanel {
     private JLabel layoutLabel;
     private ComboBoxAction layoutField;
 
-    private AreaLayout[] selectedAreas;
+    private AreaLayout[] allAreas;
 
     public ImagePageControls(App app, ImagePage imagePage) {
         this.app = app;
@@ -55,8 +55,8 @@ public class ImagePageControls extends JPanel {
     private void initLayout() {
         setLayout(new FlowLayout(FlowLayout.LEFT));
         addFields();
-        selectedAreas = new AreaLayout[0]; //no areas selected
-        updateAreaChoiceField(false);
+        updateAllAreasList();
+        updateAreaChoiceField(null);
     }
 
     /** Create and add all of our fields. */
@@ -190,6 +190,16 @@ public class ImagePageControls extends JPanel {
         return label;
     }
 
+    /** Here the the page layout changes, to update our list of all areas. */
+    public void updateAllAreasList() {
+        AreaLayout a = imagePage.getAreaLayout();
+        Vector v = new Vector();
+        v.addElement(a);       //put the top item into the list
+        a.getAreaList(v);     //put all children into the list
+        allAreas = new AreaLayout[v.size()];
+        v.copyInto(allAreas);
+    }
+
     /** Here when the user clicks in the ImagePage window to select an area.
      * @param point A point in our coordinate system.
      */
@@ -198,45 +208,48 @@ public class ImagePageControls extends JPanel {
         AreaLayout aa = imagePage.getAreaLayout();
         if (!aa.hit(point)) {
 //System.out.println("Not in top-level areaLayout");
-            selectedAreas = new AreaLayout[0]; //no areas selected
-            updateAreaChoiceField(false);
+            updateAreaChoiceField(null);
             return;
         }
-        Vector v = new Vector();
+        AreaLayout selectedArea;
         do {
 //System.out.println("Add area "+aa);
-            v.addElement(aa);
+            selectedArea = aa;
             aa = aa.getArea(point);
         } while (aa!=null);
 //System.out.println("Area list size: "+v.size());
-        selectedAreas = new AreaLayout[v.size()];
-        v.copyInto(selectedAreas);
-        updateAreaChoiceField(false);
+        updateAreaChoiceField(selectedArea);
     }
 
-    //After updating the selectedAreas array, update the areaChoiceField
-    //to match it and set the selected item to be the last one
-    //in the list.
-    private void updateAreaChoiceField(boolean keepSelection) {
-        int oldSelectionIndex = areaChoiceField.getSelectedIndex();
-        int numChoices = 1+selectedAreas.length;
+    //After updating the allAreas array, update the areaChoiceField
+    //to match it and set the selected item to the specified area.
+    private void updateAreaChoiceField(AreaLayout selectedArea) {
+        int numChoices = 1+allAreas.length;
         String[] areaChoiceStrs = new String[numChoices];
-        areaChoiceStrs[0] = "1. Page";     //TODO i18n
-        for (int i=0; i<selectedAreas.length; i++) {
-            areaChoiceStrs[i+1] = Integer.toString(i+2)+". "+
+        areaChoiceStrs[0] = "0. Page";     //TODO i18n
+        for (int i=0; i<allAreas.length; i++) {
+            String treeLocation = allAreas[i].getTreeLocation();
+            if (treeLocation==null)
+                treeLocation = "?";
+            areaChoiceStrs[i+1] =
+                    Integer.toString(allAreas[i].getTreeDepth()+1)+
+                    treeLocation+". "+
                     getAreaTypeString(i+1);
-                    //TODO - add some info such as bounding box?
         }
         areaChoiceField.setItems(areaChoiceStrs);
-        int newSelectionIndex;
-        if (keepSelection)
-            newSelectionIndex = oldSelectionIndex;
-        else
-            newSelectionIndex = areaChoiceStrs.length - 1;
-        areaChoiceField.setSelectedIndex(newSelectionIndex);
-                //select the last (or same) item in the list,
-                //this also calls the action method which
-                //calls areaSelected(int).
+        if (selectedArea==null)
+            areaChoiceField.setSelectedIndex(0);  //select the page
+        else {
+            for (int i=0; i<allAreas.length; i++) {
+                if (allAreas[i]==selectedArea) {
+                    areaChoiceField.setSelectedIndex(i+1);
+                        //select the specified item,
+                        //this also calls the action method which
+                        //calls areaSelected(int).
+                    break;
+                }
+            }
+        }
     }
 
     //Here when the user selected the units for the page.
@@ -249,6 +262,8 @@ public class ImagePageControls extends JPanel {
     //or when we call setSelectedIndex on it.
     private void areaSelected(int index) {
 //System.out.println("selection: "+index);
+        if (index<0)
+            index = 0;  //by default select the page
         boolean pageSelected = false;
         boolean gridSelected = false;
         boolean splitSelected = false;
@@ -301,7 +316,7 @@ public class ImagePageControls extends JPanel {
             unitsField.setSelectedIndex(imagePage.getPageUnit());
             imagePage.setHighlightedArea(null);
         } else {
-            AreaLayout area = selectedAreas[index-1];
+            AreaLayout area = allAreas[index-1];
             imagePage.setHighlightedArea(area);
             marginsField.setText(formatPageValue(area.getMargin()));
             spacingField.setText(formatPageValue(area.getSpacing()));
@@ -343,7 +358,7 @@ public class ImagePageControls extends JPanel {
     private int getAreaType(int index) {
         if (index==0)
             return AREA_PAGE;
-        AreaLayout a = selectedAreas[index-1];
+        AreaLayout a = allAreas[index-1];
         //TODO - make an AreaLayout method to get type int
         if (a instanceof ImagePageArea)
             return AREA_IMAGE;
@@ -399,30 +414,29 @@ public class ImagePageControls extends JPanel {
         newArea.setMargin(area.getMargin());
         newArea.setBounds(area.getBounds());
         newArea.setSpacing(area.getSpacing());
+        AreaLayout parentArea = area.getParent();
         //If we are replacing a simple image and its spacing
         //was zero, put in something which we think will be
         //a better default value.
         if (newArea.getSpacing()==0 && area instanceof ImagePageArea) {
-            if (selectedIndex==1)
+            if (parentArea==null)
                 newArea.setSpacing(10*area.getBorderThickness());
-            else {
-                AreaLayout parentArea = selectedAreas[selectedIndex-2];
+            else
                 newArea.setSpacing(parentArea.getSpacing());
-            }
         }
         newArea.revalidate();   //recalculate bounds etc
-        if (selectedIndex==1) {
+        if (parentArea==null) {
             //top level area, contained in page
             imagePage.setAreaLayout(newArea);
         } else {
-            AreaLayout parentArea = selectedAreas[selectedIndex-2];
             parentArea.replaceArea(area,newArea);
         }
-        selectedAreas[selectedIndex-1] = newArea;
-        updateAreaChoiceField(true);    //fix label in area choice list
+        updateAllAreasList();
+        updateAreaChoiceField(newArea);    //fix area choice list
         areaSelected(areaChoiceField.getSelectedIndex()); //fix area property fields
         imagePage.repaint();
     }
+
     private int layoutIndexToAreaType(int index) {
         int[] types = { AREA_IMAGE, AREA_GRID, AREA_SPLIT };
             //this must match the initialLayoutItems
@@ -434,7 +448,7 @@ public class ImagePageControls extends JPanel {
         int index = areaChoiceField.getSelectedIndex();
         if (index<=0)
             throw new RuntimeException("no AreaLayout selected");
-        return selectedAreas[index-1];
+        return allAreas[index-1];
     }
 
     /** Throw an exception if the Page is not currently selected. */
@@ -492,6 +506,10 @@ public class ImagePageControls extends JPanel {
             ((AreaGridLayout)a).setRowColumnCounts(rowCount,columnCount);
             a.revalidate();
             imagePage.repaint();
+            //When number of rows or columns changes, that changes our
+            //list of areas.
+            updateAllAreasList();
+            updateAreaChoiceField(a);
         }
     }
 

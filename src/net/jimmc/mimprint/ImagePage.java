@@ -113,6 +113,7 @@ public class ImagePage extends JComponent
         setHighlightedArea(null);
         currentArea = null;
         repaint();
+        controls.updateAllAreasList();
         controls.selectArea(new Point(0,0));    //reset page control bar
     }
 
