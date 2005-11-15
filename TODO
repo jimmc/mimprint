@@ -1,3 +1,7 @@
+Menus:
+- Add "show image info dialog" menu item in Image menu. (051113)
+- Add "show area outlines" menu toggle in View menu. (051113)
+
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)

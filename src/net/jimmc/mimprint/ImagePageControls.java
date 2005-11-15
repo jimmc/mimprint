@@ -13,8 +13,13 @@ import java.awt.FlowLayout;
 import java.awt.Point;
 import java.text.NumberFormat;
 import java.util.Vector;
+import javax.accessibility.Accessible;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.SpinnerNumberModel;
 
 public class ImagePageControls extends JPanel {
@@ -23,6 +28,7 @@ public class ImagePageControls extends JPanel {
     private boolean updatingSelected;
 
     private ComboBoxAction areaChoiceField;
+    private JList areaChoicePopupList;
     private JLabel widthLabel;
     private JsTextField widthField;
     private JLabel heightLabel;
@@ -69,6 +75,7 @@ public class ImagePageControls extends JPanel {
             }
         };
         add(areaChoiceField);
+        addAreaValueChangedListener();
 
         //Set up the Page fields
         widthLabel = makeLabel("Width");
@@ -188,6 +195,33 @@ public class ImagePageControls extends JPanel {
         if (toolTipText!=null && !toolTipText.equals(toolTipTextKey))
             label.setToolTipText(toolTipText);
         return label;
+    }
+
+    //Add a listener to the list on the ComboBox so that we can get
+    //notified as the user scrolls through the list.
+    private void addAreaValueChangedListener() {
+        Accessible a = areaChoiceField.getUI().getAccessibleChild(areaChoiceField,0);
+        if (a instanceof ComboPopup) {
+            areaChoicePopupList = ((ComboPopup)a).getList();
+            areaChoicePopupList.addListSelectionListener(new AreaListSelectionListener());
+        }
+        //TODO also add a PopupMenuListener so that we known when the popup
+        //goes away so that we can reset the highlight in the event the user
+        //cancels the area choice selection.
+    }
+    class AreaListSelectionListener implements ListSelectionListener {
+        //As the user scrolls through the list, highlight the area that
+        //corresponds to the selected item in the list.
+        public void valueChanged(ListSelectionEvent ev) {
+            int index = areaChoicePopupList.getSelectedIndex();
+            //int first = ev.getFirstIndex();
+            //int last = ev.getLastIndex();
+//System.out.println("area sel="+index+", first="+first+", last="+last);
+            if (index<=0)
+                imagePage.setHighlightedArea(null);
+            else
+                imagePage.setHighlightedArea(allAreas[index-1]);
+        }
     }
 
     /** Here the the page layout changes, to update our list of all areas. */
