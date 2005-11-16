@@ -162,9 +162,10 @@ public class IconLoader extends Thread {
 
     private ImageIcon getImageFileIcon(FileInfo fileInfo) {
         Toolkit toolkit = lister.getToolkit();
-        Image fullImage = toolkit.createImage(fileInfo.getPath());
+        String path = fileInfo.getPath();
+        Image fullImage = toolkit.createImage(path);
         Image scaledImage = ImageBundle.createScaledImage(fullImage,
-                0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE);
+                0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE,path);
         return new ImageIcon(scaledImage);
     }
 }

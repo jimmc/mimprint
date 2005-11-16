@@ -82,6 +82,8 @@ public class ImagePage extends JComponent
     private boolean cursorBusy;
     private boolean cursorVisible;
 
+    private boolean showOutlines;
+
     /** Create an ImagePage with no images or layout. */
     public ImagePage(Viewer viewer) {
         super();
@@ -98,6 +100,7 @@ public class ImagePage extends JComponent
         initCursors();
         setDefaultLayout();
         setupDrag();
+        setShowOutlines(true);
     }
 
     private void initCursors() {
@@ -165,6 +168,14 @@ public class ImagePage extends JComponent
         return pageLayout.getAreaLayout();
     }
 
+    public void setShowOutlines(boolean show) {
+        this.showOutlines = show;
+    }
+
+    public boolean isShowOutlines() {
+        return showOutlines;
+    }
+
  //Drag-and-drop stuff
     private void setupDrag() {
         //enabled dragging from this component
@@ -209,7 +220,7 @@ public class ImagePage extends JComponent
         if ((action & DnDConstants.ACTION_COPY)!=0) {
             //System.out.println("cursor Copy");
             ctx.setCursor(DragSource.DefaultCopyDrop);
-            //TODO - we are getting here, but the cursor does not get changed
+            //TODO - we are getting here, but the cursor does not change.
         } else if ((action & DnDConstants.ACTION_MOVE)!=0) {
             //System.out.println("cursor Move");
             ctx.setCursor(DragSource.DefaultMoveDrop);
@@ -527,7 +538,7 @@ public class ImagePage extends JComponent
 
     /** Paint all of our images. */
     public void paint(Graphics g) {
-        paint(g,getWidth(),getHeight(),true);
+        paint(g,getWidth(),getHeight(),showOutlines);
     }
 
     private void paint(Graphics g, int devWidth, int devHeight, boolean drawOutlines) {

@@ -1,6 +1,4 @@
-Menus:
-- Add "show image info dialog" menu item in Image menu. (051113)
-- Add "show area outlines" menu toggle in View menu. (051113)
+- Allow opening a jar or zip file, display contents. (051115)
 
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files
@@ -17,8 +15,6 @@ PlayLists:
   the images.jiv files; add a command to tell it to remove this filename from
   the images.jiv file; add a command to tell it to create an images.jiv file
   from the current viewing information. (020828)
-- When starting at a directory, if no images in that directory, look in
-  subdirectories, start there if found. (020818)
 
 Misc:
 - Add pan/zoom commands. (020818)
@@ -28,6 +24,5 @@ Misc:
   window?). (021211)
 - In dialog advancing to next directory, give the name of this directory
   and the next one. (020818)
-- Add command to add or edit the annotation file. (021211)
 - Add slideshow mode, random order, loop within directory vs auto-advance,
   slideshow on playlist. (021211)

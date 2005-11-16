@@ -29,6 +29,8 @@ public class ImagePageControls extends JPanel {
 
     private ComboBoxAction areaChoiceField;
     private JList areaChoicePopupList;
+    private int lastAreaSelectedIndex;
+
     private JLabel widthLabel;
     private JsTextField widthField;
     private JLabel heightLabel;
@@ -208,7 +210,12 @@ public class ImagePageControls extends JPanel {
         //TODO also add a PopupMenuListener so that we known when the popup
         //goes away so that we can reset the highlight in the event the user
         //cancels the area choice selection.
+        areaChoiceField.addPopupMenuListener(new AreaListPopupMenuListener());
+
+        //ItemListener is called under the same conditions as ActionListener,
+        //so that one does not help us do our reset when the popup is cancelled.
     }
+
     class AreaListSelectionListener implements ListSelectionListener {
         //As the user scrolls through the list, highlight the area that
         //corresponds to the selected item in the list.
@@ -222,6 +229,22 @@ public class ImagePageControls extends JPanel {
             else
                 imagePage.setHighlightedArea(allAreas[index-1]);
         }
+    }
+
+    //The ComboBox implementation is a bit messed up: when you cancel
+    //the popup (by pressing escape), it calls this popupMenuCanceled
+    //method, but the selectedIndex is still set to the most recently
+    //displayed selected item in the popup list, not to what is
+    //displayed in the combo box itself.  To get around this, we keep
+    //track of the last index actually selected, and we set back to
+    //that index on a cancel, which calls our action method that
+    //fixes up the highlight.
+    class AreaListPopupMenuListener implements javax.swing.event.PopupMenuListener {
+        public void popupMenuCanceled(javax.swing.event.PopupMenuEvent ev) {
+            areaSelected(lastAreaSelectedIndex);
+        }
+        public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent ev) {}
+        public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent ev) {}
     }
 
     /** Here the the page layout changes, to update our list of all areas. */
@@ -296,6 +319,7 @@ public class ImagePageControls extends JPanel {
     //or when we call setSelectedIndex on it.
     private void areaSelected(int index) {
 //System.out.println("selection: "+index);
+        lastAreaSelectedIndex = index;
         if (index<0)
             index = 0;  //by default select the page
         boolean pageSelected = false;
@@ -563,5 +587,10 @@ public class ImagePageControls extends JPanel {
             a.revalidate();
             imagePage.repaint();
         }
+    }
+
+    //Print out some debug info
+    protected void debugPrint() {
+        System.out.println("sel="+areaChoiceField.getSelectedIndex());
     }
 }

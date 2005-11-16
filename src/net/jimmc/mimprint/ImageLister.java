@@ -590,15 +590,33 @@ public class ImageLister extends JPanel {
         viewer.setTitleFileName(path);
     }
 
+    /** Get the text for the current file.
+     * If no text, return an empty string.
+     * If no file selected, return null.
+     */
     protected String getCurrentImageFileText() {
+        if (currentImage==null)
+            return null;
         int index = currentImage.getListIndex();
         FileInfo fileInfo = getFileInfo(index);
-        return fileInfo.text;
+        if (fileInfo.text!=null)
+            return fileInfo.text;
+        return "";
     }
 
     protected void setCurrentImageFileText(String imageText) {
+        if (currentImage==null)
+            throw new RuntimeException("No image selected"); //TODO i18n?
         String path = currentImage.getPath();
         writeFileText(path,imageText);
+    }
+
+    protected String getCurrentImageFileInfo() {
+        if (currentImage==null)
+            return null;
+        int index = currentImage.getListIndex();
+        FileInfo fileInfo = getFileInfo(index);
+        return fileInfo.info;
     }
 
     /** Move to previous directory */

@@ -84,6 +84,7 @@ public class Viewer extends JsFrame {
 
         private CheckBoxMenuAction cbmaSplitPane;
         private CheckBoxMenuAction cbmaListIncludeImage;
+        private CheckBoxMenuAction cbmaShowAreaOutlines;
 
 	/** The screen bounds when in normal mode. */
 	private Rectangle normalBounds;
@@ -261,6 +262,14 @@ public class Viewer extends JsFrame {
 		};
 		m.add(mi);
 
+		label = getResourceString("menu.Image.ShowInfoDialog.label");
+		mi = new MenuAction(label) {
+			public void action() {
+				showImageInfoDialog();
+			}
+		};
+		m.add(mi);
+
                 return m;
         }
 
@@ -356,6 +365,21 @@ public class Viewer extends JsFrame {
 			}
 		};
 		m.add(cbmaListIncludeImage);
+
+		label = getResourceString("menu.View.ShowAreaOutlines.label");
+		cbmaShowAreaOutlines = new CheckBoxMenuAction(label) {
+                    public void action() {
+                        if (imagePage==null)
+                            return;   //shouldn't get here, but avoid NPE if so
+                        imagePage.setShowOutlines(
+                                cbmaShowAreaOutlines.getState());
+                        imagePage.repaint();
+                    }
+		};
+		m.add(cbmaShowAreaOutlines);
+                cbmaShowAreaOutlines.setState(true);
+                cbmaShowAreaOutlines.setEnabled(false);
+                    //enable this when imagePage is created
 
                 m.add(new JSeparator());
 
@@ -578,6 +602,7 @@ public class Viewer extends JsFrame {
                         imagePagePanel.add(imagePage,BorderLayout.CENTER);
                         imagePagePanel.add(imagePageControls,BorderLayout.NORTH);
                         //imagePane.add(imagePagePanel,"print");
+                        cbmaShowAreaOutlines.setEnabled(true);
                     }
                     //imagePaneLayout.show(imagePane,"print");
                     imagePane.remove(imageArea);
@@ -650,17 +675,29 @@ public class Viewer extends JsFrame {
 		return newText;
 	}
 
-	/** Put up an editing dialog showing the image info. */
+	/** Put up an editing dialog showing the image text. */
 	public void showImageEditDialog() {
             String imageText = imageLister.getCurrentImageFileText();
-            if (imageText==null)
-                    imageText = "";
+            if (imageText==null) {
+                errorDialog("No image selected"); //TODO i18n
+                return;
+            }
             String title = "Info text for "+imageLister.currentImage.path;
                             //TBD i18n and better title
             String newImageText = editTextDialog(title,imageText);
             if (newImageText==null)
                     return;		//cancelled
             imageLister.setCurrentImageFileText(newImageText);
+	}
+
+	/** Put up a dialog showing the image info. */
+	public void showImageInfoDialog() {
+            String imageInfo = imageLister.getCurrentImageFileInfo();
+            if (imageInfo==null) {
+                errorDialog("No image selected"); //TODO i18n
+                return;
+            }
+            infoDialog(imageInfo);
 	}
 
         /** Rotate the current image. */
