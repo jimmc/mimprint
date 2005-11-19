@@ -27,12 +27,14 @@ public class ImageFileNameComparator implements Comparator {
 			return 0;	//TBD - throw exception
 		String s1 = (String)o1;
 		String s2 = (String)o2;
-		int n1 = getIntFromString(s1);
-		int n2 = getIntFromString(s2);
-		if (n1!=n2) {
-			return (n1-n2);
-		}
-		return s1.compareTo(s2);
+		long n1 = getLongFromString(s1);
+		long n2 = getLongFromString(s2);
+		if (n1>n2)
+		    return 1;
+		else if (n1<n2)
+		    return -1;
+		else
+		    return s1.compareTo(s2);
 	}
 
 	/** True if the objects are equal. */
@@ -41,7 +43,7 @@ public class ImageFileNameComparator implements Comparator {
 	}
 
 	/** Get an int from the string. */
-	protected int getIntFromString(String s) {
+	private long getLongFromString(String s) {
 		int len = s.length();
 		int i;
 		for (i=0; i<len; i++) {
@@ -49,12 +51,12 @@ public class ImageFileNameComparator implements Comparator {
 			if (Character.isDigit(c) && c!='0')
 				break;	//found a digit
 		}
-		int n = 0;
+		long n = 0;
 		for ( ; i<len; i++) {
 			char c = s.charAt(i);
 			if (!Character.isDigit(c))
 				break;
-			int n0 = Character.digit(c,10);
+			long n0 = Character.digit(c,10);
 			n *= 10;
 			if (n0>=0)
 				n += n0;
