@@ -765,6 +765,11 @@ public class ImageLister extends JPanel {
             //Check to see if the list selection changed while
             //we were busy updating.  If so, don't do the wait.
             int newSelection = fileNameList.getSelectedIndex();
+	    if (newSelection>=0) {
+		FileInfo fileInfo = getFileInfo(newSelection);
+		if (fileInfo.isDirectory())
+		    newSelection = -1;	//no image file selected
+	    }
             int currentSelection = (currentImage==null)?
                     -1:currentImage.getListIndex();
             if (newSelection==currentSelection) {
