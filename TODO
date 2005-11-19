@@ -1,4 +1,11 @@
+- Make sure image dragging works on all platforms, or add workaround. (051119)
+- Deal with i18n TODO comments. (051118)
+- Create library of template files (uniform, mixed, labels). (051116)
+- Package for distribution, add README.html. (051116)
+
 - Allow opening a jar or zip file, display contents. (051115)
+- Option in template to display captions under photos: separate control
+  for showing filename, file date and file text. (051116)
 
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files

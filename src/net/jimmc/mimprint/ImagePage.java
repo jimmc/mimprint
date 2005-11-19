@@ -88,7 +88,7 @@ public class ImagePage extends JComponent
     public ImagePage(Viewer viewer) {
         super();
         this.viewer = viewer;
-        pageLayout = new PageLayout();
+        pageLayout = new PageLayout(viewer.getApp());
         setBackground(Color.gray);      //neutral background
         setForeground(Color.black);     //black text
         setPageColor(Color.white);      //white "paper"
@@ -202,10 +202,29 @@ public class ImagePage extends JComponent
         String path = a.getImagePath();
         if (path==null)
             return;     //no image in this area, can't start a drag
+        Image image = null;     //image to drag
+        Image fullImage = a.getImage();
+        Point offset = null;
+        if (fullImage!=null) {
+            ImageUtil imageUtil = viewer.getApp().getImageUtil();
+            image = imageUtil.createTransparentIconImage(fullImage,path);
+            imageUtil.loadCompleteImage(image);
+            int width = image.getWidth(null);
+            int height = image.getHeight(null);
+            offset = new Point(-width/2, -height/2);
+        }
         try {
             Transferable transferable = new StringSelection(path);
-            dragSource.startDrag(ev, DragSource.DefaultCopyNoDrop,
-                    transferable, dsListener);
+            if (image!=null) {
+                ev.startDrag(DragSource.DefaultCopyNoDrop,
+                        image, offset,
+                        transferable, dsListener);
+            } else {
+                ev.startDrag(DragSource.DefaultCopyNoDrop,
+                        transferable, dsListener);
+            }
+            //dragSource.startDrag(ev, DragSource.DefaultCopyNoDrop,
+                    //transferable, dsListener);
         } catch (InvalidDnDOperationException ex) {
             System.err.println(ex);     //TODO - better error handling
         }
@@ -248,14 +267,14 @@ public class ImagePage extends JComponent
         dragArea = null;
         setHighlightedArea(null);
         if (!ev.getDropSuccess()) {
-            System.out.println("DragDropEnd drop failed");
+            System.out.println("DragSource DragDropEnd drop failed");
             return;
         }
         int dropAction = ev.getDropAction();
         if (dropAction==DnDConstants.ACTION_COPY)
-            System.out.println("COPY!");
+            System.out.println("DragSource DragDropEnd Copy");
         else if (dropAction==DnDConstants.ACTION_MOVE)
-            System.out.println("MOVE!");
+            System.out.println("DragSource DragDropEnd Move");
         else
             System.out.println("DragDropEnd no action");
         //TODO - need to do anything here to handle the drag end?
@@ -291,7 +310,7 @@ public class ImagePage extends JComponent
         }
         public void dragExit(DropTargetEvent ev) {
             setHighlightedArea(null);
-            System.out.println("DropTargetListener dragExit");
+            //System.out.println("DropTargetListener dragExit");
         }
 
         public void drop(DropTargetDropEvent ev) {
@@ -386,16 +405,19 @@ public class ImagePage extends JComponent
 	while ((s.endsWith("\n"))||s.endsWith("\r"))
 	    s = s.substring(0,s.length()-1); //drop trailing newline
         File f = new File(s);
-        if (f.exists()) {
-            ImageBundle b = new ImageBundle(viewer.getApp(),
-                    ImagePage.this,f,-1);
-            currentArea = dropArea;
-            showImage(b,null);
-            System.out.println("drop done, succeeded");
-            return true;
+        if (!f.exists()) {
+            System.out.println("No such file '"+s+"'");
+            return false;
         }
-        System.out.println("No such file '"+s+"'");
-        return false;
+        if (f.isDirectory()) {
+            System.out.println(s+" is a directory");
+            return false;
+        }
+        ImageBundle b = new ImageBundle(viewer.getApp(),ImagePage.this,f,-1);
+        currentArea = dropArea;
+        showImage(b,null);
+        System.out.println("drop done, succeeded");
+        return true;
     }
 
     /** Get the flavors we support for drop. */
@@ -635,15 +657,23 @@ public class ImagePage extends JComponent
             //Ask user if he wants to continue, and whether he wants to
             //scale the output to fill the paper, or print at the same scale
             //as if the right paper was there.
-            //TODO i18n for all the strings in the print dialog
-            String introStr = "Page size is not set the same as paper size";
-            String pageSizeStr = "Page size is "+((double)getPageWidth()/PageLayout.UNIT_MULTIPLIER)+" by "+
-                    ((double)getPageHeight()/PageLayout.UNIT_MULTIPLIER)+" "+
-                    ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm");
-            String paperSizeStr = "Paper size is "+(paperPageWidth/PageLayout.UNIT_MULTIPLIER)+" by "+
-                    (paperPageHeight/PageLayout.UNIT_MULTIPLIER)+" "+
-                    ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm");
+            String introStr =getResourceString("prompt.Print.PageSizeMismatch");
+            Object[] pageSizeArgs = {
+                new Double(((double)getPageWidth())/PageLayout.UNIT_MULTIPLIER),
+                new Double(((double)getPageHeight())/PageLayout.UNIT_MULTIPLIER),
+                ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm")
+            };
+            String pageSizeStr = getResourceFormatted(
+                    "prompt.Print.PageSizeMismatch.PageSize",pageSizeArgs);
+            Object[] paperSizeArgs = {
+                new Double(((double)paperPageWidth)/PageLayout.UNIT_MULTIPLIER),
+                new Double(((double)paperPageHeight)/PageLayout.UNIT_MULTIPLIER),
+                ((getPageUnit()==PageLayout.UNIT_INCH)?"in":"cm")
+            };
+            String paperSizeStr = getResourceFormatted(
+                    "prompt.Print.PageSizeMismatch.PaperSize",paperSizeArgs);
             String prompt = introStr+"\n"+pageSizeStr+"\n"+paperSizeStr;
+            //TODO i18n these remaining strings in the print dialog
             String yesString = "Scale images to fiil paper";
             String noString = "Print at specified page size";
             String cancelString = "Cancel";
@@ -678,6 +708,16 @@ public class ImagePage extends JComponent
 	} catch (PrinterException ex) {
 	    throw new RuntimeException(ex);
 	}
+    }
+
+    /** Get a string from our resources. */
+    public String getResourceString(String name) {
+            return viewer.getApp().getResourceString(name);
+    }
+
+    /** Get a string from our resources. */
+    public String getResourceFormatted(String name, Object[] args) {
+            return viewer.getApp().getResourceFormatted(name, args);
     }
 
   //The Printable interface
@@ -756,8 +796,10 @@ public class ImagePage extends JComponent
                     break;
             case 'i':
                     setCursorVisible(true);	//turn on cursor
-                    if (imageInfoText==null)
-                            imageInfoText = "(No description)";	//TBD i18n
+                    if (imageInfoText==null) {
+                            imageInfoText =
+                                getResourceString("query.Info.NoDescription");
+                    }
                     viewer.infoDialog(imageInfoText);
                     setCursorVisible(false);	//turn cursor back off
                     break;

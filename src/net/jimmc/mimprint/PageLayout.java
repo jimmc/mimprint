@@ -22,6 +22,8 @@ import org.xml.sax.SAXException;
 public class PageLayout {
     private static final int BORDER_THICKNESS = 20;
 
+    private App app;
+
     private String description; //description of this layout
 
     private int pageUnit;    //name of our units, e.g. "in", "cm"
@@ -39,8 +41,8 @@ public class PageLayout {
     private AreaLayout currentArea;     //when loading an XML file
 
     /** Create a PageLayout. */
-    public PageLayout() {
-        //nothing here
+    public PageLayout(App app) {
+        this.app = app;
     }
 
     public void setDefaultLayout() {
@@ -200,6 +202,16 @@ public class PageLayout {
         return (int)(d*UNIT_MULTIPLIER);
     }
 
+    /** Get a string from our resources. */
+    public String getResourceString(String name) {
+            return app.getResourceString(name);
+    }
+
+    /** Get a string from our resources. */
+    public String getResourceFormatted(String name, String  arg) {
+            return app.getResourceFormatted(name, arg);
+    }
+
     class PageLayoutHandler extends DefaultHandler {
         private Stack areaStack;
         private String lastText;        //most recent parsed text
@@ -236,8 +248,8 @@ public class PageLayout {
             String widthStr = attrs.getValue("width");
             if (heightStr==null || widthStr==null ||
                     heightStr.trim().equals("") || widthStr.trim().equals("")) {
-                throw new IllegalArgumentException(
-                        "page height and width must be specified"); //TODO i18n
+                String msg = getResourceString("error.PageDimensionsRequired");
+                throw new IllegalArgumentException(msg);
             }
             setPageWidth(parsePageValue(widthStr));
             setPageHeight(parsePageValue(heightStr));
@@ -246,9 +258,10 @@ public class PageLayout {
                 setPageUnit(UNIT_CM);
             else if ("in".equalsIgnoreCase(unitStr))
                 setPageUnit(UNIT_INCH);
-            else
-                throw new IllegalArgumentException(
-                        "page unit must be \"cm\" or \"in\""); //TODO i18n
+            else {
+                String msg = getResourceString("error.BadPageUnit");
+                throw new IllegalArgumentException(msg);
+            }
         }
 
         public void characters(char[] ch, int start, int end) {
@@ -264,8 +277,11 @@ public class PageLayout {
                     setDescription(lastText);
                 return;
             } else if (qName.equals("page")) {
-                if (currentArea!=null)
-                    throw new RuntimeException("Expected area end element before </page>"); //TODO i18n
+                if (currentArea!=null) {
+                    String msg = getResourceString(
+                            "error.MissingEndAreaElement");
+                    throw new RuntimeException(msg);
+                }
                 return;         //done with the page
             } else {
                 ;       //nothing here

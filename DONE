@@ -60,4 +60,5 @@
 - Change Page Control area list to list all areas, not just selection.[051113]
 - When moving through area list, highlight the corresponding area. [051114]
 - Add Show Info menu command in Image menu. [051115]
-- Add Show Area Outlines menu command to View menu. [061115]
+- Add Show Area Outlines menu command to View menu. [051115]
+- Drag icons rather than outlines. [051119]

@@ -679,11 +679,12 @@ public class Viewer extends JsFrame {
 	public void showImageEditDialog() {
             String imageText = imageLister.getCurrentImageFileText();
             if (imageText==null) {
-                errorDialog("No image selected"); //TODO i18n
+                String msg = getResourceString("error.NoImageSelected");
+                errorDialog(msg);
                 return;
             }
-            String title = "Info text for "+imageLister.currentImage.path;
-                            //TBD i18n and better title
+            String title = getResourceFormatted("prompt.TextForImage",
+                    imageLister.currentImage.path);
             String newImageText = editTextDialog(title,imageText);
             if (newImageText==null)
                     return;		//cancelled
@@ -694,7 +695,8 @@ public class Viewer extends JsFrame {
 	public void showImageInfoDialog() {
             String imageInfo = imageLister.getCurrentImageFileInfo();
             if (imageInfo==null) {
-                errorDialog("No image selected"); //TODO i18n
+                String msg = getResourceString("error.NoImageSelected");
+                errorDialog(msg);
                 return;
             }
             infoDialog(imageInfo);
@@ -749,7 +751,9 @@ public class Viewer extends JsFrame {
                 return;         //cancelled
             imagePage.writeLayoutTemplate(pw);
             pw.close();
-            showStatus("Saved template to file "+f);    //TODO i18n
+            String status = getResourceFormatted("status.SavedTemplateToFile",
+                    f.toString());
+            showStatus(status);
         }
 
         /** Load a layout from a named file. */
@@ -765,28 +769,31 @@ public class Viewer extends JsFrame {
         //Load the specified layout template
         public void loadLayoutTemplate(File f) {
             if (imagePage==null) {
-                showStatus("No Printable page");        //TODO i18n
+                String msg = getResourceString("error.NoPrintablePage");
+                showStatus(msg);
                 return;
             }
-            PageLayout pageLayout = new PageLayout();
+            PageLayout pageLayout = new PageLayout(app);
             pageLayout.loadLayoutTemplate(f);
                 //TODO - check return status here rather than using exception?
             imagePage.setPageLayout(pageLayout);
-            showStatus("Loaded template from file "+f);    //TODO i18n
+            String status = getResourceFormatted(
+                    "status.LoadedTemplateFromFile",f.toString());
+            showStatus(status);
         }
 
         //Edit the description of the current page layout
         private void editLayoutDescription() {
             if (imagePage==null) {
-                showStatus("No Printable page");        //TODO i18n
+                String msg = getResourceString("error.NoPrintablePage");
+                showStatus(msg);
                 return;
             }
             PageLayout pageLayout = imagePage.getPageLayout();
             String text = pageLayout.getDescription();
             if (text==null)
                     text = "";
-            String title = "Page Description";
-                            //TBD i18n and better title
+            String title = getResourceString("query.EditLayout.title");
             String newText = editTextDialog(title,text);
             if (newText==null)
                     return;		//cancelled
@@ -802,6 +809,11 @@ public class Viewer extends JsFrame {
 	/** Get a string from our resources. */
 	public String getResourceString(String name) {
 		return app.getResourceString(name);
+	}
+
+	/** Get a string from our resources. */
+	public String getResourceFormatted(String name, String arg) {
+		return app.getResourceFormatted(name, arg);
 	}
 }
 

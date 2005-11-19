@@ -8,12 +8,17 @@ package jimmc.jiviewer;
 import jimmc.util.FileUtil;
 import jimmc.util.MoreException;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
@@ -173,11 +178,29 @@ public class ImageLister extends JPanel {
             int index = fileNameList.getSelectedIndex();
             if (index==-1)
                 return;         //no item selected for dragging
-            String path = new File(targetDirectory,fileNames[index]).toString();
+            FileInfo fileInfo = getFileInfo(index);
+            //String path = new File(targetDirectory,fileNames[index]).toString();
+            String path = fileInfo.getPath();
+            ImageIcon icon = fileInfo.icon;
+            Image image = null;
+            Point offset = null;
+            Image iconImage = (icon==null)?null:icon.getImage();
+            //Get an image suitable for dragging
+            image = app.getImageUtil().createTransparentIconImage(
+                        iconImage,path);
+            int width = image.getWidth(null);
+            int height = image.getHeight(null);
+            offset = new Point(-width/2, -height/2);
             try {
                 Transferable transferable = new StringSelection(path);
-                ev.startDrag(DragSource.DefaultCopyNoDrop,
-                        transferable, dsListener);
+                if (image!=null) {
+                    ev.startDrag(DragSource.DefaultCopyNoDrop,
+                            image, offset,
+                            transferable, dsListener);
+                } else {
+                    ev.startDrag(DragSource.DefaultCopyNoDrop,
+                            transferable, dsListener);
+                }
             } catch (InvalidDnDOperationException ex) {
                 System.err.println(ex); //TODO - better error handling
             }
@@ -241,7 +264,7 @@ public class ImageLister extends JPanel {
 
     /** Initialize our icon loader thread. */
     private void initIconLoader() {
-        iconLoader = new IconLoader(this);
+        iconLoader = new IconLoader(app,this);
         iconLoader.setPriority(iconLoader.getPriority()-3);
         iconLoader.start();
         app.debugMsg("icon loader thread started");
@@ -530,9 +553,15 @@ public class ImageLister extends JPanel {
         File file = new File(targetDirectory,fileNames[newSelection]);
         if (file==null) {
             if (imageWindow!=null)
-                imageWindow.showText("No file");
+                imageWindow.showText("No file");        //TODO i18n
             currentImage = null;
             return;		//nothing there
+        }
+        if (file.isDirectory()) {
+            if (imageWindow!=null)
+                imageWindow.showText("Directory");      //TODO i18n
+            currentImage = null;
+            return;
         }
         currentImage = new ImageBundle(app,imageWindow,file,newSelection);
     }
@@ -545,11 +574,10 @@ public class ImageLister extends JPanel {
                 -1:currentImage.getListIndex();
         int maxIndex = fileNameList.getModel().getSize();
         if (nextImage==null && currentSelection+1<maxIndex) {
-            File file = new File(targetDirectory,
-                    fileNames[currentSelection+1]);
-            if (file!=null) {
+            FileInfo fileInfo = getFileInfo(currentSelection+1);
+            if (!fileInfo.isDirectory()) {
                 nextImage = new ImageBundle(app,imageWindow,
-                        file,currentSelection+1);
+                        fileInfo.getFile(),currentSelection+1);
                 synchronized(imageLoader) {
                     imageLoader.notifyAll();
                             //start imageLoader
@@ -557,11 +585,10 @@ public class ImageLister extends JPanel {
             }
         }
         if (previousImage==null && currentSelection-1>=0) {
-            File file = new File(targetDirectory,
-                    fileNames[currentSelection-1]);
-            if (file!=null) {
+            FileInfo fileInfo = getFileInfo(currentSelection-1);
+            if (!fileInfo.isDirectory()) {
                 previousImage = new ImageBundle(app,imageWindow,
-                        file, currentSelection-1);
+                        fileInfo.getFile(), currentSelection-1);
                 synchronized(imageLoader) {
                     imageLoader.notifyAll();
                             //start imageLoader

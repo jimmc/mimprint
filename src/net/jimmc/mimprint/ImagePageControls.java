@@ -139,7 +139,10 @@ public class ImagePageControls extends JPanel {
                 splitOrientationSelected(getSelectedIndex());
             }
         };
-        Object[] initialOrientationItems = { "V", "H" };     //TODO i18n
+        Object[] initialOrientationItems = {
+          getResourceString("toolbar.Layout.SplitOrientation.Vertical.label"),
+          getResourceString("toolbar.Layout.SplitOrientation.Horizontal.label"),
+        };
             //These values match the VERTICAL and HORIZONTAL values
             //in AreaSplitLayout.
         splitOrientationField.setItems(initialOrientationItems);
@@ -182,7 +185,11 @@ public class ImagePageControls extends JPanel {
                 layoutSelected(getSelectedIndex());
             }
         };
-        Object[] initialLayoutItems = { "I", "G", "S" };     //TODO i18n
+        Object[] initialLayoutItems = {
+            getResourceString("toolbar.Layout.Layout.Image.label"),
+            getResourceString("toolbar.Layout.Layout.Grid.label"),
+            getResourceString("toolbar.Layout.Layout.Split.label")
+        };
                 //TODO define constants
         layoutField.setItems(initialLayoutItems);
         add(layoutField);
@@ -207,8 +214,8 @@ public class ImagePageControls extends JPanel {
             areaChoicePopupList = ((ComboPopup)a).getList();
             areaChoicePopupList.addListSelectionListener(new AreaListSelectionListener());
         }
-        //TODO also add a PopupMenuListener so that we known when the popup
-        //goes away so that we can reset the highlight in the event the user
+        //Add a PopupMenuListener so that we know when the popup
+        //goes away so that we can reset the highlight when the user
         //cancels the area choice selection.
         areaChoiceField.addPopupMenuListener(new AreaListPopupMenuListener());
 
@@ -283,7 +290,7 @@ public class ImagePageControls extends JPanel {
     private void updateAreaChoiceField(AreaLayout selectedArea) {
         int numChoices = 1+allAreas.length;
         String[] areaChoiceStrs = new String[numChoices];
-        areaChoiceStrs[0] = "0. Page";     //TODO i18n
+        areaChoiceStrs[0] = "0. "+areaTypeToString(AREA_PAGE);
         for (int i=0; i<allAreas.length; i++) {
             String treeLocation = allAreas[i].getTreeLocation();
             if (treeLocation==null)
@@ -429,15 +436,19 @@ public class ImagePageControls extends JPanel {
 
     private String getAreaTypeString(int index) {
         int areaType = getAreaType(index);
+        return areaTypeToString(areaType);
+    }
+
+    private String areaTypeToString(int areaType) {
         switch (areaType) {
         case AREA_PAGE:
-            return "Page";      //TODO i18n
+            return getResourceString("layout.areaType.Page");
         case AREA_IMAGE:
-            return "Image";     //TODO i18n
+            return getResourceString("layout.areaType.Image");
         case AREA_GRID:
-            return "Grid";      //TODO i18n
+            return getResourceString("layout.areaType.Grid");
         case AREA_SPLIT:
-            return "Split";      //TODO i18n
+            return getResourceString("layout.areaType.Split");
         default:
             throw new IllegalArgumentException("bad area type: "+areaType);
         }
@@ -592,5 +603,15 @@ public class ImagePageControls extends JPanel {
     //Print out some debug info
     protected void debugPrint() {
         System.out.println("sel="+areaChoiceField.getSelectedIndex());
+    }
+
+    /** Get a string from our resources. */
+    public String getResourceString(String name) {
+            return app.getResourceString(name);
+    }
+
+    /** Get a string from our resources. */
+    public String getResourceFormatted(String name, Object[] args) {
+            return app.getResourceFormatted(name, args);
     }
 }

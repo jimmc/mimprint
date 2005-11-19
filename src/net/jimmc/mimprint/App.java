@@ -44,6 +44,8 @@ public class App implements ResourceSource {
 	/** The time we started running. */
 	protected long startTime;
 
+        private ImageUtil imageUtil;
+
 	/** Program starts here. */
 	public static void main(String[] args) {
 		App m = new App();
@@ -62,6 +64,7 @@ public class App implements ResourceSource {
 		if (target==null)
 			target = ".";	//default is to display current dir
 		viewer = new Viewer(this);
+                imageUtil = new ImageUtil(this,viewer);
 		viewer.show();		//open the main window
 		viewer.open(target);	//display the target
 	}
@@ -104,6 +107,11 @@ public class App implements ResourceSource {
 			}
 		}
 	}
+
+        /** Get our ImageUtil object. */
+        public ImageUtil getImageUtil() {
+            return imageUtil;
+        }
 
 	/** True if we should be using a big font. */
 	public boolean useBigFont() {

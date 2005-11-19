@@ -17,9 +17,11 @@ import javax.swing.ImageIcon;
 /** A background thread to load image icons.
  */
 public class IconLoader extends Thread {
+    private App app;
     private ImageLister lister;
 
-    public IconLoader(ImageLister lister) {
+    public IconLoader(App app, ImageLister lister) {
+        this.app = app;
         this.lister = lister;
     }
 
@@ -134,7 +136,7 @@ public class IconLoader extends Thread {
     }
 
     private ImageIcon getJivIcon(FileInfo fileInfo) {
-        PageLayout pageLayout = new PageLayout();
+        PageLayout pageLayout = new PageLayout(app);
         pageLayout.loadLayoutTemplate(fileInfo.getFile());
         //TODO - check to make sure it got loaded correctly,
         //catch exceptions and put in an error icon
@@ -164,7 +166,7 @@ public class IconLoader extends Thread {
         Toolkit toolkit = lister.getToolkit();
         String path = fileInfo.getPath();
         Image fullImage = toolkit.createImage(path);
-        Image scaledImage = ImageBundle.createScaledImage(fullImage,
+        Image scaledImage = ImageUtil.createScaledImage(fullImage,
                 0,ImageLister.ICON_SIZE,ImageLister.ICON_SIZE,path);
         return new ImageIcon(scaledImage);
     }

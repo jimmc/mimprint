@@ -9,8 +9,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.Image;
-import java.awt.image.renderable.ParameterBlock;
-import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.io.File;
 
@@ -25,9 +23,6 @@ public class ImageBundle {
 
 	/** Our toolkit. */
 	protected Toolkit toolkit;
-
-	/** Our media tracker to load images. */
-	protected MediaTracker tracker;
 
 	/** The path to this image. */
 	protected String path;
@@ -66,7 +61,6 @@ public class ImageBundle {
         public void setImageWindow(ImageWindow imageWindow) {
             this.imageWindow = imageWindow;
             this.toolkit = imageWindow.getToolkit();
-            tracker = new MediaTracker(imageWindow.getComponent());
             if (imageWindow instanceof ImageArea)
                 setDisplaySize(imageWindow.getWidth(),imageWindow.getHeight());
             else
@@ -101,6 +95,11 @@ public class ImageBundle {
 			rotation = 3;
 		transformedImage = null;
 	}
+
+        /** Get the image object. */
+        public Image getImage() {
+            return image;
+        }
 
 	/** Get the path for our original image. */
 	public String getPath() {
@@ -138,19 +137,7 @@ public class ImageBundle {
 
 	/** Load an image, wait for it to be loaded. */
 	protected void loadCompleteImage(Image image) {
-		tracker.addImage(image,0);
-		boolean loadStatus=false;
-		try {
-			app.debugMsg("Waiting for image "+image);
-			loadStatus = tracker.waitForID(0,20000);
-		} catch (InterruptedException ex) {
-			String msg = "Interrupted waiting for image to load";
-				//TBD i18n, include ex.getMessage()
-			throw new RuntimeException(msg);
-		}
-		app.debugMsg("Done waiting for image "+image+
-			", loadStatus="+loadStatus);
-		tracker.removeImage(image,0);
+                app.getImageUtil().loadCompleteImage(image);
 	}
 
 	/** Get a scaled version of the given image which fits into
@@ -158,53 +145,9 @@ public class ImageBundle {
 	 */
 	protected Image createScaledImage(Image sourceImage) {
 		app.debugMsg("createScaledIimage");
-                return createScaledImage(sourceImage,rotation,
+                return ImageUtil.createScaledImage(sourceImage,rotation,
                         displayWidth,displayHeight,path);
         }
-
-        public static Image createScaledImage(Image sourceImage, int rotation,
-                        int displayWidth, int displayHeight, String path) {
-		if (sourceImage==null)
-			return null;
-
-		if (displayWidth==0 || displayHeight==0)
-			return sourceImage;	//no scaling
-
-		int srcWidth = sourceImage.getWidth(null);
-		int srcHeight = sourceImage.getHeight(null);
-		int waitCount = 0;
-		while (srcWidth<0 || srcHeight<0) {
-			//The image has not yet started loading, so we don't
-			//know it's size.  Wait just a bit.
-			if (waitCount++>100) {
-                                System.out.println("Timed out waiting to load image "+path);
-				return null;	//can't get it
-			}
-			try {
-				Thread.sleep(100);
-			} catch (Exception ex) {
-				//ignore
-			}
-			srcWidth = sourceImage.getWidth(null);
-			srcHeight = sourceImage.getHeight(null);
-		}
-
-		boolean xy = (rotation==1 || rotation==3);
-			//True if rotated by 90 (or 270) degrees, so the
-			//horizontal and vertical axes are interchanged.
-		float xScale = displayWidth/(float)(xy?srcHeight:srcWidth);
-		float yScale = displayHeight/(float)(xy?srcWidth:srcHeight);
-		float scale = (xScale<yScale)?xScale:yScale;
-		if (scale==1.0)
-			return sourceImage;	//exact size match
-		int dstWidth = (int)(srcWidth * scale);
-		int dstHeight = (int)(srcHeight * scale);
-
-		Image scaledImage = sourceImage.getScaledInstance(
-						dstWidth,dstHeight,
-						Image.SCALE_FAST);
-		return scaledImage;
-	}
 
 	/** Rotate the specified image by our own rotation amount. */
 	protected Image createRotatedImage(Image srcImage) {

@@ -44,6 +44,13 @@ public class ImagePageArea extends AreaLayout {
         return imageBundle.getPath();
     }
 
+    /** Get our image object.  May be null. */
+    public Image getImage() {
+        if (imageBundle==null)
+            return null;
+        return imageBundle.getImage();
+    }
+
     /** Get the image displayed in this area. */
     public ImageBundle getImageBundle() {
         return imageBundle;
