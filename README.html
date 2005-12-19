@@ -1,0 +1,196 @@
+<html>
+<head>
+<title>Jiviewer README</title>
+</head>
+<body bgcolor=white>
+<center>
+<h1>README</h1>
+<h3>Jiviewer<br>
+    v0.1.0  December 5, 2005</h3>
+</center>
+
+<p>
+<h2>Contents</h2>
+<ul>
+ <li><a href="#introduction">Introduction</a>
+ <li><a href="#homepage">Home Page</a>
+ <li><a href="#features">Features</a>
+ <li><a href="#documentation">Documentation</a>
+ <li><a href="#systemreqs">System Requirements</a>
+ <li><a href="#installjava">Installing Java</a>
+ <li><a href="#installjiviewer">Installing Jiviewer</a>
+ <li><a href="#source">Unpacking the Jiviewer Source</a>
+ <li><a href="#running">Running Jiviewer</a>
+ <li><a href="#feedback">Bug Reports and Feedback</a>
+ <li><a href="#author">Author</a>
+</ul>
+
+<p>
+<a name="introduction"><h2>Introduction</h2></a>
+<p>
+Jiviewer is an image viewing and printing program
+written in Java and distributed under the GPL.
+
+<p>
+<a name="homepage"><h2>Home Page</h2></a>
+<p>
+Go to the
+<a href="http://www.alumni.caltech.edu/~jimmc/jiviewer">
+Jiviewer home page</a>
+to download the latest version of Jiviewer.
+
+<p>
+<a name="features"><h2>Features</h2></a>
+<ul>
+  <li>Licensed under GPL, freely redistributable with source.
+  <li>Written in Java, runs on Windows, Mac and Unix.
+  <li>Four viewing modes:
+  <ul>
+    <li>Normal viewing mode allows easily stepping through a folder of
+        image files.
+    <li>Full screen mode scales images to fit in a full-window frame.
+    <li>Alternate screen mode displays images on a second screen.
+    <li>Printable mode allows collecting images onto a page for printing.
+  </ul>
+  <li>Browser with icons allows easy navigation of image directories.
+  <li>Browser allows easy navigation through collections of layout templates.
+  <li>Images and directories can be annotated using a text file.
+  <li>Easy custom layout of printable pages.
+  <li>Load/save custom layout templates.
+</ul>
+
+<p>
+<a name="documentation"><h2>Documentation</h2></a>
+<p>
+(Not yet available)
+<p>
+The javadoc-generated
+<a href="doc/api/index.html">API Reference</a>
+provides detailed documentation on the packages and classes used in
+Jiviewer (available after you have <a href="#source">unpacked the source</a>).
+
+<p>
+<a name="systemreqs"><h2>System Requirements</h2></a>
+<p>
+<table border=1 width="100%">
+</tr>
+<tr><th>Item</th>
+    <th>Required</th>
+    <th>Why</th>
+</tr>
+<tr><td valign=top>Processor</td>
+    <td valign=top>700 MHz</td>
+    <td valign=top>Image rendering will be somewhat slow with older processors.
+        Faster processors will of course give better results.
+    </td>
+</tr>
+<tr><td valign=top>Memory</td>
+    <td valign=top>256 MB</td>
+    <td valign=top>Graphical Java programs tend to use a lot of memory.
+        Images take up a lot of memory.
+    </td>
+</tr>
+<tr><td valign=top>Disk</td>
+    <td valign=top>1 MB,<br>
+        plus up to 250 MB<br>to install Java</td>
+    <td valign=top>If you already have Java installed, installing Jiviewer will
+        take less than 1 MB.
+	Installing Java takes 100 MB or more, depending on which version you
+	install, and whether or not you install the documentation.
+    </td>
+</tr>
+<tr><td valign=top>Java</td>
+    <td valign=top>JRE 1.5</td>
+    <td valign=top>Jiviewer uses Drag and Drop.
+      <ul>
+        <li>On Linux, Java 1.5.0 or better is required; bugs in 1.4 cause
+        drag and drop not to work, which makes the Printable page unusable.
+        <li>On Mac, Java 1.4.2 or better is required.
+	<li>On Windows, Java 1.4.2 or better is required.
+            Unfortunately, dragging from the browsing list is not working
+            on Windows; however, you can drag from Windows Explorer and
+            drop into the Printable page.
+      </ul>
+    </td>
+</tr>
+<tr><td valign=top>Operating<br>System</td>
+    <td valign=top>Windows, MacOS, Linux,<br>
+        or any other OS that<br>supports the required version of Java.
+    </td>
+    <td valign=top>For a list of platforms on which Java is available,
+        visit Sun's <a href="http://java.sun.com/cgi-bin/java-ports.cgi">
+	Java Platform Ports</a> page.
+    </td>
+</tr>
+</table>
+
+<p>
+<a name="installjava"><h2>Installing Java</h2></a>
+<p>
+To install Java on your system,
+<a href="http://java.sun.com/j2se/1.4/download.html">download JRE1.4</a>
+from 
+<a href="http://java.sun.com/">Sun's Java web site</a>
+and follow those installation directions.
+When you are at that download page, look for the section that says
+<b>Download J2SE v 1.4.2_03</b> (or possibly _04 or later),
+find your platform, and select the <font size=-1>DOWNLOAD</font>
+link from the JRE column.
+
+<p>
+<a name="installjiviewer"><h2>Installing Jiviewer</h2></a>
+<p>
+(This section not yet written)
+
+<p>
+<a name="source"><h2>Unpacking the Jiviewer Source</h2></a>
+<p>
+(This section not yet written)
+
+<p>
+<a name="running"><h2>Running Jiviewer</h2></a>
+<p>
+If you have not already done so, you must
+<a href="#installjava">install Java</a>.
+
+<h4>On Windows</h4>
+<p>
+On Windows,
+double-click on the shortcut (if you have set one up)
+or CD to the directory containing jiviewer.jar
+and run
+<blockquote>
+<code>java -jar jiviewer.jar</code>
+</blockquote>
+You can manually set up a shortcut to jiviewer.jar.
+
+<h4>On Unix</h4>
+On Unix, run
+<blockquote>
+<code>java -jar jiviewer.jar</code>
+</blockquote>
+If the java binary is not in your PATH, you can explicitly specify the
+path to it.  For example, if you have installed JDK1.4 into
+<code>/usr/local/j2sdk1.4.2</code>,
+you can run jiviewer with the command
+<blockquote>
+<code>/usr/local/j2sdk1.4.2/bin/java -jar jiviewer.jar</code>
+</blockquote>
+<p>
+On Solaris 2.6 or later, you can directly run jiviewer.jar.
+
+<p>
+<a name="feedback"><h2>Bug Reports and Feedback</h2></a>
+<p>
+If you have a comment about Jiviewer, or would like to report a bug,
+please send email to jiviewer -at- j.jimmc.org</a>
+
+<p>
+<a name="author"><h2>Author and Contributors</h2></a>
+<p>
+Jiviewer was written by Jim McBeath.<br>
+<a href="http://www.alumni.caltech.edu/~jimmc">
+http://www.alumni.caltech.edu/~jimmc</a>
+
+</body>
+</html>

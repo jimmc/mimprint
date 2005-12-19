@@ -25,14 +25,20 @@ public class FileInfo {
     File dir;           //the directory containing the file
     String name;        //name of the file within the directory
     File thisFile;      //File object for (dir,name)
-    String text;        //text for the image, from getFileText()
-    String info;        //more info for the image, from getFileTextInfo()
-    String html;        //html for the image, from getFileTextInfo()
-    ImageIcon icon;     //icon for the image, or generic icon for other file types
     int type;       //the type of this entry
         public static final int DIR = 1;
         public static final int IMAGE = 2;
         public static final int JIV = 3;        //our own file
+    //The above data is initialized when the FileInfo is created
+
+    //The following data is initialized by a call to loadInfo
+    boolean infoLoaded; //true after loadInfo has been called
+    String text;        //text for the image, from getFileText()
+    String info;        //more info for the image, from getFileTextInfo()
+    String html;        //html for the image, from getFileTextInfo()
+
+    //The icon field is initialize by IconLoader
+    ImageIcon icon;     //icon for the image, or generic icon for other file types
 
     public FileInfo() {}
 
@@ -41,9 +47,7 @@ public class FileInfo {
         this.totalCount = totalCount;
         this.dir = dir;
         this.name = name;
-    }
 
-    public void loadInfo() {
         thisFile = new File(dir,name);
         //If not a directory, assume it is an image file,
         //until we get around to implementing other stuff.
@@ -53,9 +57,13 @@ public class FileInfo {
             type = FileInfo.JIV;       //our own file
         } else
             type = FileInfo.IMAGE;
+    }
+
+    public void loadInfo() {
         text = getFileText();
         html = getFileTextInfo(true);
         info = getFileTextInfo(false);
+        infoLoaded = true;
     }
 
     /** Get the File object for this file. */
@@ -67,7 +75,7 @@ public class FileInfo {
 
     /** True if this FileInfo represents a directory. */
     public boolean isDirectory() {
-        return getFile().isDirectory();
+        return (type==DIR);
     }
 
     /** Get the text for the specified file. */

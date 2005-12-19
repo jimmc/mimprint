@@ -9,7 +9,9 @@ import jimmc.swing.ComboBoxAction;
 import jimmc.swing.JsSpinner;
 import jimmc.swing.JsTextField;
 
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.text.NumberFormat;
 import java.util.Vector;
@@ -383,7 +385,7 @@ public class ImagePageControls extends JPanel {
         } else {
             AreaLayout area = allAreas[index-1];
             imagePage.setHighlightedArea(area);
-            marginsField.setText(formatPageValue(area.getMargin()));
+            marginsField.setText(formatPageValue(area.getMargins()));
             spacingField.setText(formatPageValue(area.getSpacing()));
             switch (areaType) {
             case AREA_IMAGE:
@@ -413,6 +415,28 @@ public class ImagePageControls extends JPanel {
     //Given a page dimension, format it for display to the user
     protected String formatPageValue(int n) {
         return imagePage.formatPageValue(n);
+    }
+
+    //Given margins, format for display to the user
+    protected String formatPageValue(Insets margins) {
+        if (margins.left==margins.right &&
+                margins.right==margins.top &&
+                margins.top==margins.bottom)
+            return imagePage.formatPageValue(margins.left);
+        else
+            return imagePage.formatPageValue(margins.left)+","+
+                    imagePage.formatPageValue(margins.right)+","+
+                    imagePage.formatPageValue(margins.top)+","+
+                    imagePage.formatPageValue(margins.bottom);
+    }
+
+    //Given spacings, format for display to the user
+    protected String formatPageValue(Dimension spacing) {
+        if (spacing.width==spacing.height)
+            return imagePage.formatPageValue(spacing.width);
+        else
+            return imagePage.formatPageValue(spacing.width)+","+
+                    imagePage.formatPageValue(spacing.height);
     }
 
     private static final int AREA_PAGE = 0;
@@ -480,14 +504,17 @@ public class ImagePageControls extends JPanel {
         }
         //Copy some atttributes from old area to new area
         newArea.setBorderThickness(area.getBorderThickness());
-        newArea.setMargin(area.getMargin());
+        newArea.setMargins(area.getMargins());
         newArea.setBounds(area.getBounds());
         newArea.setSpacing(area.getSpacing());
         AreaLayout parentArea = area.getParent();
         //If we are replacing a simple image and its spacing
         //was zero, put in something which we think will be
         //a better default value.
-        if (newArea.getSpacing()==0 && area instanceof ImagePageArea) {
+        Dimension newAreaSpacing = newArea.getSpacing();
+        boolean zeroSpacing = (newAreaSpacing==null ||
+                (newAreaSpacing.width==0 && newAreaSpacing.height==0));
+        if (zeroSpacing && area instanceof ImagePageArea) {
             if (parentArea==null)
                 newArea.setSpacing(10*area.getBorderThickness());
             else
@@ -544,21 +571,48 @@ public class ImagePageControls extends JPanel {
     }
 
     private void setMargins(String marginStr) {
-        double margin = Double.parseDouble(marginStr);
-        int d = (int)(margin*PageLayout.UNIT_MULTIPLIER);
-            //TODO - allow specifying 4 margins separated by commas?
         AreaLayout a = getSelectedArea();
-        a.setMargin(d);
+        String[] marginStrs = marginStr.split(",");
+        double d = Double.parseDouble(marginStrs[0]);
+        int m = (int)(d*PageLayout.UNIT_MULTIPLIER);
+        a.setMargins(m);
+        if (marginStrs.length>1) {
+            Insets margins = a.getMargins();
+            margins = new Insets(margins.top, margins.left,
+                    margins.bottom, margins.right);
+            d = Double.parseDouble(marginStrs[1]);
+            m = (int)(d*PageLayout.UNIT_MULTIPLIER);
+            margins.right = m;
+            if (marginStrs.length>2) {
+                d = Double.parseDouble(marginStrs[2]);
+                m = (int)(d*PageLayout.UNIT_MULTIPLIER);
+            }
+            margins.top = m;
+            if (marginStrs.length>3) {
+                d = Double.parseDouble(marginStrs[3]);
+                m = (int)(d*PageLayout.UNIT_MULTIPLIER);
+            }
+            margins.bottom = m;
+            a.setMargins(margins);
+        }
         a.revalidate();
         imagePage.repaint();
     }
 
     private void setSpacing(String spacingStr) {
-        double spacing = Double.parseDouble(spacingStr);
-        int sp = (int)(spacing*PageLayout.UNIT_MULTIPLIER);
-            //TODO - allow specifying two spacings separated by commas
         AreaLayout a = getSelectedArea();
-        a.setSpacing(sp);
+        String[] spacingStrs = spacingStr.split(",");
+        double d = Double.parseDouble(spacingStrs[0]);
+        int m = (int)(d*PageLayout.UNIT_MULTIPLIER);
+        a.setSpacing(m);
+        if (spacingStrs.length>1) {
+            Dimension spacing = a.getSpacing();
+            spacing = new Dimension(spacing);
+            d = Double.parseDouble(spacingStrs[1]);
+            m = (int)(d*PageLayout.UNIT_MULTIPLIER);
+            spacing.height = m;
+            a.setSpacing(spacing);
+        }
         a.revalidate();
         imagePage.repaint();
     }

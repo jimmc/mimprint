@@ -93,12 +93,14 @@ public class AreaGridLayout extends AreaLayout {
     private AreaLayout[] allocateAreas() {
         Rectangle b = getBoundsInMargin();
         AreaLayout[] aa = new AreaLayout[rowCount*columnCount];
-        int w = (b.width - (columnCount-1)*spacing)/columnCount;    //width of each area
-        int h = (b.height - (rowCount-1)*spacing)/rowCount;   //height of each area
+        int w = (b.width - (columnCount-1)*spacing.width)/columnCount;
+                //width of each area
+        int h = (b.height - (rowCount-1)*spacing.height)/rowCount;
+                //height of each area
         for (int row=0; row<rowCount; row++) {
             for (int col=0; col<columnCount; col++) {
-                int ax = b.x+col*(w+spacing);
-                int ay = b.y+row*(h+spacing);
+                int ax = b.x+col*(w+spacing.width);
+                int ay = b.y+row*(h+spacing.height);
                 ImagePageArea area = new ImagePageArea(ax,ay,w,h);
                 area.setBorderThickness(getBorderThickness());
                 aa[areaIndex(row,col)] = area;

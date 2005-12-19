@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<page width="8.5" height="11" unit="in">
+    <splitLayout margin="0.5" spacing="0.25" orientation="V" splitPercent="85">
+        <splitLayout margin="0" spacing="0.25" orientation="H" splitPercent="82">
+            <imageLayout margin="0" spacing="0"/>
+            <gridLayout margin="0" spacing="0.25" rows="5" columns="1">
+                <imageLayout margin="0" spacing="0"/>
+                <imageLayout margin="0" spacing="0"/>
+                <imageLayout margin="0" spacing="0"/>
+                <imageLayout margin="0" spacing="0"/>
+                <imageLayout margin="0" spacing="0"/>
+            </gridLayout>
+        </splitLayout>
+        <gridLayout margin="0" spacing="0.25" rows="1" columns="5">
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+        </gridLayout>
+    </splitLayout>
+</page>

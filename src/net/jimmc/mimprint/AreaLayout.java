@@ -6,7 +6,9 @@
 package jimmc.jiviewer;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.PrintWriter;
@@ -23,10 +25,10 @@ public abstract class AreaLayout {
     protected Rectangle bounds;
 
     //Margins inside our bounding box
-    protected int margin;
+    protected Insets margins;
 
     //Our internal spacing
-    protected int spacing;
+    protected Dimension spacing;        //width is width of gap between areas
 
     //The thickness to draw our area borders
     protected int borderThickness;
@@ -52,6 +54,8 @@ public abstract class AreaLayout {
     public AreaLayout() {
         selectedColor = Color.blue;
         highlightedColor = Color.green;
+        setSpacing(0);
+        setMargins(0);
     }
 
     /** Set our parent layout.
@@ -167,10 +171,35 @@ public abstract class AreaLayout {
     public void setXmlAttributes(Attributes attrs) {
         String marginStr = attrs.getValue("margin");
         if (marginStr!=null)
-            setMargin(PageLayout.parsePageValue(marginStr));
+            setMargins(marginStr);
+
+        /* use <margin> element instead...
+        marginStr = attrs.getValue("marginLeft");
+        if (marginStr!=null)
+            margins.left = PageLayout.parsePageValue(marginStr);
+        marginStr = attrs.getValue("marginRight");
+        if (marginStr!=null)
+            margins.right = PageLayout.parsePageValue(marginStr);
+        marginStr = attrs.getValue("marginTop");
+        if (marginStr!=null)
+            margins.top = PageLayout.parsePageValue(marginStr);
+        marginStr = attrs.getValue("marginBottom");
+        if (marginStr!=null)
+            margins.bottom = PageLayout.parsePageValue(marginStr);
+        */
+
         String spacingStr = attrs.getValue("spacing");
         if (spacingStr!=null)
-            setSpacing(PageLayout.parsePageValue(spacingStr));
+            setSpacing(spacingStr);
+
+        /* use <spacing> element instead ....
+        spacingStr = attrs.getValue("spacingWidth");
+        if (spacingStr!=null)
+            spacing.width = PageLayout.parsePageValue(spacingStr);
+        spacingStr = attrs.getValue("spacingHeight");
+        if (spacingStr!=null)
+            spacing.height = PageLayout.parsePageValue(spacingStr);
+        */
     }
 
     /** Set the bounding area for this AreaLayout within our parent. */
@@ -191,35 +220,85 @@ public abstract class AreaLayout {
     /** Get the bounds of this area once the margin is taken into account. */
     public Rectangle getBoundsInMargin() {
         Rectangle b = new Rectangle(bounds);
-        b.x += margin;
-        b.y += margin;
-        b.width -= 2*margin;
-        b.height -= 2*margin;
+        if (margins!=null) {
+            b.x += margins.left;
+            b.y += margins.top;
+            b.width -= (margins.left+margins.right);
+            b.height -= (margins.top+margins.bottom);
+        }
         return b;
     }
 
-    /** Set the margins.
+    /** Set the margins all to the same value.
      * @param margin The margin value to use on all four sides
      *        of our area.
      */
-    public void setMargin(int margin) {
-        this.margin = margin;
+    public void setMargins(int margin) {
+        this.margins = new Insets(margin,margin,margin,margin);
+    }
+
+    /** Set the margins to different values.
+     */
+    public void setMargins(String marginsStr) {
+        String[] marginStrs = marginsStr.split(",");
+        setMargins(PageLayout.parsePageValue(marginStrs[0]));
+        if (marginStrs.length>1) {
+            //If 2 or 3 margin values specified, the last value
+            //is repeated for the unspecified margins
+            int m = PageLayout.parsePageValue(marginStrs[1]);
+            margins.right = m;
+            if (marginStrs.length>2)
+                m = PageLayout.parsePageValue(marginStrs[2]);
+            margins.top = m;
+            if (marginStrs.length>3)
+                m = PageLayout.parsePageValue(marginStrs[3]);
+            margins.bottom = m;
+        }
+    }
+
+    /** Set the margins to the specified values.
+     * @param margins The margin values to use.
+     */
+    public void setMargins(Insets margins) {
+        this.margins = new Insets(margins.top, margins.left,
+                margins.bottom, margins.right);
     }
 
     /** Get the margin as set by a call to setMargin. */
-    public int getMargin() {
-        return margin;
+    public Insets getMargins() {
+        return margins;
     }
 
     /** Set the internal spacing between areas.
      * @param spacing The spacing between areas.
      */
     public void setSpacing(int spacing) {
-        this.spacing = spacing;
+        this.spacing = new Dimension(spacing,spacing);
+    }
+
+    /** Set the spacings to different values.
+     */
+    public void setSpacing(String spacingsStr) {
+        String[] spacingStrs = spacingsStr.split(",");
+        setSpacing(PageLayout.parsePageValue(spacingStrs[0]));
+        if (spacingStrs.length>1) {
+            int m = PageLayout.parsePageValue(spacingStrs[1]);
+            spacing.height = m;
+        }
+    }
+
+    /** Set the spacings to the specified values.
+     * @param spacing The spacing values to use.
+     */
+    public void setSpacing(Dimension spacing) {
+        if (spacing==null)
+            setSpacing(0);
+        else
+            this.spacing = new Dimension(spacing.width, spacing.height);
     }
 
     /** Get the internal spacing between areas. */
-    public int getSpacing() {
+    public Dimension getSpacing() {
         return spacing;
     }
 
@@ -275,8 +354,10 @@ public abstract class AreaLayout {
     /** True if the specified point is within our bounds and margin.
      */
     public boolean hit(Point p) {
-        return (p.x>=bounds.x+margin && p.x<=bounds.x+bounds.width-margin &&
-                p.y>=bounds.y+margin && p.y<=bounds.y+bounds.height-margin);
+        return (p.x>=bounds.x+margins.left &&
+                p.x<=bounds.x+bounds.width-margins.right &&
+                p.y>=bounds.y+margins.top &&
+                p.y<=bounds.y+bounds.height-margins.bottom);
     }
 
     /** Get the area containing the specified point.
@@ -358,11 +439,45 @@ public abstract class AreaLayout {
         pw.print(getIndentString(indent));
         pw.print("<"+getTemplateElementName());
         writeTemplateElementAttributes(pw,indent);
+        boolean bodyStarted = false;
+
+        //If margins are not all the same, write <margins> element
+        if (margins.left!=margins.right || margins.right!=margins.top ||
+                margins.top!=margins.bottom) {
+            if (!bodyStarted) {
+                pw.println(">");
+                bodyStarted = true;
+            }
+            printlnIndented(pw,indent+1,"<margins"+
+                " left=\""+PageLayout.formatPageValue(margins.left)+"\""+
+                " right=\""+PageLayout.formatPageValue(margins.right)+"\""+
+                " top=\""+PageLayout.formatPageValue(margins.top)+"\""+
+                " bottom=\""+PageLayout.formatPageValue(margins.bottom)+"\""+
+                "/>");
+        }
+
+        //If spacing not the same, write <spacing> element
+        if (spacing.width!=spacing.height) {
+            if (!bodyStarted) {
+                pw.println(">");
+                bodyStarted = true;
+            }
+            printlnIndented(pw,indent+1,"<spacing"+
+                " width=\""+PageLayout.formatPageValue(spacing.width)+"\""+
+                " height=\""+PageLayout.formatPageValue(spacing.height)+"\""+
+                "/>");
+        }
+
         if (areas!=null) {
-            pw.println(">");
+            if (!bodyStarted) {
+                pw.println(">");
+                bodyStarted = true;
+            }
             for (int i=0; i<areas.length; i++) {
                 areas[i].writeTemplate(pw,indent+1);
             }
+        }
+        if (bodyStarted) {
             printlnIndented(pw,indent,"</"+getTemplateElementName()+">");
         } else {
             pw.println("/>");
@@ -370,8 +485,38 @@ public abstract class AreaLayout {
     }
 
     protected void writeTemplateElementAttributes(PrintWriter pw, int indent) {
-        pw.print(" margin=\""+PageLayout.formatPageValue(margin)+"\"");
-        pw.print(" spacing=\""+PageLayout.formatPageValue(spacing)+"\"");
+        if (margins.left==margins.right && margins.right==margins.top &&
+                margins.top==margins.bottom) {
+            //All margins are the same
+            pw.print(" margin=\""+
+                    PageLayout.formatPageValue(margins.left)+"\"");
+        } else {
+            //margins are not all the same, print them all
+            /* print separate <margins> element later....
+            pw.print(" marginLeft=\""+
+                    PageLayout.formatPageValue(margins.left)+"\"");
+            pw.print(" marginRight=\""+
+                    PageLayout.formatPageValue(margins.right)+"\"");
+            pw.print(" marginTop=\""+
+                    PageLayout.formatPageValue(margins.top)+"\"");
+            pw.print(" marginBottom=\""+
+                    PageLayout.formatPageValue(margins.bottom)+"\"");
+            */
+        }
+
+        if (spacing.width==spacing.height) {
+            //Both spacings are the same
+            pw.print(" spacing=\""+
+                    PageLayout.formatPageValue(spacing.width)+"\"");
+        } else {
+            //Spacings are different, print both
+            /* Print separate <spacing> element later....
+            pw.print(" spacingWidth=\""+
+                    PageLayout.formatPageValue(spacing.width)+"\"");
+            pw.print(" spacingHeight=\""+
+                    PageLayout.formatPageValue(spacing.height)+"\"");
+            */
+        }
     }
 
     protected void printlnIndented(PrintWriter pw, int indent, String s) {

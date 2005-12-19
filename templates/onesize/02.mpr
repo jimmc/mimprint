@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<page width="8.5" height="11" unit="in">
+    <gridLayout margin="0.5" spacing="0.25" rows="2" columns="1">
+        <imageLayout margin="0" spacing="0"/>
+        <imageLayout margin="0" spacing="0"/>
+    </gridLayout>
+</page>

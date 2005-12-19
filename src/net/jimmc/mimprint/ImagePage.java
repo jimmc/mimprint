@@ -203,7 +203,11 @@ public class ImagePage extends JComponent
         if (path==null)
             return;     //no image in this area, can't start a drag
         Image image = null;     //image to drag
-        Image fullImage = a.getImage();
+        Image fullImage;
+        if (DragSource.isDragImageSupported())
+            fullImage = a.getImage();
+        else
+            fullImage = null;   //image dragging not supported
         Point offset = null;
         if (fullImage!=null) {
             ImageUtil imageUtil = viewer.getApp().getImageUtil();
@@ -416,7 +420,9 @@ public class ImagePage extends JComponent
         ImageBundle b = new ImageBundle(viewer.getApp(),ImagePage.this,f,-1);
         currentArea = dropArea;
         showImage(b,null);
-        System.out.println("drop done, succeeded");
+        System.out.println("Accepted drop of file "+f);
+        //TODO - add call to viewer.setStatus, but need to figure out when
+        //to clear the status first
         return true;
     }
 

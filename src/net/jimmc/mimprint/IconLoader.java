@@ -98,6 +98,8 @@ public class IconLoader extends Thread {
     private boolean needsIcon(FileInfo fi) {
         if (fi==null)
             return false;       //that list item not yet visible
+        if (!fi.infoLoaded)
+            return false;       //info not yet loaded, it's not ready for us
         if (fi.icon!=null)
             return false;       //icon already loaded
 //        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.JIV)

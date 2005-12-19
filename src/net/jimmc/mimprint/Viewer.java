@@ -634,8 +634,10 @@ public class Viewer extends JsFrame {
                     altWindow.validate();
                 if (fullWindow!=null)
                     fullWindow.validate();
-                else
+                else {
                     this.validate();
+                    this.repaint();
+                }
 
                 layoutMenu.setEnabled(mode==SCREEN_PRINT);
                 printMenuItem.setEnabled(mode==SCREEN_PRINT);

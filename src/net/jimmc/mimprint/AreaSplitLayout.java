@@ -117,18 +117,18 @@ public class AreaSplitLayout extends AreaLayout {
         AreaLayout[] aa = new AreaLayout[2];
         switch (orientation) {
         case VERTICAL:
-            int h0 = (b.height - spacing) * splitPercent / 100;
-            int h1 = b.height - spacing - h0;
-            int y1 = b.y + h0 + spacing;
+            int h0 = (b.height - spacing.height) * splitPercent / 100;
+            int h1 = b.height - spacing.height - h0;
+            int y1 = b.y + h0 + spacing.height;
             aa[0] = new ImagePageArea(b.x,b.y,b.width,h0);
             aa[0].setBorderThickness(getBorderThickness());
             aa[1] = new ImagePageArea(b.x,y1,b.width,h1);
             aa[1].setBorderThickness(getBorderThickness());
             break;
         case HORIZONTAL:
-            int w0 = (b.width - spacing) * splitPercent / 100;
-            int w1 = b.width - spacing - w0;
-            int x1 = b.x + w0 + spacing;
+            int w0 = (b.width - spacing.width) * splitPercent / 100;
+            int w1 = b.width - spacing.width - w0;
+            int x1 = b.x + w0 + spacing.width;
             aa[0] = new ImagePageArea(b.x,b.y,w0,b.height);
             aa[0].setBorderThickness(getBorderThickness());
             aa[1] = new ImagePageArea(x1,b.y,w1,b.height);

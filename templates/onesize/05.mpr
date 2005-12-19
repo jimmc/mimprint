@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<page width="8.5" height="11" unit="in">
+    <splitLayout margin="0.5" spacing="0.25" orientation="H" splitPercent="60">
+        <gridLayout margin="0" spacing="0.25" rows="3" columns="1">
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+        </gridLayout>
+        <gridLayout margin="0" spacing="0.25" rows="2" columns="1">
+            <imageLayout margin="0" spacing="0"/>
+            <imageLayout margin="0" spacing="0"/>
+        </gridLayout>
+    </splitLayout>
+</page>

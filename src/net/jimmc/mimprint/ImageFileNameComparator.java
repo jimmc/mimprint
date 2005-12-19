@@ -17,16 +17,21 @@ public class ImageFileNameComparator implements Comparator {
             this.dir = dir;
         }
 
-	/** Compare the two objects, which must be strings.
+	/** Compare the two objects, which must be FileInfo objects.
+         * Directories come before files.
 	 * We skip over leading non-numeric chars until we come to digits,
 	 * then interpret those as an integer and compare those integers.
 	 * If they are the same, then we fall back on a simple string comapre.
 	 */
 	public int compare(Object o1, Object o2) {
-		if (!(o1 instanceof String) || !(o2 instanceof String))
+		if (!(o1 instanceof FileInfo) || !(o2 instanceof FileInfo))
 			return 0;	//TBD - throw exception
-		String s1 = (String)o1;
-		String s2 = (String)o2;
+                FileInfo f1 = (FileInfo)o1;
+                FileInfo f2 = (FileInfo)o2;
+                if (f1.isDirectory() != f2.isDirectory())
+                    return (f1.isDirectory()?-1:1);
+		String s1 = f1.name;
+		String s2 = f2.name;
 		long n1 = getLongFromString(s1);
 		long n2 = getLongFromString(s2);
 		if (n1>n2)

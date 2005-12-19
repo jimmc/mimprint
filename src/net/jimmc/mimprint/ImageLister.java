@@ -182,15 +182,20 @@ public class ImageLister extends JPanel {
             //String path = new File(targetDirectory,fileNames[index]).toString();
             String path = fileInfo.getPath();
             ImageIcon icon = fileInfo.icon;
+            //If the platform does not support image dragging, don't do it
             Image image = null;
             Point offset = null;
             Image iconImage = (icon==null)?null:icon.getImage();
             //Get an image suitable for dragging
-            image = app.getImageUtil().createTransparentIconImage(
+            if (DragSource.isDragImageSupported()) {
+                image = app.getImageUtil().createTransparentIconImage(
                         iconImage,path);
-            int width = image.getWidth(null);
-            int height = image.getHeight(null);
-            offset = new Point(-width/2, -height/2);
+                int width = image.getWidth(null);
+                int height = image.getHeight(null);
+                offset = new Point(-width/2, -height/2);
+            } else {
+                image = null;   //image dragging not supported
+            }
             try {
                 Transferable transferable = new StringSelection(path);
                 if (image!=null) {
@@ -231,22 +236,25 @@ public class ImageLister extends JPanel {
             throw new IllegalArgumentException("Bad mode");
         if (mode==listMode)
             return;         //no change
-        switch (mode) {
-        default:
-        case MODE_NAME:
-            fileNameList.setCellRenderer(new DefaultListCellRenderer());
-            fileNameList.setFixedCellWidth(-1);
-            fileNameList.setFixedCellHeight(-1);
-            break;
-        case MODE_FULL:
-            fileNameList.setCellRenderer(new FileListRenderer());
-            //fileNameList.setFixedCellWidth(ICON_LIST_WIDTH);
-            //fileNameList.setFixedCellHeight(ICON_SIZE);
-                //set fixed cell height and width to prevent the list
-                //from rendering every item immediately
-            break;
+        synchronized (this) {
+            //Change the renderer and the mode within sync block
+            switch (mode) {
+            default:
+            case MODE_NAME:
+                fileNameList.setCellRenderer(new DefaultListCellRenderer());
+                fileNameList.setFixedCellWidth(-1);
+                fileNameList.setFixedCellHeight(-1);
+                break;
+            case MODE_FULL:
+                fileNameList.setCellRenderer(new FileListRenderer());
+                //fileNameList.setFixedCellWidth(ICON_LIST_WIDTH);
+                //fileNameList.setFixedCellHeight(ICON_SIZE);
+                    //set fixed cell height and width to prevent the list
+                    //from rendering every item immediately
+                break;
+            }
+            listMode = mode;
         }
-        listMode = mode;
         //TODO - redisplay the list
     }
 
@@ -361,9 +369,13 @@ public class ImageLister extends JPanel {
         nextImage = null;
         previousImage = null;
         fileNames = getListableFileNames(targetDirectory);
-        Arrays.sort(fileNames,new ImageFileNameComparator(targetDirectory));
         fileInfos = new FileInfo[fileNames.length];
             //Allocate space for the rest of the file info
+        for (int i=0; i<fileNames.length; i++) {
+            fileInfos[i] = new FileInfo(i,fileNames.length,targetDirectory,
+                    fileNames[i]);
+        }
+        Arrays.sort(fileInfos,new ImageFileNameComparator(targetDirectory));
         if (formerTargetDirectory==null || targetDirectory==null ||
                 !formerTargetDirectory.toString().equals(
                         targetDirectory.toString())) {
@@ -821,14 +833,14 @@ public class ImageLister extends JPanel {
     //Get the FileInfo for the specified file in the fileNames list
     private FileInfo getFileInfo(int index) {
         FileInfo fileInfo = fileInfos[index];
-        if (fileInfo!=null)
+        if (fileInfo!=null && fileInfo.infoLoaded)
             return fileInfo;        //already loaded
-        int totalCount = fileNameList.getModel().getSize();
-        fileInfo = new FileInfo(index,totalCount,targetDirectory,fileNames[index]);
+        //int totalCount = fileNameList.getModel().getSize();
+        //fileInfo = new FileInfo(index,totalCount,targetDirectory,fileNames[index]);
         fileInfo.loadInfo();
 
         //leave icon null, let iconLoader fill it in
-        fileInfos[index] = fileInfo;
+        //fileInfos[index] = fileInfo;
         iconLoader.moreIcons();         //tell iconLoader to load icons
         return fileInfo;
     }
@@ -857,11 +869,16 @@ public class ImageLister extends JPanel {
         //a change notification here because that method of the
         //model is protected.  Calling revalidate doesn't do the
         //trick, so we hack it by setting the renderer again.
-        fileNameList.setCellRenderer(new FileListRenderer());
+        //Need to check our list mode and only do this if we are
+        //in the right mode; need to do that check within a sync
+        //block to prevent race condition.
+        synchronized (this) {
+            if (listMode==MODE_FULL) {
+                fileNameList.setCellRenderer(new FileListRenderer());
+            }
+        }
         return true;
     }
-
-    //final static ImageIcon imgIcon = new ImageIcon("/Users/jmcbeath/home/scclogo.gif");
 
     /** Given a directory, get the next sibling directory. */
     protected File getNextDirectory(File dir) {
