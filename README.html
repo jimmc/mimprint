@@ -6,7 +6,7 @@
 <center>
 <h1>README</h1>
 <h3>Jiviewer<br>
-    v0.1.0  December 5, 2005</h3>
+    v0.1.0  January 18, 2006</h3>
 </center>
 
 <p>
@@ -17,6 +17,7 @@
  <li><a href="#features">Features</a>
  <li><a href="#documentation">Documentation</a>
  <li><a href="#systemreqs">System Requirements</a>
+ <li><a href="#knownproblems">Known Problems</a>
  <li><a href="#installjava">Installing Java</a>
  <li><a href="#installjiviewer">Installing Jiviewer</a>
  <li><a href="#source">Unpacking the Jiviewer Source</a>
@@ -30,6 +31,9 @@
 <p>
 Jiviewer is an image viewing and printing program
 written in Java and distributed under the GPL.
+In addition to providing a way to view and step through GIF and JPEG images,
+it allows laying out multiple images at different sizes on one page
+for printing.
 
 <p>
 <a name="homepage"><h2>Home Page</h2></a>
@@ -49,20 +53,37 @@ to download the latest version of Jiviewer.
     <li>Normal viewing mode allows easily stepping through a folder of
         image files.
     <li>Full screen mode scales images to fit in a full-window frame.
-    <li>Alternate screen mode displays images on a second screen.
+    <li>Alternate screen mode displays images on a second screen with no frame.
     <li>Printable mode allows collecting images onto a page for printing.
   </ul>
   <li>Browser with icons allows easy navigation of image directories.
   <li>Browser allows easy navigation through collections of layout templates.
   <li>Images and directories can be annotated using a text file.
-  <li>Easy custom layout of printable pages.
+  <li>Prints a single image on a page, or multiple copies of a single image,
+      or multiple images, all at the same size or at different sizes
+      by using layout templates.
+  <li>Layout templates included for common layouts.
+  <li>Easy creation of custom layouts.
   <li>Load/save custom layout templates.
 </ul>
 
 <p>
 <a name="documentation"><h2>Documentation</h2></a>
 <p>
-(Not yet available)
+Sorry, but there is no Users Guide yet.
+<p>
+Try this:
+<ul>
+<li>From the View menu, select Printable Screen Mode.
+<li>In the browser on the left side of the screen, browse to the
+    templates/mixedsize folder.
+    You should see small images of the templates in the browser.
+<li>Click on a template.
+    That layout should appear in the main window.
+<li>Drag some images from thr browser or your system's regular file
+    browser and drop them in the boxes.
+<li>Explore the menus.
+</ul>
 <p>
 The javadoc-generated
 <a href="doc/api/index.html">API Reference</a>
@@ -104,7 +125,7 @@ Jiviewer (available after you have <a href="#source">unpacked the source</a>).
     <td valign=top>Jiviewer uses Drag and Drop.
       <ul>
         <li>On Linux, Java 1.5.0 or better is required; bugs in 1.4 cause
-        drag and drop not to work, which makes the Printable page unusable.
+            drag and drop not to work, which makes the Printable page unusable.
         <li>On Mac, Java 1.4.2 or better is required.
 	<li>On Windows, Java 1.4.2 or better is required.
             Unfortunately, dragging from the browsing list is not working
@@ -125,8 +146,27 @@ Jiviewer (available after you have <a href="#source">unpacked the source</a>).
 </table>
 
 <p>
+<a name="knownproblems"><h2>Known Problems</h2></a>
+<p>
+<ul>
+<li>On Windows, drag-and-drop from the file list into the printable image
+    window does not work.
+    Dragging from Windows Explorer into the image window works.
+<li>On some versions of Linux, printing fails saying the printer is not
+    accepting jobs.
+    This is a problem with the way the Java VM interfaces to the system
+    print queues.
+</ul>
+<p>
+If you happen to know a solution to the above two problems,
+please let me know.
+Meanwhile, I am hoping that a future version of Java will fix
+these problems.
+
+<p>
 <a name="installjava"><h2>Installing Java</h2></a>
 <p>
+TODO: Java 1.5 is required, not 1.4.<p>
 To install Java on your system,
 <a href="http://java.sun.com/j2se/1.4/download.html">download JRE1.4</a>
 from 
@@ -140,12 +180,82 @@ link from the JRE column.
 <p>
 <a name="installjiviewer"><h2>Installing Jiviewer</h2></a>
 <p>
-(This section not yet written)
+Jiviewer is delivered in a self-extracting JAR file.
+You must have Java running on your system in order to extract it.
+
+<p>
+To install Jiviewer from the installation JAR file (.jar extension),
+double-click on the JAR file, or run the command
+<blockquote>
+<code>
+java -jar jiviewer-<i>N_N_N</i>.jar
+</code>
+</blockquote>
+This will open a dialog allowing you to specify a destination directory,
+and it will create a directory called jiviewer-<i>N_N_N</i>
+in the specified directory,
+where <i>N_N_N</i> is replaced by the Jiviewer version number.
+
+<p>
+If you have problems running the installer, you can try running it with
+the debugging flag turned on, which will cause it to print more information:
+<blockquote>
+<code>
+java -Djiviewer.install.debug -jar jiviewer-<i>N_N_N</i>.jar
+</code>
+</blockquote>
+
+<p>
+If you double-click on the installer in Windows and nothing happens,
+open a DOS command window,
+cd to the folder into which you downloaded the installer,
+and enter the java command shown above.
+Any error messages should now show up in the DOS window.
 
 <p>
 <a name="source"><h2>Unpacking the Jiviewer Source</h2></a>
+
 <p>
-(This section not yet written)
+If you want to build Jiviewer yourself, or just look at the source code,
+you will have to unpack the source files from the <code>src.zip</code>
+archive file with the commands
+<blockquote>
+<code>cd jiviewer-<i>N_N_N</i><br>
+      unzip src.zip</code>
+</blockquote>
+This will create a <code>src</code> directory with all of the Java files,
+as well as adding a few other files (such as a build.xml file)
+to your jiviewer directory.
+You must have the
+<a href="http://ant.apache.org/">ant</a> program installed on your
+system in order to build Jiviewer from source files.
+
+<p>
+If you want to look at the Javadoc-generated API documentation
+for the Java classes, you must first unpack those html files from
+the <code>apidoc.zip</code> archive file with the commands
+<blockquote>
+<code>cd jiviewer-<i>N_N_N</i><br>
+      unzip apidoc.zip</code>
+</blockquote>
+This will create the directory doc/api with all of the API documentation in it.
+Alternatively, you can unpack <code>src.zip</code> and then run the command
+<blockquote>
+<code>ant doc</code>
+</blockquote>
+to run javadoc and create the API documents from the source files
+(you must have the
+<a href="http://ant.apache.org/">ant</a> program installed on your
+system in order to create the documentation using this command).
+
+<p>
+The Jiviewer kit does not include the source to the JShortcut package.
+You can download the JShortcut source from the
+<a href="http://www.alumni.caltech.edu/~jimmc/jshortcut/">
+JShortcut web site</a>,
+or from the same location from which you downloaded Jiviewer.
+You do not need the JShortcut source to compile Jiviewer;
+the JShortcut.jar file included in the Jiviewer kit is sufficient.
 
 <p>
 <a name="running"><h2>Running Jiviewer</h2></a>
@@ -178,6 +288,16 @@ you can run jiviewer with the command
 </blockquote>
 <p>
 On Solaris 2.6 or later, you can directly run jiviewer.jar.
+
+<h4>Starting at a specified location</h4>
+<p>
+On any platform you can include an image file or directory name
+to jiviewer to tell it to start in that directory.
+Just include that name as the first argument after the above command,
+like this:
+<blockquote>
+<code>java -jar jiviewer.jar /home/jimmc/photos/folder1</code>
+</blockquote>
 
 <p>
 <a name="feedback"><h2>Bug Reports and Feedback</h2></a>

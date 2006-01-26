@@ -46,7 +46,6 @@ public class ImageBundle {
 	protected int listIndex;
 
 	/** Create an image bundle for a file.
-	 * @param c A reference component.
 	 * @param file The file containing the image.
 	 * @param listIndex The list index of the file.
 	 */
@@ -85,7 +84,7 @@ public class ImageBundle {
 	}
 
 	/** Increment the image rotation by the given amount.
-	 * @param rotation Units of 90 degrees.
+	 * @param inc Units of 90 degrees.
 	 */
 	public void rotate(int inc) {
 		rotation += inc;

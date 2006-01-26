@@ -509,8 +509,7 @@ public class Viewer extends JsFrame {
         public final static int SCREEN_PRINT = 2;
         public final static int SCREEN_ALT = 3;
 	/** Set the image area to take up the full screen, or unset.
-	 * @param fullImage true to make the image area take up the full
-	 *        screen, false to go back to the non-full-screen.
+	 * @param mode The screen mode to use, one of the SCREEN_* constants.
 	 */
 	public void setScreenMode(int mode) {
 		if (mode==screenMode)

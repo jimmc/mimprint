@@ -23,6 +23,9 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 
  * $Log: ZoneInfo.java,v $
+ * Revision 1.3  2006/01/26 05:35:42  jimmc
+ * Prepare for release.
+ *
  * Revision 1.2  2003/07/03 04:15:53  jimmc
  * Move ZoneInfo into jimmc.jiviewer package
  *
@@ -349,7 +352,7 @@ public class ZoneInfo extends TimeZone {
       @param year	years since 1900
       @param mon	month 0-11
       @param day	day of month 1-31
-      @param secs	seconds in day
+      @param tm_secs	seconds in day
      */
     public tm(int year,int mon,int day,int tm_secs) {
       tm_year = year;

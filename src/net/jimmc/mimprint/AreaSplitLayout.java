@@ -80,9 +80,9 @@ public class AreaSplitLayout extends AreaLayout {
         return splitPercent;
     }
 
-    /** Set the number of areas in each dimension.
-     * @param rowCount The number of rows.
-     * @param columnCount The number of columns.
+    /** Set the orientation of the split.
+     * @param orientation The relative position of the two halves
+     *        of the split, either VERTICAL or HORIZONTAL.
      */
     public void setOrientation(int orientation) {
         switch(orientation) {

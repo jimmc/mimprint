@@ -1,0 +1,28 @@
+Jiviewer                                        January 23, 2006
+
+Building a new version
+----------------------
+
+    Check these files to make sure they contain the latest dates, version
+    numbers, and other information:
+
+        DONE                    Version and date
+        HISTORY                 Release notes for this version, date
+        README.html             Version and date
+        VERSION                 Version (2x) and date
+
+    Make sure all changed files are checked in to CVS.
+
+    In the top level directory, exewcute these commands using Jakarta Ant:
+
+        ant clean               Clean up before building
+        ant all                 Build everything (jar, doc)
+        ant rel                 Build a release kit named jiviewer-<version>
+        ant reljar              Build a self-extracting jar file
+                                    from the release kit
+        ant arch                Copy the jar and README files to archive dir
+        ant cvstag              Run "cvs tag" for this version
+
+    To clean up, execute this command:
+
+        ant clean               Deletes all generated files
