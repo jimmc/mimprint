@@ -3,11 +3,11 @@
  * Jim McBeath, October 25, 2005
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
-import jimmc.swing.ComboBoxAction;
-import jimmc.swing.JsSpinner;
-import jimmc.swing.JsTextField;
+import net.jimmc.swing.ComboBoxAction;
+import net.jimmc.swing.JsSpinner;
+import net.jimmc.swing.JsTextField;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;

@@ -3,12 +3,12 @@
  * Jim McBeath, September 15, 2001
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
-import jimmc.swing.CheckBoxMenuAction;
-import jimmc.swing.GridBagger;
-import jimmc.swing.JsFrame;
-import jimmc.swing.MenuAction;
+import net.jimmc.swing.CheckBoxMenuAction;
+import net.jimmc.swing.GridBagger;
+import net.jimmc.swing.JsFrame;
+import net.jimmc.swing.MenuAction;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;

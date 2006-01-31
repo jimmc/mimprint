@@ -3,7 +3,7 @@
  * Jim McBeath, October 7, 2005
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;

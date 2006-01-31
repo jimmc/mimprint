@@ -3,7 +3,7 @@
  * Jim McBeath, September 19, 2001
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
 import java.io.File;
 import java.util.Comparator;

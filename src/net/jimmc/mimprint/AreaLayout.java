@@ -3,7 +3,7 @@
  * Jim McBeath, October 25, 2005
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
 import java.awt.Color;
 import java.awt.Dimension;

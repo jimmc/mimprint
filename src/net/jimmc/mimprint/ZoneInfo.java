@@ -23,6 +23,9 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 
  * $Log: ZoneInfo.java,v $
+ * Revision 1.4  2006/01/31 04:03:37  jimmc
+ * Rename packages from jimmc.* to net.jimmc.*
+ *
  * Revision 1.3  2006/01/26 05:35:42  jimmc
  * Prepare for release.
  *
@@ -61,7 +64,7 @@ Boston, MA  02111-1307, USA.
  * tested with GregorianCalendar
  *
  */
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
 import java.io.*;
 import java.util.TimeZone;

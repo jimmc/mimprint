@@ -6,10 +6,6 @@
   templates/onesize
 - Add a Users Guide. (060123)
 
-- Package for distribution.  (051116)
-  - update README.html: (060117)
-    - need to install 1.5, not 1.4
-
 - Allow opening a jar or zip file, display contents. (051115)
 - Option in template to display captions under photos: separate control
   for showing filename, file date and file text. (051116)

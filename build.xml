@@ -64,7 +64,7 @@
 		    excludes="**/*_*.props"
 	    />
 	    <srcfiles dir="${src.dir}"
-		    includes="jimmc/catprops/*.java"
+		    includes="net/jimmc/catprops/*.java"
 	    />
 	    <srcfiles dir="." includes="build.xml" />
 	</uptodate>
@@ -80,7 +80,7 @@
 	    </fileset>
 	</path>
 	<property name="prop-files" refid="prop-file-path"/>
-	<java	classname="jimmc/catprops/CatProps"
+	<java	classname="net/jimmc/catprops/CatProps"
 		classpath="${class.dir}"
 		output="${resources.properties}.tmp"
 		fork="true"

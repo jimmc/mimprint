@@ -3,9 +3,9 @@
  * Jim McBeath, October 2005
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
-import jimmc.util.FileUtil;
+import net.jimmc.util.FileUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;

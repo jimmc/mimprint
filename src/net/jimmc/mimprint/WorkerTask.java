@@ -3,7 +3,7 @@
  * Jim McBeath, August 17, 2002
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
 /** A task to be executed by a {@link Worker} thread.
  */

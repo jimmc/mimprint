@@ -3,7 +3,7 @@
  * Jim McBeath, November 3, 2005
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
 import java.awt.Dimension;
 import java.awt.Insets;

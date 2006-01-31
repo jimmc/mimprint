@@ -3,10 +3,10 @@
  * Jim McBeath, September 18, 2001
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
-import jimmc.swing.AboutWindow;
-import jimmc.util.ResourceSource;
+import net.jimmc.swing.AboutWindow;
+import net.jimmc.util.ResourceSource;
 
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
@@ -147,8 +147,10 @@ public class App implements ResourceSource {
 
 	/** Set up our resources. */
 	public void initResources() {
+                //Look for our resources in the same package
+                String pkgName = this.getClass().getPackage().getName();
 		resources = ResourceBundle.getBundle(
-			"jimmc.jiviewer.Resources");
+			pkgName+".Resources");
 	}
 
 	/** Get a string from our resource file. */

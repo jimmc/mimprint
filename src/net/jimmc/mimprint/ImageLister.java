@@ -3,10 +3,10 @@
  * Jim McBeath, September 18, 2001
  */
 
-package jimmc.jiviewer;
+package net.jimmc.jiviewer;
 
-import jimmc.util.FileUtil;
-import jimmc.util.MoreException;
+import net.jimmc.util.FileUtil;
+import net.jimmc.util.MoreException;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
