@@ -3,9 +3,9 @@
  * Jim McBeath, July 28, 2004
  */
 
-package jimmc.catprops;
+package net.jimmc.catprops;
 
-import jimmc.util.StringUtil;
+import net.jimmc.util.StringUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
