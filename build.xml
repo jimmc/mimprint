@@ -1,4 +1,4 @@
-<project name="jiviewer" default="jar">
+<project name="mimprint" default="jar">
 
     <target name="init">
         <property file="build.properties"/>
@@ -105,7 +105,7 @@
             description="Build the application">
         <!-- Start by creating the jar file with all our classes. -->
         <jar
-            jarfile="${jiviewer.jar}"
+            jarfile="${mimprint.jar}"
             basedir="${class.dir}"
         >
             <manifest>
@@ -116,7 +116,7 @@
         </jar>
         <!-- Now add the image files from the source directory. -->
         <zip
-            destfile="${jiviewer.jar}"
+            destfile="${mimprint.jar}"
             basedir="${src.dir}"
             update="true"
             includes="**/*.gif"
@@ -126,7 +126,7 @@
     <target name="clean" depends="init"
             description="Remove all generated files">
         <delete dir="${build.dir}"/>
-        <delete file="${jiviewer.jar}"/>
+        <delete file="${mimprint.jar}"/>
     </target>
 
     <!-- Make the documentation -->
@@ -162,6 +162,20 @@
     <target name="all" depends="jar,doc"
     		description="Build all files for release"/>
 
+    <target name="arch" depends="init"
+    		description="Copy the reljar and README files to the Arch dir">
+	<property name="arch.version.dir"
+		value="${arch.dir}/v${version.number}"/>
+        <mkdir dir="${arch.version.dir}"/>
+        <copy file="${rel.jar}"
+		tofile="${arch.version.dir}/${rel.jar}"
+		preservelastmodified="true"/>
+        <copy file="README.html"
+		tofile="${arch.version.dir}/README-${version.numberU}.html"
+		preservelastmodified="true"/>
+        <chmod dir="${arch.version.dir}" includes="*" perm="-w"/>
+    </target>
+
     <target name="cvstag" depends="init"
     		description="Tag all files in CVS for the current release">
 	<echo message="Tagging files as ${version.name}-${version.numberU}"/>
@@ -177,7 +191,7 @@
 	<copy todir="${rel.dir}" flatten="true" preservelastmodified="true">
 	    <fileset dir="." includes="${relbin.files}"/>
 	</copy>
-	<copy todir="${rel.dir}" file="${jiviewer.jar}"
+	<copy todir="${rel.dir}" file="${mimprint.jar}"
 		preservelastmodified="true"/>
 	<copy todir="${rel.dir}" file="${jshortcut.jar}"
 		preservelastmodified="true"/>
@@ -189,7 +203,7 @@
 	</copy>
         -->
 	<copy todir="${rel.dir}/templates" preservelastmodified="true">
-	    <fileset dir="${templates.dir}" includes="**/*.jiv"/>
+	    <fileset dir="${templates.dir}" includes="**/*.mmp"/>
 	</copy>
     </target>
 
