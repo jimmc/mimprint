@@ -3,7 +3,7 @@
  * Jim McBeath, October 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import net.jimmc.util.FileUtil;
 
@@ -28,7 +28,7 @@ public class FileInfo {
     int type;       //the type of this entry
         public static final int DIR = 1;
         public static final int IMAGE = 2;
-        public static final int JIV = 3;        //our own file
+        public static final int MMP = 3;        //our own file
     //The above data is initialized when the FileInfo is created
 
     //The following data is initialized by a call to loadInfo
@@ -54,7 +54,7 @@ public class FileInfo {
         if (thisFile.isDirectory()) {
             type = FileInfo.DIR;
         } else if (isOurFileName(name)) {
-            type = FileInfo.JIV;       //our own file
+            type = FileInfo.MMP;       //our own file
         } else
             type = FileInfo.IMAGE;
     }
@@ -208,7 +208,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         if (dotPos<0)
             return false;	//no extension
         String extension = name.substring(dotPos+1).toLowerCase();
-        if (extension.equals("jiv")) {
+        if (extension.equals("mmp")) {
             return true;
         }
         return false;

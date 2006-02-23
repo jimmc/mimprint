@@ -3,7 +3,7 @@
  * Jim McBeath, October 31, 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -102,7 +102,7 @@ public class IconLoader extends Thread {
             return false;       //info not yet loaded, it's not ready for us
         if (fi.icon!=null)
             return false;       //icon already loaded
-//        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.JIV)
+//        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.MMP)
 //            return false;       //only load icons for image files and our own files
         return true;
     }
@@ -111,8 +111,8 @@ public class IconLoader extends Thread {
     private ImageIcon getFileIcon(FileInfo fileInfo, int index) {
         if (fileInfo.isDirectory())
             return getDirectoryIcon(fileInfo);
-        if (fileInfo.getPath().toLowerCase().endsWith(".jiv"))
-            return getJivIcon(fileInfo);
+        if (fileInfo.getPath().toLowerCase().endsWith(".mmp"))
+            return getMimprintIcon(fileInfo);
         //Assume anything else is an image file
         return getImageFileIcon(fileInfo);
     }
@@ -137,7 +137,7 @@ public class IconLoader extends Thread {
         return new ImageIcon(image);
     }
 
-    private ImageIcon getJivIcon(FileInfo fileInfo) {
+    private ImageIcon getMimprintIcon(FileInfo fileInfo) {
         PageLayout pageLayout = new PageLayout(app);
         pageLayout.loadLayoutTemplate(fileInfo.getFile());
         //TODO - check to make sure it got loaded correctly,

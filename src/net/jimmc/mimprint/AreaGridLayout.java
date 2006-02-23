@@ -3,7 +3,7 @@
  * Jim McBeath, October 25, 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import java.awt.Graphics2D;
 import java.awt.Point;

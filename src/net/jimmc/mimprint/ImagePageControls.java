@@ -3,7 +3,7 @@
  * Jim McBeath, October 25, 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import net.jimmc.swing.ComboBoxAction;
 import net.jimmc.swing.JsSpinner;

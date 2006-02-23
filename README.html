@@ -1,11 +1,11 @@
 <html>
 <head>
-<title>Jiviewer README</title>
+<title>Mimprint README</title>
 </head>
 <body bgcolor=white>
 <center>
 <h1>README</h1>
-<h3>Jiviewer<br>
+<h3>Mimprint<br>
     v0.1.0  January 26, 2006</h3>
 </center>
 
@@ -19,9 +19,9 @@
  <li><a href="#systemreqs">System Requirements</a>
  <li><a href="#knownproblems">Known Problems</a>
  <li><a href="#installjava">Installing Java</a>
- <li><a href="#installjiviewer">Installing Jiviewer</a>
- <li><a href="#source">Unpacking the Jiviewer Source</a>
- <li><a href="#running">Running Jiviewer</a>
+ <li><a href="#installmimprint">Installing Mimprint</a>
+ <li><a href="#source">Unpacking the Mimprint Source</a>
+ <li><a href="#running">Running Mimprint</a>
  <li><a href="#feedback">Bug Reports and Feedback</a>
  <li><a href="#author">Author</a>
 </ul>
@@ -29,7 +29,7 @@
 <p>
 <a name="introduction"><h2>Introduction</h2></a>
 <p>
-Jiviewer is an image viewing and printing program
+Mimprint is an image printing and viewing program
 written in Java and distributed under the GPL.
 In addition to providing a way to view and step through GIF and JPEG images,
 it allows laying out multiple images at different sizes on one page
@@ -39,9 +39,9 @@ for printing.
 <a name="homepage"><h2>Home Page</h2></a>
 <p>
 Go to the
-<a href="http://www.alumni.caltech.edu/~jimmc/jiviewer">
-Jiviewer home page</a>
-to download the latest version of Jiviewer.
+<a href="http://www.alumni.caltech.edu/~jimmc/mimprint">
+Mimprint home page</a>
+to download the latest version of Mimprint.
 
 <p>
 <a name="features"><h2>Features</h2></a>
@@ -88,7 +88,7 @@ Try this:
 For programmers, the javadoc-generated
 <a href="doc/api/index.html">API Reference</a>
 provides detailed documentation on the packages and classes used in
-Jiviewer (available after you have <a href="#source">unpacked the source</a>).
+Mimprint (available after you have <a href="#source">unpacked the source</a>).
 
 <p>
 <a name="systemreqs"><h2>System Requirements</h2></a>
@@ -114,7 +114,7 @@ Jiviewer (available after you have <a href="#source">unpacked the source</a>).
 <tr><td valign=top>Disk</td>
     <td valign=top>1 MB,<br>
         plus up to 250 MB<br>to install Java</td>
-    <td valign=top>If you already have Java installed, installing Jiviewer will
+    <td valign=top>If you already have Java installed, installing Mimprint will
         take less than 1 MB.
 	Installing Java takes 100 MB or more, depending on which version you
 	install, and whether or not you install the documentation.
@@ -124,7 +124,7 @@ Jiviewer (available after you have <a href="#source">unpacked the source</a>).
     <a name="javarequirements"></a>
     <td valign=top>Java</td>
     <td valign=top>JRE 1.5</td>
-    <td valign=top>Jiviewer uses Drag and Drop.
+    <td valign=top>Mimprint uses Drag and Drop.
       <ul>
         <li>On Linux, Java 1.5.0 or better is required; bugs in 1.4 cause
             drag and drop not to work, which makes the Printable page unusable.
@@ -185,30 +185,30 @@ or, for Java 1.4.2,
 find your platform, and download the jre installer file.
 
 <p>
-<a name="installjiviewer"><h2>Installing Jiviewer</h2></a>
+<a name="installmimprint"><h2>Installing Mimprint</h2></a>
 <p>
-Jiviewer is delivered in a self-extracting JAR file.
+Mimprint is delivered in a self-extracting JAR file.
 You must have Java running on your system in order to extract it.
 
 <p>
-To install Jiviewer from the installation JAR file (.jar extension),
+To install Mimprint from the installation JAR file (.jar extension),
 double-click on the JAR file, or run the command
 <blockquote>
 <code>
-java -jar jiviewer-<i>N_N_N</i>.jar
+java -jar mimprint-<i>N_N_N</i>.jar
 </code>
 </blockquote>
 This will open a dialog allowing you to specify a destination directory,
-and it will create a directory called jiviewer-<i>N_N_N</i>
+and it will create a directory called mimprint-<i>N_N_N</i>
 in the specified directory,
-where <i>N_N_N</i> is replaced by the Jiviewer version number.
+where <i>N_N_N</i> is replaced by the Mimprint version number.
 
 <p>
 If you have problems running the installer, you can try running it with
 the debugging flag turned on, which will cause it to print more information:
 <blockquote>
 <code>
-java -Djiviewer.install.debug -jar jiviewer-<i>N_N_N</i>.jar
+java -Dmimprint.install.debug -jar mimprint-<i>N_N_N</i>.jar
 </code>
 </blockquote>
 
@@ -220,29 +220,29 @@ and enter the java command shown above.
 Any error messages should now show up in the DOS window.
 
 <p>
-<a name="source"><h2>Unpacking the Jiviewer Source</h2></a>
+<a name="source"><h2>Unpacking the Mimprint Source</h2></a>
 
 <p>
-If you want to build Jiviewer yourself, or just look at the source code,
+If you want to build Mimprint yourself, or just look at the source code,
 you will have to unpack the source files from the <code>src.zip</code>
 archive file with the commands
 <blockquote>
-<code>cd jiviewer-<i>N_N_N</i><br>
+<code>cd mimprint-<i>N_N_N</i><br>
       unzip src.zip</code>
 </blockquote>
 This will create a <code>src</code> directory with all of the Java files,
 as well as adding a few other files (such as a build.xml file)
-to your jiviewer directory.
+to your mimprint directory.
 You must have the
 <a href="http://ant.apache.org/">ant</a> program installed on your
-system in order to build Jiviewer from source files.
+system in order to build Mimprint from source files.
 
 <p>
 If you want to look at the Javadoc-generated API documentation
 for the Java classes, you must first unpack those html files from
 the <code>apidoc.zip</code> archive file with the commands
 <blockquote>
-<code>cd jiviewer-<i>N_N_N</i><br>
+<code>cd mimprint-<i>N_N_N</i><br>
       unzip apidoc.zip</code>
 </blockquote>
 This will create the directory doc/api with all of the API documentation in it.
@@ -256,16 +256,16 @@ to run javadoc and create the API documents from the source files
 system in order to create the documentation using this command).
 
 <p>
-The Jiviewer kit does not include the source to the JShortcut package.
+The Mimprint kit does not include the source to the JShortcut package.
 You can download the JShortcut source from the
 <a href="http://www.alumni.caltech.edu/~jimmc/jshortcut/">
 JShortcut web site</a>,
-or from the same location from which you downloaded Jiviewer.
-You do not need the JShortcut source to compile Jiviewer;
-the JShortcut.jar file included in the Jiviewer kit is sufficient.
+or from the same location from which you downloaded Mimprint.
+You do not need the JShortcut source to compile Mimprint;
+the JShortcut.jar file included in the Mimprint kit is sufficient.
 
 <p>
-<a name="running"><h2>Running Jiviewer</h2></a>
+<a name="running"><h2>Running Mimprint</h2></a>
 <p>
 If you have not already done so, you must
 <a href="#installjava">install Java</a>.
@@ -274,48 +274,48 @@ If you have not already done so, you must
 <p>
 On Windows,
 double-click on the shortcut (if you have set one up)
-or CD to the directory containing jiviewer.jar
+or CD to the directory containing mimprint.jar
 and run
 <blockquote>
-<code>java -jar jiviewer.jar</code>
+<code>java -jar mimprint.jar</code>
 </blockquote>
-You can manually set up a shortcut to jiviewer.jar.
+You can manually set up a shortcut to mimprint.jar.
 
 <h4>On Unix</h4>
 On Unix, run
 <blockquote>
-<code>java -jar jiviewer.jar</code>
+<code>java -jar mimprint.jar</code>
 </blockquote>
 If the java binary is not in your PATH, you can explicitly specify the
 path to it.  For example, if you have installed JDK1.4 into
 <code>/usr/local/j2sdk1.4.2</code>,
-you can run jiviewer with the command
+you can run mimprint with the command
 <blockquote>
-<code>/usr/local/j2sdk1.4.2/bin/java -jar jiviewer.jar</code>
+<code>/usr/local/j2sdk1.4.2/bin/java -jar mimprint.jar</code>
 </blockquote>
 <p>
-On Solaris 2.6 or later, you can directly run jiviewer.jar.
+On Solaris 2.6 or later, you can directly run mimprint.jar.
 
 <h4>Starting at a specified location</h4>
 <p>
 On any platform you can include an image file or directory name
-to jiviewer to tell it to start in that directory.
+to mimprint to tell it to start in that directory.
 Just include that name as the first argument after the above command,
 like this:
 <blockquote>
-<code>java -jar jiviewer.jar /home/jimmc/photos/folder1</code>
+<code>java -jar mimprint.jar /home/jimmc/photos/folder1</code>
 </blockquote>
 
 <p>
 <a name="feedback"><h2>Bug Reports and Feedback</h2></a>
 <p>
-If you have a comment about Jiviewer, or would like to report a bug,
-please send email to jiviewer -at- j.jimmc.org</a>
+If you have a comment about Mimprint, or would like to report a bug,
+please send email to domain j.jimmc.org, user mimprint.
 
 <p>
 <a name="author"><h2>Author and Contributors</h2></a>
 <p>
-Jiviewer was written by Jim McBeath.<br>
+Mimprint was written by Jim McBeath.<br>
 <a href="http://www.alumni.caltech.edu/~jimmc">
 http://www.alumni.caltech.edu/~jimmc</a>
 

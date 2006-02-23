@@ -3,7 +3,7 @@
  * Jim McBeath, October 11, 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import java.awt.Component;
 import java.awt.Image;

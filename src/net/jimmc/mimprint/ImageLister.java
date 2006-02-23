@@ -3,7 +3,7 @@
  * Jim McBeath, September 18, 2001
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import net.jimmc.util.FileUtil;
 import net.jimmc.util.MoreException;
@@ -496,7 +496,7 @@ public class ImageLister extends JPanel {
         case FileInfo.IMAGE:
             displayCurrentSelection();
             break;
-        case FileInfo.JIV:
+        case FileInfo.MMP:
             //If the user selected this item, open it,
             //but not if the app selected it.
             if (!appIsSelecting)

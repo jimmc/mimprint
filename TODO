@@ -13,7 +13,7 @@
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)
-- Look for a special file in each directory (e.g. images.jiv) with one line
+- Look for a special file in each directory (e.g. images.mmp) with one line
   per image to display, each line having a file name and possibly flags such
   as whether to rotate it. (020818)
 - Call the above a "Playlist" file.  Allow specifying a playlist file on
@@ -21,9 +21,9 @@ PlayLists:
   playlist file.  Allow multiple playlist files on the command line; 
   allow mixing playlist files and image files; all playlist files to
   contain the names of other playlist files as well as image files. (021101)
-- Add a command to tell jiviewer to record the current rotation state to
-  the images.jiv files; add a command to tell it to remove this filename from
-  the images.jiv file; add a command to tell it to create an images.jiv file
+- Add a command to tell mimprint to record the current rotation state to
+  the images.mmp files; add a command to tell it to remove this filename from
+  the images.mmp file; add a command to tell it to create an images.mmp file
   from the current viewing information. (020828)
 
 Misc:

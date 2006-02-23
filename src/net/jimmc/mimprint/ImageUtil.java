@@ -3,7 +3,7 @@
  * Jim McBeath, November 18, 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;

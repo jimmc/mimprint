@@ -1,4 +1,4 @@
-Jiviewer                                        January 23, 2006
+Mimprint                                        February 22, 2006
 
 Building a new version
 ----------------------
@@ -17,7 +17,7 @@ Building a new version
 
         ant clean               Clean up before building
         ant all                 Build everything (jar, doc)
-        ant rel                 Build a release kit named jiviewer-<version>
+        ant rel                 Build a release kit named mimprint-<version>
         ant reljar              Build a self-extracting jar file
                                     from the release kit
         ant arch                Copy the jar and README files to archive dir

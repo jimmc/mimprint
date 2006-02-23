@@ -3,7 +3,7 @@
  * Jim McBeath, August 17, 2002
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import java.util.Vector;
 

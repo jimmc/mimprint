@@ -3,7 +3,7 @@
  * Jim McBeath, September 15, 2001
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import net.jimmc.swing.CheckBoxMenuAction;
 import net.jimmc.swing.GridBagger;
@@ -40,7 +40,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JWindow;
 
-/** The top window class for the jiviewer program.
+/** The top window class for the mimprint program.
  */
 public class Viewer extends JsFrame {
 	/** Our application info. */

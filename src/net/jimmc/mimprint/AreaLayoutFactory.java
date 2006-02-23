@@ -3,7 +3,7 @@
  * Jim McBeath, Nov 7, 2005
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 public class AreaLayoutFactory {
     //TODO use a singleton of this class and make the method not static

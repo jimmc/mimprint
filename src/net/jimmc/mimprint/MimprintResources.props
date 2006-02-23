@@ -1,8 +1,8 @@
 about.info=\
-	jiviewer\n\
-	Copyright 2001-2005 Jim McBeath\n\
+	mimprint\n\
+	Copyright 2001-2006 Jim McBeath\n\
 	%VERSION%  %VDATE%
-about.title=About Jiviewer
+about.title=About Mimprint
 
 error.BadPageUnit=page unit must be "cm" or "in"
 error.MissingEndAreaElement=Expectede area end element before </page>
@@ -13,7 +13,7 @@ error.PageDimensionsRequired=page height and width must be specified
 error.UnknownArgument=Unknown command line argument "{0}", try -help
 error.UnknownOption=Unknown command line option "{0}", try -help
 
-info.CommandHelp=Usage: jiviewer [-help]\n\
+info.CommandHelp=Usage: mimprint [-help]\n\
 	\  -bigfont    Use a big font (useful for TV viewing)\n\
 	\  -debug      Turn on debugging statements\n\
 	\  -help       Show this help message\n\
@@ -36,7 +36,7 @@ info.ImageHelp=Available commands:\n\
 	r - rotate image 90 degrees counter-clockwise\n\
 	R - rotate image 90 degrees clockwise\n\
 	Ctrl R - rotate image 180 degrees\n\
-	x - exit from Jiviewer\n
+	x - exit from Mimprint\n
 
 layout.areaType.Image=Image
 layout.areaType.Grid=Grid
@@ -49,7 +49,7 @@ menu.File.Open.label=Open
 menu.File.Print.label=Print
 
 menu.Help.label=Help
-menu.Help.About.label=About Jiviewer
+menu.Help.About.label=About Mimprint
 
 menu.Image.label=Image
 menu.Image.NextDirectory.label=Next Directory
@@ -93,7 +93,7 @@ prompt.SaveLayoutTemplateAs=Save Layout Template As...
 prompt.TextForImage=Text for {0}
 
 query.EditLayout.title=Page Description
-query.Exit.prompt=Exit Jiviewer?
+query.Exit.prompt=Exit Mimprint?
 query.FileToOpen=File or Directory to Open
 query.Info.NoDescription=(No description)
 query.Info.title=Info
@@ -101,8 +101,8 @@ query.Info.title=Info
 status.LoadedTemplateFromFile=Loaded template from file {0}
 status.SavedTemplateToFile=Saved template to file {0}
 
-title.nofile=jiviewer
-title.fileName=jiviewer: {0}
+title.nofile=mimprint
+title.fileName=mimprint: {0}
 
 toolbar.Layout.Columns.label=C:
 toolbar.Layout.Columns.toolTip=Columns in this grid

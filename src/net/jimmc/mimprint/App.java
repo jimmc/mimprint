@@ -3,7 +3,7 @@
  * Jim McBeath, September 18, 2001
  */
 
-package net.jimmc.jiviewer;
+package net.jimmc.mimprint;
 
 import net.jimmc.swing.AboutWindow;
 import net.jimmc.util.ResourceSource;

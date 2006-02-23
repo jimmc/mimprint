@@ -29,8 +29,8 @@ import javax.swing.*;
  */
 public class ZipSelfExtractor extends JFrame
 {
-    private final String appname = "jiviewer";  //name as used in files
-    private final String appnameCap = "Jiviewer";  //name as shown to user
+    private final String appname = "mimprint";  //name as used in files
+    private final String appnameCap = "Mimprint";  //name as shown to user
     private final String appAbbrev = "JV";      //two-char abbrev as short name
     private boolean isServer = false;
 
@@ -44,7 +44,7 @@ public class ZipSelfExtractor extends JFrame
     private boolean addClientP;
     private boolean autoStartP;
     private boolean showStatsP;
-    private boolean debug;	//set with -Djiviewer.install.debug
+    private boolean debug;	//set with -Dmimprint.install.debug
 
     public static void main(String[] args)
     {
