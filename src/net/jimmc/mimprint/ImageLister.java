@@ -376,6 +376,11 @@ public class ImageLister extends JPanel {
                     fileNames[i]);
         }
         Arrays.sort(fileInfos,new ImageFileNameComparator(targetDirectory));
+        String[] sortedFileNames = new String[fileInfos.length];
+        for (int i=0; i<fileInfos.length; i++) {
+            sortedFileNames[i] = fileInfos[i].name;
+        }
+        fileNames = sortedFileNames;
         if (formerTargetDirectory==null || targetDirectory==null ||
                 !formerTargetDirectory.toString().equals(
                         targetDirectory.toString())) {
