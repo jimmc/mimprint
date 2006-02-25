@@ -36,7 +36,9 @@ info.ImageHelp=Available commands:\n\
 	r - rotate image 90 degrees counter-clockwise\n\
 	R - rotate image 90 degrees clockwise\n\
 	Ctrl R - rotate image 180 degrees\n\
-	x - exit from Mimprint\n
+        s - slideshow screen mode\n\
+	x - exit from Mimprint\n\
+        ? - show this Help dialog\n
 
 layout.areaType.Image=Image
 layout.areaType.Grid=Grid
@@ -70,10 +72,10 @@ menu.Layout.SaveTemplateAs.label=Save Template As...
 
 menu.View.label=View
 menu.View.ListIncludeImage.label=Show Image In List
-menu.View.ScreenModeNormal.label=Normal Screen Mode
 menu.View.ScreenModeAlternate.label=Alternate Screen Mode
 menu.View.ScreenModeFull.label=Full Screen Mode
 menu.View.ScreenModePrint.label=Printable Screen Mode
+menu.View.ScreenModeSlideShow.label=SlideShow Screen Mode
 menu.View.ShowAreaOutlines.label=Show Area Outlines
 menu.View.ShowHelpDialog.label=Show Help Dialog
 menu.View.SplitPaneHorizontal.label=List on Left

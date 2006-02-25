@@ -77,7 +77,7 @@ public class Viewer extends JsFrame {
         private MenuAction printMenuItem;
 
         //Menu items for screen mode
-        private CheckBoxMenuAction cbmaNormal;
+        private CheckBoxMenuAction cbmaSlideShow;
         private CheckBoxMenuAction cbmaAlternate;
         private CheckBoxMenuAction cbmaFull;
         private CheckBoxMenuAction cbmaPrint;
@@ -86,8 +86,8 @@ public class Viewer extends JsFrame {
         private CheckBoxMenuAction cbmaListIncludeImage;
         private CheckBoxMenuAction cbmaShowAreaOutlines;
 
-	/** The screen bounds when in normal mode. */
-	private Rectangle normalBounds;
+	/** The screen bounds when in slideshow mode. */
+	private Rectangle slideShowBounds;
 
 	/** The latest file opened with the File Open dialog. */
 	private File currentOpenFile;
@@ -102,6 +102,7 @@ public class Viewer extends JsFrame {
 		this.app = app;
 		setJMenuBar(createMenuBar());
 		initForm();
+                setScreenMode(SCREEN_PRINT);
 		pack();
 
                 cbmaSplitPane.setState(true);   //start off with horizontal split
@@ -312,13 +313,21 @@ public class Viewer extends JsFrame {
 		MenuAction mi;
                 String label;
 
-		label = getResourceString("menu.View.ScreenModeNormal.label");
-		cbmaNormal = new CheckBoxMenuAction(label) {
+		label = getResourceString("menu.View.ScreenModePrint.label");
+		cbmaPrint = new CheckBoxMenuAction(label) {
 			public void action() {
-				setScreenMode(SCREEN_NORMAL);
+				setScreenMode(SCREEN_PRINT);
 			}
 		};
-		m.add(cbmaNormal);
+		m.add(cbmaPrint);
+
+		label = getResourceString("menu.View.ScreenModeSlideShow.label");
+		cbmaSlideShow = new CheckBoxMenuAction(label) {
+			public void action() {
+				setScreenMode(SCREEN_SLIDESHOW);
+			}
+		};
+		m.add(cbmaSlideShow);
 
 		label = getResourceString("menu.View.ScreenModeAlternate.label");
 		cbmaAlternate = new CheckBoxMenuAction(label) {
@@ -336,15 +345,7 @@ public class Viewer extends JsFrame {
 		};
 		m.add(cbmaFull);
 
-		label = getResourceString("menu.View.ScreenModePrint.label");
-		cbmaPrint = new CheckBoxMenuAction(label) {
-			public void action() {
-				setScreenMode(SCREEN_PRINT);
-			}
-		};
-		m.add(cbmaPrint);
-
-                cbmaNormal.setState(true);
+                cbmaPrint.setState(true); //default view mode is printable
 
                 m.add(new JSeparator());
 
@@ -407,7 +408,7 @@ public class Viewer extends JsFrame {
                 //imagePane = new JPanel(imagePaneLayout);
                 imagePane = new JPanel(new BorderLayout());
                 imagePane.setMinimumSize(new Dimension(100,100));
-                //imagePane.add(imageArea,"normal");
+                //imagePane.add(imageArea,"slideShow");
                 imagePane.add(imageArea,BorderLayout.CENTER);
 		splitPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,imageLister,imagePane);
@@ -504,7 +505,7 @@ public class Viewer extends JsFrame {
 		setTitle(title);
 	}
 
-        public final static int SCREEN_NORMAL = 0;
+        public final static int SCREEN_SLIDESHOW = 0;
         public final static int SCREEN_FULL = 1;
         public final static int SCREEN_PRINT = 2;
         public final static int SCREEN_ALT = 3;
@@ -517,17 +518,17 @@ public class Viewer extends JsFrame {
                 //imageLister.setVisible(!fullImage);
                     //Calling setVisible gets rid of the imageLister when we
                     //switch to full screen mode, but it doesn't come back
-                    //when we return to normal mode.
+                    //when we return to slideShow mode.
                 if (mode!=SCREEN_FULL) {
                     this.show();
                 }
                 switch (mode) {
-                case SCREEN_NORMAL:
+                case SCREEN_SLIDESHOW:
                     {
-                    //Switch back to normal bounds
-                    //setBounds(normalBounds.x, normalBounds.y,
-                    //	normalBounds.width, normalBounds.height);
-                    //imagePaneLayout.show(imagePane,"normal");
+                    //Switch back to slideShow bounds
+                    //setBounds(slideShowBounds.x, slideShowBounds.y,
+                    //	slideShowBounds.width, slideShowBounds.height);
+                    //imagePaneLayout.show(imagePane,"slideShow");
                     if (imagePagePanel!=null)
                         imagePane.remove(imagePagePanel);
                     imagePane.add(imageArea);
@@ -641,7 +642,7 @@ public class Viewer extends JsFrame {
                 layoutMenu.setEnabled(mode==SCREEN_PRINT);
                 printMenuItem.setEnabled(mode==SCREEN_PRINT);
 
-                cbmaNormal.setState(mode==SCREEN_NORMAL);
+                cbmaSlideShow.setState(mode==SCREEN_SLIDESHOW);
                 cbmaAlternate.setState(mode==SCREEN_ALT);
                 cbmaFull.setState(mode==SCREEN_FULL);
                 cbmaPrint.setState(mode==SCREEN_PRINT);
@@ -713,7 +714,7 @@ public class Viewer extends JsFrame {
             case SCREEN_PRINT:
                 imagePage.rotate(quarters);
                 break;
-            case SCREEN_NORMAL:
+            case SCREEN_SLIDESHOW:
             default:
                 imageArea.rotate(quarters);
                 break;

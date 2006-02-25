@@ -20,6 +20,8 @@ import javax.swing.ImageIcon;
 /** A representation of an image file in a list.
  */
 public class FileInfo {
+    public static final String MIMPRINT_EXTENSION = "mpr";
+
     int index;          //the index of this entry within the containing list
     int totalCount;     //total number of items in the list
     File dir;           //the directory containing the file
@@ -28,7 +30,7 @@ public class FileInfo {
     int type;       //the type of this entry
         public static final int DIR = 1;
         public static final int IMAGE = 2;
-        public static final int MMP = 3;        //our own file
+        public static final int MIMPRINT = 3;        //our own file
     //The above data is initialized when the FileInfo is created
 
     //The following data is initialized by a call to loadInfo
@@ -54,7 +56,7 @@ public class FileInfo {
         if (thisFile.isDirectory()) {
             type = FileInfo.DIR;
         } else if (isOurFileName(name)) {
-            type = FileInfo.MMP;       //our own file
+            type = FileInfo.MIMPRINT;       //our own file
         } else
             type = FileInfo.IMAGE;
     }
@@ -208,7 +210,7 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         if (dotPos<0)
             return false;	//no extension
         String extension = name.substring(dotPos+1).toLowerCase();
-        if (extension.equals("mmp")) {
+        if (extension.equals(MIMPRINT_EXTENSION)) {
             return true;
         }
         return false;

@@ -102,7 +102,7 @@ public class IconLoader extends Thread {
             return false;       //info not yet loaded, it's not ready for us
         if (fi.icon!=null)
             return false;       //icon already loaded
-//        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.MMP)
+//        if (fi.type!=FileInfo.IMAGE && fi.type!=FileInfo.MIMPRINT)
 //            return false;       //only load icons for image files and our own files
         return true;
     }
@@ -111,7 +111,8 @@ public class IconLoader extends Thread {
     private ImageIcon getFileIcon(FileInfo fileInfo, int index) {
         if (fileInfo.isDirectory())
             return getDirectoryIcon(fileInfo);
-        if (fileInfo.getPath().toLowerCase().endsWith(".mmp"))
+        if (fileInfo.getPath().toLowerCase().endsWith(
+                "."+FileInfo.MIMPRINT_EXTENSION))
             return getMimprintIcon(fileInfo);
         //Assume anything else is an image file
         return getImageFileIcon(fileInfo);

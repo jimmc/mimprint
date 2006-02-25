@@ -318,7 +318,7 @@ public class ImagePage extends JComponent
         }
 
         public void drop(DropTargetDropEvent ev) {
-            System.out.println("dropped");
+            //System.out.println("dropped");
             DataFlavor[] flavors = getDropFlavors();
             DataFlavor chosenFlavor = null;
             for (int i=0; i<flavors.length; i++) {
@@ -403,7 +403,7 @@ public class ImagePage extends JComponent
      * @return True if the file exists, false if not.
      */
     private boolean dropFileName(String s, ImagePageArea dropArea) {
-        System.out.println("Got drop data: "+s);
+//System.out.println("Got drop data: "+s);
 	if (s.startsWith("file://"))
 	    s = s.substring("file://".length()); //convert URL to file path
 	while ((s.endsWith("\n"))||s.endsWith("\r"))
@@ -420,7 +420,7 @@ public class ImagePage extends JComponent
         ImageBundle b = new ImageBundle(viewer.getApp(),ImagePage.this,f,-1);
         currentArea = dropArea;
         showImage(b,null);
-        System.out.println("Accepted drop of file "+f);
+//System.out.println("Accepted drop of file "+f);
         //TODO - add call to viewer.setStatus, but need to figure out when
         //to clear the status first
         return true;
@@ -767,7 +767,8 @@ public class ImagePage extends JComponent
             setCursorVisible(false);
             break;
         case KeyEvent.VK_ESCAPE:
-            viewer.setScreenMode(Viewer.SCREEN_NORMAL);	//back to normal size
+            viewer.setScreenMode(Viewer.SCREEN_PRINT);
+                //back to default mode
             break;
         case KeyEvent.VK_ENTER:
             viewer.activateSelection();
@@ -819,6 +820,9 @@ public class ImagePage extends JComponent
                     break;
             case 'r':	//rotate CCW
                     viewer.rotateCurrentImage(1);
+                    break;
+            case 's':	//the slideshow screen
+                    viewer.setScreenMode(Viewer.SCREEN_SLIDESHOW);
                     break;
             case 'R':	//rotate CW
                     viewer.rotateCurrentImage(-1);

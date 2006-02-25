@@ -1,4 +1,4 @@
-mimprint v0.1.0  February 22, 2005
+mimprint v0.1.0  February 24, 2005
 
   Enhancements:
 
@@ -12,16 +12,18 @@ mimprint v0.1.0  February 22, 2005
       the images within the window.
     + Layout menu allows saving/loading layout templates to/from files.
     + Add 'p' command to display printable window.
+    + Printable window is now the default screen mode.
   * Add Image menu.
     + Menu commands for keyboard actions such as rotate image.
   * Add Layout menu.
     + Save Template and Load Template commands allow saving the
-      current layout to an XML file dna reading it back later.
+      current layout to an XML file and reading it back later.
   * Add View menu.
     + Menu commands for keyboard actions such as screen mode.
     + List On Left command to put list of image files down the side.
     + Show Image In List command puts image icons in the list.
   * Add 'a' command to display on an alternate screen.
+  * Add 's' command to display slideshow mode (formerly "normal", the default).
   * Use separate window for full-screen mode, make it work better.
   * Remove dependence on JAI, so this version now runs on MacOSX.
 
@@ -34,6 +36,7 @@ mimprint v0.1.0  February 22, 2005
   Other Changes:
 
   * Add build.xml and build.properties to allow building with ant.
+  * Renamed from jiviewer to mimprint.
 
 ----------------------------------------------------------------------
 

@@ -242,7 +242,8 @@ public class ImageArea extends JLabel implements ImageWindow {
                         setCursorVisible(false);
 			break;
 		case KeyEvent.VK_ESCAPE:
-			viewer.setScreenMode(Viewer.SCREEN_NORMAL);	//back to normal size
+			viewer.setScreenMode(Viewer.SCREEN_PRINT);
+                            //back to default screen mode
 			break;
                 case KeyEvent.VK_ENTER:
                         viewer.activateSelection();
@@ -264,18 +265,15 @@ public class ImageArea extends JLabel implements ImageWindow {
 		case 'a':	//alternate-screen
 			viewer.setScreenMode(Viewer.SCREEN_ALT);
 			break;
-		case 'f':	//full-screen
-			viewer.setScreenMode(Viewer.SCREEN_FULL);
-			break;
-		case 'L'-0100:	//control-L, refresh
-			showCurrentImage();
-			break;
-		case 'e':
+		case 'e':       //edit image text
 			setCursorVisible(true);	//turn on cursor
 			viewer.showImageEditDialog();
 			setCursorVisible(false);	//turn cursor back off
 			break;
-		case 'i':
+		case 'f':	//full-screen
+			viewer.setScreenMode(Viewer.SCREEN_FULL);
+			break;
+		case 'i':       //show image info
 			setCursorVisible(true);	//turn on cursor
 			showImageInfoDialog();
 			setCursorVisible(false);	//turn cursor back off
@@ -297,7 +295,10 @@ public class ImageArea extends JLabel implements ImageWindow {
 		case 'R'-0100:	//control-R, rotate 180
 			viewer.rotateCurrentImage(2);
 			break;
-		case 's':	//toggle "scaled" flag
+		case 's':	//slideshow mode
+			viewer.setScreenMode(Viewer.SCREEN_SLIDESHOW);
+			break;
+		case 'S':	//toggle "scaled" flag
 			scaled = !scaled;
 			showCurrentImage();
 			break;
@@ -310,6 +311,9 @@ public class ImageArea extends JLabel implements ImageWindow {
 			setCursorVisible(true);	//turn on cursor
 			viewer.showHelpDialog();
 			setCursorVisible(false);	//turn cursor back off
+			break;
+		case 'L'-0100:	//control-L, refresh
+			showCurrentImage();
 			break;
 		default:		//unknown key
 			if (!knownKeyPress)

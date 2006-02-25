@@ -501,7 +501,7 @@ public class ImageLister extends JPanel {
         case FileInfo.IMAGE:
             displayCurrentSelection();
             break;
-        case FileInfo.MMP:
+        case FileInfo.MIMPRINT:
             //If the user selected this item, open it,
             //but not if the app selected it.
             if (!appIsSelecting)
