@@ -179,8 +179,7 @@
     <target name="cvstag" depends="init"
     		description="Tag all files in CVS for the current release">
 	<echo message="Tagging files as ${version.name}-${version.numberU}"/>
-        <cvs command="tag -n ${version.name}-${version.numberU}"/>
-        <!-- TODO remove -n once we know the command is right -->
+        <cvs command="tag ${version.name}-${version.numberU}"/>
     </target>
 
     <target name="rel" depends="relbin,relsrc,relapidoc"
