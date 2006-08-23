@@ -8,32 +8,32 @@ package net.jimmc.mimprint;
 /** A task to be executed by a {@link Worker} thread.
  */
 public abstract class WorkerTask {
-	/** Data for this task. */
-	protected Object data;
+    /** Data for this task. */
+    protected Object data;
 
-	/** Create a task with no data. */
-	public WorkerTask() {
-	}
+    /** Create a task with no data. */
+    public WorkerTask() {
+    }
 
-	/** Create a task with data.
-	 */
-	public WorkerTask(Object data) {
-		setData(data);
-	}
+    /** Create a task with data.
+     */
+    public WorkerTask(Object data) {
+        setData(data);
+    }
 
-	/** Set the data for this task. */
-	public void setData(Object data) {
-		this.data = data;
-	}
+    /** Set the data for this task. */
+    public void setData(Object data) {
+        this.data = data;
+    }
 
-	/** Get the data for this class. */
-	public Object getData() {
-		return data;
-	}
+    /** Get the data for this class. */
+    public Object getData() {
+        return data;
+    }
 
-	/** The action for this task.
-	 */
-	public abstract void run();
+    /** The action for this task.
+     */
+    public abstract void run();
 }
 
 //end

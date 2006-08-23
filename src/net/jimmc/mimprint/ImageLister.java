@@ -357,7 +357,7 @@ public class ImageLister extends JPanel {
         if (targetFile.isDirectory()) {
             //It's a directory, use it
             targetDirectory = targetFile;
-            targetFile = null;	//get the real file later
+            targetFile = null;    //get the real file later
         } else {
             //It's not a directory, get the containing directory
             targetDirectory = targetFile.getParentFile();
@@ -405,7 +405,7 @@ public class ImageLister extends JPanel {
             String targetFileName = targetFile.getName();
             int n = Arrays.binarySearch(fileNames,targetFileName);
             if (n<0)
-                n = 0;	//if file not found, select first file
+                n = 0;    //if file not found, select first file
             setSelectedIndex(n);
         }
     }
@@ -442,10 +442,10 @@ public class ImageLister extends JPanel {
      */
     protected void writeFileText(String path, String text) {
         if (path==null) {
-            return;	//no file, so no info
+            return;    //no file, so no info
         }
         if (text.length()>0 && !text.endsWith("\n"))
-            text = text + "\n";	//terminate with a newline
+            text = text + "\n";    //terminate with a newline
         try {
             String textPath = FileInfo.getTextFileNameForImage(path);
             File f = new File(textPath);
@@ -453,7 +453,7 @@ public class ImageLister extends JPanel {
         } catch (Exception ex) {
             throw new RuntimeException(ex);  //TBD more info
         }
-        displayCurrentImage();	//refresh image text
+        displayCurrentImage();    //refresh image text
     }
 
     /** Set the contents of the status area. */
@@ -466,7 +466,7 @@ public class ImageLister extends JPanel {
     public boolean isImageFileName(String name) {
         int dotPos = name.lastIndexOf('.');
         if (dotPos<0)
-            return false;	//no extension
+            return false;    //no extension
         String extension = name.substring(dotPos+1).toLowerCase();
         if (extension.equals("gif") || extension.equals("jpg") ||
                 extension.equals("jpeg")) {
@@ -544,7 +544,7 @@ public class ImageLister extends JPanel {
         int currentSelection = (currentImage==null)?
                 -1:currentImage.getListIndex();
         if (newSelection==currentSelection)
-            return;		//no change, ignore this call
+            return;        //no change, ignore this call
 
         if (newSelection<0) {
             //Nothing selected
@@ -580,7 +580,7 @@ public class ImageLister extends JPanel {
             if (imageWindow!=null)
                 imageWindow.showText("No file");        //TODO i18n
             currentImage = null;
-            return;		//nothing there
+            return;        //nothing there
         }
         if (file.isDirectory()) {
             if (imageWindow!=null)
@@ -594,7 +594,7 @@ public class ImageLister extends JPanel {
     /** Set up the next and previous images. */
     protected void setupAdjacentImages() {
         if (!app.useLookAhead())
-            return;		//lookahead disabled
+            return;        //lookahead disabled
         int currentSelection = (currentImage==null)?
                 -1:currentImage.getListIndex();
         int maxIndex = fileNameList.getModel().getSize();
@@ -625,7 +625,7 @@ public class ImageLister extends JPanel {
     /** Display the current image. */
     protected void displayCurrentImage() {
         String path;
-        setFileText(null);	//clear image text while changing
+        setFileText(null);    //clear image text while changing
         if (currentImage==null) {
             path = null;
             if (imageWindow!=null)
@@ -683,7 +683,7 @@ public class ImageLister extends JPanel {
         if (lastFile!=null)
             open(lastFile);
         else
-            open(newDir);	//TBD - skip back farther?
+            open(newDir);    //TBD - skip back farther?
     }
 
     /** Move to next directory */
@@ -694,7 +694,7 @@ public class ImageLister extends JPanel {
             viewer.errorDialog(eMsg);
             return;
         }
-        open(newDir);	//TBD - skip forward farther if no imgs?
+        open(newDir);    //TBD - skip forward farther if no imgs?
     }
 
     /** Move the selection up one item and show that file. */
@@ -720,7 +720,7 @@ public class ImageLister extends JPanel {
             String prompt = "At beginning; move to previous dir?";
                     //TBD i18n this section
             if (!viewer.confirmDialog(prompt))
-                return;		//cancelled
+                return;        //cancelled
             //User is trying to move off the beginning of the list,
             //see about moving back to the previous directory
             left();
@@ -730,7 +730,7 @@ public class ImageLister extends JPanel {
             String prompt = "At end; move to next dir?";
                     //TBD i18n this section
             if (!viewer.confirmDialog(prompt))
-                return;		//cancelled
+                return;        //cancelled
             //User is trying to move off the end of the list,
             //see about moving forward to the next directory
             right();
@@ -790,11 +790,11 @@ public class ImageLister extends JPanel {
             //Check to see if the list selection changed while
             //we were busy updating.  If so, don't do the wait.
             int newSelection = fileNameList.getSelectedIndex();
-	    if (newSelection>=0) {
-		FileInfo fileInfo = getFileInfo(newSelection);
-		if (fileInfo.isDirectory())
-		    newSelection = -1;	//no image file selected
-	    }
+        if (newSelection>=0) {
+        FileInfo fileInfo = getFileInfo(newSelection);
+        if (fileInfo.isDirectory())
+            newSelection = -1;    //no image file selected
+        }
             int currentSelection = (currentImage==null)?
                     -1:currentImage.getListIndex();
             if (newSelection==currentSelection) {
@@ -934,9 +934,9 @@ public class ImageLister extends JPanel {
                 return null;
             siblings = parentDir.list();
             if (siblings==null || siblings.length==0)
-                continue;	//no files, try next dir
+                continue;    //no files, try next dir
             Arrays.sort(siblings);
-            if (newDirIndex<0)	//backing up
+            if (newDirIndex<0)    //backing up
                 newDirIndex = siblings.length-1;
             else
                 newDirIndex = 0;

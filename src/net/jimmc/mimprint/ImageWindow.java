@@ -30,14 +30,14 @@ public interface ImageWindow {
         /** Request focus for this area. */
         public void requestFocus();
 
-	/** Show text instead of an image. */
-	public void showText(String text);
+    /** Show text instead of an image. */
+    public void showText(String text);
 
-	/** Show an image, set up text info about the image. */
-	public void showImage(ImageBundle imageBundle, String imageInfo);
+    /** Show an image, set up text info about the image. */
+    public void showImage(ImageBundle imageBundle, String imageInfo);
 
-	/** Set the cursor to a busy cursor. */
-	public void setCursorBusy(boolean busy);
+    /** Set the cursor to a busy cursor. */
+    public void setCursorBusy(boolean busy);
 }
 
 /* end */

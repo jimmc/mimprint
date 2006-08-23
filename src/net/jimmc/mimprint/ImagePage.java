@@ -718,12 +718,12 @@ public class ImagePage extends JComponent
 
     /** Get a string from our resources. */
     public String getResourceString(String name) {
-            return viewer.getApp().getResourceString(name);
+        return viewer.getApp().getResourceString(name);
     }
 
     /** Get a string from our resources. */
     public String getResourceFormatted(String name, Object[] args) {
-            return viewer.getApp().getResourceFormatted(name, args);
+        return viewer.getApp().getResourceFormatted(name, args);
     }
 
   //The Printable interface
@@ -739,163 +739,162 @@ public class ImagePage extends JComponent
     }
   //End Printable interface
 
-  class ImagePageKeyListener implements KeyListener {
-  //The KeyListener interface
-    public void keyPressed(KeyEvent ev) {
-        setCursorVisible(false);	//turn off cursor on any key
-        int keyCode = ev.getKeyCode();
-        knownKeyPress = true;	//assume we know it
-        switch (keyCode) {
-        case KeyEvent.VK_LEFT:
-            setCursorVisible(true);
-            viewer.moveLeft();
-            setCursorVisible(false);
-            break;
-        case KeyEvent.VK_RIGHT:
-            setCursorVisible(true);
-            viewer.moveRight();
-            setCursorVisible(false);
-            break;
-        case KeyEvent.VK_DOWN:
-            setCursorVisible(true);
-            viewer.moveDown();
-            setCursorVisible(false);
-            break;
-        case KeyEvent.VK_UP:
-            setCursorVisible(true);
-            viewer.moveUp();
-            setCursorVisible(false);
-            break;
-        case KeyEvent.VK_ESCAPE:
-            viewer.setScreenMode(Viewer.SCREEN_PRINT);
-                //back to default mode
-            break;
-        case KeyEvent.VK_ENTER:
-            viewer.activateSelection();
-            break;
-        default:	//ignore
-            knownKeyPress = false;
-            break;
+    class ImagePageKeyListener implements KeyListener {
+        //The KeyListener interface
+        public void keyPressed(KeyEvent ev) {
+            setCursorVisible(false);	//turn off cursor on any key
+            int keyCode = ev.getKeyCode();
+            knownKeyPress = true;	//assume we know it
+            switch (keyCode) {
+            case KeyEvent.VK_LEFT:
+                setCursorVisible(true);
+                viewer.moveLeft();
+                setCursorVisible(false);
+                break;
+            case KeyEvent.VK_RIGHT:
+                setCursorVisible(true);
+                viewer.moveRight();
+                setCursorVisible(false);
+                break;
+            case KeyEvent.VK_DOWN:
+                setCursorVisible(true);
+                viewer.moveDown();
+                setCursorVisible(false);
+                break;
+            case KeyEvent.VK_UP:
+                setCursorVisible(true);
+                viewer.moveUp();
+                setCursorVisible(false);
+                break;
+            case KeyEvent.VK_ESCAPE:
+                viewer.setScreenMode(Viewer.SCREEN_PRINT);
+                    //back to default mode
+                break;
+            case KeyEvent.VK_ENTER:
+                viewer.activateSelection();
+                break;
+            default:	//ignore
+                knownKeyPress = false;
+                break;
+            }
         }
-    }
-    public void keyReleased(KeyEvent ev) {
-        int keyCode = ev.getKeyCode();
-    }
-    public void keyTyped(KeyEvent ev) {
+        public void keyReleased(KeyEvent ev) {
+            int keyCode = ev.getKeyCode();
+        }
+        public void keyTyped(KeyEvent ev) {
             char ch = ev.getKeyChar();
             switch (ch) {
             case ' ':   //activate selection
-                    viewer.activateSelection();
-                    break;
-            case 'a':	//alternate-screen
-                    viewer.setScreenMode(Viewer.SCREEN_ALT);
-                    break;
-            case 'f':	//full-screen
-                    viewer.setScreenMode(Viewer.SCREEN_FULL);
-                    break;
-            case 'L'-0100:	//control-L, refresh
-                    //showCurrentImage();               //TODO
-                    break;
+                viewer.activateSelection();
+                break;
+            case 'a':    //alternate-screen
+                viewer.setScreenMode(Viewer.SCREEN_ALT);
+                break;
+            case 'f':    //full-screen
+                viewer.setScreenMode(Viewer.SCREEN_FULL);
+                break;
+            case 'L'-0100:    //control-L, refresh
+                //showCurrentImage();               //TODO
+                break;
             case 'e':
-                    setCursorVisible(true);	//turn on cursor
-                    viewer.showImageEditDialog();
-                    setCursorVisible(false);	//turn cursor back off
-                    break;
+                setCursorVisible(true);    //turn on cursor
+                viewer.showImageEditDialog();
+                setCursorVisible(false);    //turn cursor back off
+                break;
             case 'i':
-                    setCursorVisible(true);	//turn on cursor
-                    if (imageInfoText==null) {
-                            imageInfoText =
-                                getResourceString("query.Info.NoDescription");
-                    }
-                    viewer.infoDialog(imageInfoText);
-                    setCursorVisible(false);	//turn cursor back off
-                    break;
-            case 'o':	//file-open dialog
-                    setCursorVisible(true);	//turn on cursor
-                    viewer.processFileOpen();
-                    setCursorVisible(false);	//turn cursor back off
-                    break;
-            case 'p':	//the print screen
-                    viewer.setScreenMode(Viewer.SCREEN_PRINT);
-                    break;
-            case 'r':	//rotate CCW
-                    viewer.rotateCurrentImage(1);
-                    break;
-            case 's':	//the slideshow screen
-                    viewer.setScreenMode(Viewer.SCREEN_SLIDESHOW);
-                    break;
-            case 'R':	//rotate CW
-                    viewer.rotateCurrentImage(-1);
-                    break;
-            case 'R'-0100:	//control-R, rotate 180
-                    viewer.rotateCurrentImage(2);
-                    break;
-            case 'x':	//exit
-                    setCursorVisible(true);	//turn on cursor
-                    viewer.processClose();
-                    setCursorVisible(false);	//turn cursor back off
-                    break;
+                setCursorVisible(true);    //turn on cursor
+                if (imageInfoText==null) {
+                    imageInfoText = getResourceString("query.Info.NoDescription");
+                }
+                viewer.infoDialog(imageInfoText);
+                setCursorVisible(false);    //turn cursor back off
+                break;
+            case 'o':    //file-open dialog
+                setCursorVisible(true);    //turn on cursor
+                viewer.processFileOpen();
+                setCursorVisible(false);    //turn cursor back off
+                break;
+            case 'p':    //the print screen
+                viewer.setScreenMode(Viewer.SCREEN_PRINT);
+                break;
+            case 'r':    //rotate CCW
+                viewer.rotateCurrentImage(1);
+                break;
+            case 's':    //the slideshow screen
+                viewer.setScreenMode(Viewer.SCREEN_SLIDESHOW);
+                break;
+            case 'R':    //rotate CW
+                viewer.rotateCurrentImage(-1);
+                break;
+            case 'R'-0100:    //control-R, rotate 180
+                viewer.rotateCurrentImage(2);
+                break;
+            case 'x':    //exit
+                setCursorVisible(true);    //turn on cursor
+                viewer.processClose();
+                setCursorVisible(false);    //turn cursor back off
+                break;
             case '?':
-                    setCursorVisible(true);	//turn on cursor
-                    viewer.showHelpDialog();
-                    setCursorVisible(false);	//turn cursor back off
-                    break;
+                setCursorVisible(true);    //turn on cursor
+                viewer.showHelpDialog();
+                setCursorVisible(false);    //turn cursor back off
+                break;
             case 0177:                  //delete
             case 8:                     //backspace
-                    if (currentArea!=null) {
-                        //clear image from current area
-                        currentArea.setImage(null);
-                        repaintCurrentImage();
-                    }
-                    break;
-            default:		//unknown key
-                    if (!knownKeyPress) {
-                        System.out.println("Unknown key "+ch+" ("+((int)ch)+")");
-                        getToolkit().beep();
-                    }
-                    break;
+                if (currentArea!=null) {
+                    //clear image from current area
+                    currentArea.setImage(null);
+                    repaintCurrentImage();
+                }
+                break;
+            default:        //unknown key
+                if (!knownKeyPress) {
+                    System.out.println("Unknown key "+ch+" ("+((int)ch)+")");
+                    getToolkit().beep();
+                }
+                break;
             }
+        }
+        //End KeyListener interface
     }
-  //End KeyListener interface
-  }
 
-  class ImagePageMouseListener implements MouseListener {
-  //The MouseListener interface
-    public void mouseClicked(MouseEvent ev) {}
-    public void mouseEntered(MouseEvent ev) {}
-    public void mouseExited(MouseEvent ev) {}
-    public void mousePressed(MouseEvent ev) {
+    class ImagePageMouseListener implements MouseListener {
+        //The MouseListener interface
+        public void mouseClicked(MouseEvent ev) {}
+        public void mouseEntered(MouseEvent ev) {}
+        public void mouseExited(MouseEvent ev) {}
+        public void mousePressed(MouseEvent ev) {
             requestFocus();
             selectArea(new Point(ev.getX(),ev.getY()));
+        }
+        public void mouseReleased(MouseEvent ev) {}
+        //End MouseListener interface
     }
-    public void mouseReleased(MouseEvent ev) {}
-  //End MouseListener interface
-  }
 
-  class ImagePageMouseMotionListener implements MouseMotionListener {
-  //The MouseMotionListener interface
-    public void mouseDragged(MouseEvent ev){
+    class ImagePageMouseMotionListener implements MouseMotionListener {
+        //The MouseMotionListener interface
+        public void mouseDragged(MouseEvent ev){
             setCursorVisible(true); //turn cursor back on
-    }
-    public void mouseMoved(MouseEvent ev){
+        }
+        public void mouseMoved(MouseEvent ev){
             setCursorVisible(true); //turn cursor back on
+        }
+        //End MouseMotionListener interface
     }
-  //End MouseMotionListener interface
-  }
 
-  class ImagePageComponentListener implements ComponentListener {
-  //The ComponentListener interface
-    public void componentHidden(ComponentEvent ev){}
-    public void componentMoved(ComponentEvent ev){}
-    public void componentResized(ComponentEvent ev){
-        //app.debugMsg("componentResized");
-        //repaint();
+    class ImagePageComponentListener implements ComponentListener {
+        //The ComponentListener interface
+        public void componentHidden(ComponentEvent ev){}
+        public void componentMoved(ComponentEvent ev){}
+        public void componentResized(ComponentEvent ev){
+            //app.debugMsg("componentResized");
+            //repaint();
+        }
+        public void componentShown(ComponentEvent ev){}
+        //End ComponentListener interface
     }
-    public void componentShown(ComponentEvent ev){}
-  //End ComponentListener interface
-  }
 
-  class PaperNoMargin extends Paper {
+    class PaperNoMargin extends Paper {
         //Force our paper's imageable area to the full size
         public double getImageableHeight() {
             return getHeight();
