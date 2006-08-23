@@ -168,8 +168,7 @@ public class FileInfo {
                 //offset for the specified time.
                 TimeZone tz = new ZoneInfo(tzFile);
                 int zOff = tz.getOffset(modTimeMillis);
-                SimpleTimeZone stz =	
-                        new SimpleTimeZone(zOff,tz.getID());
+                SimpleTimeZone stz = new SimpleTimeZone(zOff,tz.getID());
                 dFmt.setTimeZone(stz);
                 dFmt.applyPattern(dFmt.toPattern()+" zzzz");
             } catch (IOException ex) {
@@ -182,7 +181,6 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
             sb.append("<br><i>");
             sb.append(dateStr);
             sb.append("</i>");
-            sb.append("<br>");
         } else {
             sb.append("; ");
             sb.append(dateStr);
@@ -195,8 +193,10 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
                 fileText = fileText.substring(0,fileText.length()-1);
             }
             sb.append("\n");
-            if (useHtml)
+            if (useHtml) {
+                sb.append("<br>");
                 fileText = fileText.replaceAll("\\n","<br>");
+            }
             sb.append(fileText);
         }
         if (useHtml)

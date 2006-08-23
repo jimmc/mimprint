@@ -83,6 +83,7 @@ public class Viewer extends JsFrame {
         private CheckBoxMenuAction cbmaPrint;
 
         private CheckBoxMenuAction cbmaSplitPane;
+        private CheckBoxMenuAction cbmaListIncludeInfo;
         private CheckBoxMenuAction cbmaListIncludeImage;
         private CheckBoxMenuAction cbmaShowAreaOutlines;
 
@@ -108,7 +109,7 @@ public class Viewer extends JsFrame {
                 cbmaSplitPane.setState(true);   //start off with horizontal split
                 setSplitPaneHorizontal(cbmaSplitPane.getState());
                 cbmaListIncludeImage.setState(true);
-                imageLister.setListMode(ImageLister.MODE_FULL);
+                setListMode(ImageLister.MODE_INFO);
 
                 imageArea.requestFocus();
 		addWindowListener();
@@ -357,12 +358,22 @@ public class Viewer extends JsFrame {
 		};
 		m.add(cbmaSplitPane);
 
+		label = getResourceString("menu.View.ListIncludeInfo.label");
+		cbmaListIncludeInfo = new CheckBoxMenuAction(label) {
+			public void action() {
+                                int listMode = cbmaListIncludeInfo.getState()?
+                                    ImageLister.MODE_INFO:ImageLister.MODE_NAME;
+				setListMode(listMode);
+			}
+		};
+		m.add(cbmaListIncludeInfo);
+
 		label = getResourceString("menu.View.ListIncludeImage.label");
 		cbmaListIncludeImage = new CheckBoxMenuAction(label) {
 			public void action() {
                                 int listMode = cbmaListIncludeImage.getState()?
                                     ImageLister.MODE_FULL:ImageLister.MODE_NAME;
-				imageLister.setListMode(listMode);
+				setListMode(listMode);
 			}
 		};
 		m.add(cbmaListIncludeImage);
@@ -648,6 +659,14 @@ public class Viewer extends JsFrame {
                 cbmaPrint.setState(mode==SCREEN_PRINT);
 	}
 
+        /** Set the specified mode on the lister, and update the states
+         * of the related menu items. */
+        private void setListMode(int mode) {
+                imageLister.setListMode(mode);
+                cbmaListIncludeInfo.setState(mode==ImageLister.MODE_INFO);
+                cbmaListIncludeImage.setState(mode==ImageLister.MODE_FULL);
+        }
+
 	/** Display the specified text, allow the user to edit it.
 	 * @param title The title of the editing dialog.
 	 * @param text The text to display and edit.
@@ -689,7 +708,7 @@ public class Viewer extends JsFrame {
                     imageLister.currentImage.path);
             String newImageText = editTextDialog(title,imageText);
             if (newImageText==null)
-                    return;		//cancelled
+                return;		//cancelled
             imageLister.setCurrentImageFileText(newImageText);
 	}
 

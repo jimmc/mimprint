@@ -77,7 +77,8 @@ public class ImageLister extends JPanel {
 
     private int listMode;
         public static final int MODE_NAME = 0;
-        public static final int MODE_FULL = 1;
+        public static final int MODE_INFO = 1;
+        public static final int MODE_FULL = 2;
         private static final int MODE_MAX = MODE_FULL; //highest legal value
 
     /** The status area. */
@@ -245,6 +246,7 @@ public class ImageLister extends JPanel {
                 fileNameList.setFixedCellWidth(-1);
                 fileNameList.setFixedCellHeight(-1);
                 break;
+            case MODE_INFO:
             case MODE_FULL:
                 fileNameList.setCellRenderer(new FileListRenderer());
                 //fileNameList.setFixedCellWidth(ICON_LIST_WIDTH);
@@ -265,7 +267,7 @@ public class ImageLister extends JPanel {
                 imageLoaderRun();
             }
         };
-        imageLoader.setPriority(imageLoader.getPriority()-2);
+        imageLoader.setPriority(imageLoader.getPriority()-1);
         imageLoader.start();
         app.debugMsg("image loader thread started");
     }
@@ -391,7 +393,13 @@ public class ImageLister extends JPanel {
             //No files in the list, so don't try to select anything
         } else if (targetFile==null) {
             //No file specified, so select the first file in the dir
-            setSelectedIndex(0);
+            for (int i=0; i<fileNames.length; i++) {
+                File ff = new File(targetDirectory,fileNames[i]);
+                if (!ff.isDirectory()) {
+                    setSelectedIndex(i);
+                    break;
+                }
+            }
         } else {
             //Find the index of the specified file and select it
             String targetFileName = targetFile.getName();
@@ -846,7 +854,8 @@ public class ImageLister extends JPanel {
 
         //leave icon null, let iconLoader fill it in
         //fileInfos[index] = fileInfo;
-        iconLoader.moreIcons();         //tell iconLoader to load icons
+        if (listMode==MODE_FULL)
+            iconLoader.moreIcons();         //tell iconLoader to load icons
         return fileInfo;
     }
 
@@ -878,8 +887,13 @@ public class ImageLister extends JPanel {
         //in the right mode; need to do that check within a sync
         //block to prevent race condition.
         synchronized (this) {
-            if (listMode==MODE_FULL) {
+            switch (listMode) {
+            case MODE_INFO:
+            case MODE_FULL:
                 fileNameList.setCellRenderer(new FileListRenderer());
+                break;
+            default:
+                break;
             }
         }
         return true;
@@ -963,7 +977,8 @@ public class ImageLister extends JPanel {
             cell.setText(labelText);
             //cell.setVerticalAlignment(TOP);      //put text at top left
             //cell.setHorizontalAlignment(LEFT);
-            cell.setIcon(fileInfo.icon);
+            if (listMode==MODE_FULL)
+                cell.setIcon(fileInfo.icon);
             /* the rest is handled by superclass...
             if (isSelected) {
                 cell.setBackground(list.getSelectionBackground());

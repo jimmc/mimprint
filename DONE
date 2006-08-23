@@ -65,3 +65,6 @@
 - Rename from jiviewer to mimprint; make print mode the default. [060224]
 - Rename template extension from jiv to mpr. [060224]
 - v0.1.0. [060301]
+- Add "Show Info In List" option to View menu and make it the default. [060822]
+- When entering a new directory without a file specified, select the first
+  non-directory file. [060822]
