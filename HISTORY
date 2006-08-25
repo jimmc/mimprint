@@ -1,3 +1,21 @@
+mimprint v0.1.1  March 1, 2006
+
+  Enhancements:
+
+  * The View menu now includes a "Show Info In List" option that shows
+    the image info but not an icon.  The "Show Image In List" menu item
+    has been renamed to "Show Image and Info In List" for clarity.
+
+  Bug Fixes:
+
+  * When entering a directory, the first non-directory file is now selected
+    by default.  This makes navigating into the next directory work properly.
+  * After updating the text associated with an image, the display is now
+    immediately updated, and the new text appears properly in the Info and
+    Edit popup dialogs.
+
+----------------------------------------------------------------------
+
 mimprint v0.1.0  March 1, 2006
 
   Enhancements:

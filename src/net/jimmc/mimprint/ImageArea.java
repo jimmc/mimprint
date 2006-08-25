@@ -184,13 +184,6 @@ public class ImageArea extends JLabel implements ImageWindow {
         return true;    //allow keyboard input
     }
 
-    /** Put up a dialog showing the image info. */
-    public void showImageInfoDialog() {
-        if (imageInfoText==null)
-            imageInfoText = "(No description)";    //TBD i18n
-        viewer.infoDialog(imageInfoText);
-    }
-
     /** Set the cursor to a busy cursor. */
     public void setCursorBusy(boolean busy) {
         cursorBusy = busy;
@@ -275,7 +268,7 @@ public class ImageArea extends JLabel implements ImageWindow {
                 break;
             case 'i':       //show image info
                 setCursorVisible(true);    //turn on cursor
-                showImageInfoDialog();
+                viewer.showImageInfoDialog();
                 setCursorVisible(false);    //turn cursor back off
                 break;
             case 'o':    //file-open dialog

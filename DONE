@@ -68,3 +68,5 @@
 - Add "Show Info In List" option to View menu and make it the default. [060822]
 - When entering a new directory without a file specified, select the first
   non-directory file. [060822]
+- Display updated image info after editing it with edit-info. [060823]
+- v0.1.1. [060824]

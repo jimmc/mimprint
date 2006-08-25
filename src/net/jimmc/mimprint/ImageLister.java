@@ -33,6 +33,7 @@ import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
@@ -73,6 +74,7 @@ public class ImageLister extends JPanel {
 
     /** Our list. */
     private JList fileNameList;
+    private ArrayListModel fileNameListModel;
     private IconLoader iconLoader;
 
     private int listMode;
@@ -388,7 +390,8 @@ public class ImageLister extends JPanel {
                         targetDirectory.toString())) {
             setDirectoryInfo(targetDirectory);
         }
-        fileNameList.setListData(fileNames);
+        fileNameListModel = new ArrayListModel(fileNames);
+        fileNameList.setModel(fileNameListModel);
         if (fileNames.length==0) {
             //No files in the list, so don't try to select anything
         } else if (targetFile==null) {
@@ -661,6 +664,10 @@ public class ImageLister extends JPanel {
             throw new RuntimeException("No image selected"); //TODO i18n?
         String path = currentImage.getPath();
         writeFileText(path,imageText);
+        int index = currentImage.getListIndex();
+        FileInfo fileInfo = getFileInfo(index);
+        fileInfo.loadInfo();    //reload info with new text
+        fileNameListModel.fireItemChanged(index);
     }
 
     protected String getCurrentImageFileInfo() {
@@ -991,6 +998,22 @@ public class ImageLister extends JPanel {
             cell.setFont(list.getFont());
             */
             return cell;
+        }
+    }
+
+    class ArrayListModel extends AbstractListModel {
+        private Object[] array;
+        public ArrayListModel(Object[] a) {
+            this.array = a;
+        }
+        public int getSize() {
+            return array.length;
+        }
+        public Object getElementAt(int index) {
+            return array[index];
+        }
+        public void fireItemChanged(int index) {
+            fireContentsChanged(this,index,index);
         }
     }
 }
