@@ -15,6 +15,8 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -39,6 +41,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JWindow;
+import javax.swing.SwingUtilities;
 
 /** The top window class for the mimprint program.
  */
@@ -673,7 +676,7 @@ public class Viewer extends JsFrame {
      * @return The edited string, or null if cancelled.
      */
     protected String editTextDialog(String title, String text) {
-        JTextArea tx = new JTextArea(text);
+        final JTextArea tx = new JTextArea(text);
         JScrollPane scroll = new JScrollPane(tx);
         scroll.setPreferredSize(new Dimension(500,200));
         JOptionPane pane = new JOptionPane(scroll,
@@ -683,6 +686,17 @@ public class Viewer extends JsFrame {
         dlg.setResizable(true);
         pane.setInitialValue(null);
         pane.selectInitialValue();
+	//We want the text area to have the focus, and it seems there is no
+	//easy way to do this.  See Bug 4222534, from whence came this code.
+	dlg.addWindowListener(new WindowAdapter() {
+	    public void windowActivated(WindowEvent e) {
+		SwingUtilities.invokeLater( new Runnable() {  
+		    public void run() {
+			tx.requestFocus();
+		    }
+		});
+	    }
+	});
         dlg.show();    //get user's changes
 
         Object v = pane.getValue();
