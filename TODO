@@ -10,6 +10,13 @@
 - Option in template to display captions under photos: separate control
   for showing filename, file date and file text. (051116)
 
+Bugs:
+* Alternate screen mode doesn't work when displaying remotely onto Max
+  using X Windows.  Perhaps add a two-window mode where the image is displayed
+  in one window, the the controls are in the other; that way the image window
+  can be moved onto the second screen and resized to be the size of that
+  screen. (071230)
+  
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)
@@ -27,7 +34,21 @@ PlayLists:
   from the current viewing information. (020828)
 
 Misc:
-- Add pan/zoom commands. (020818)
+* Add pan/zoom commands. (020818)
+* Add auto-slideshow mode, so that it automatically advances to the next
+  slide after N seconds (settable in a perference dialog). (071230)
+* Add a "mark for print" command that adds this image to an in-memory list
+  of images to be printed.  Put an indicator in the image filename list
+  so user can see it is marked for printing. 
+  Make the printable image mode handle multiple
+  pages.  Add a command to take the marked images and drop them into the
+  slots on the multiple pages, advancing to the next page when each page
+  is full. (071230)
+- Create a .mim directory within each viewed directory: put thumbnails there,
+  put a file there with rotation info.  Could also put the mark-for-print
+  info there, so that you can spend a long time marking and come back later
+  to print. (071230)
+- Add a tool bar with buttons for the viewing modes. (071230)
 - Use +, - and = to zoom in, out, and zoom to 1.0 scale.  When zoomed in,
   use scroll bars on viewing area. (021101)
 - Use _ to zoom to fit-to-window (or perhaps _ to use 1.0 scale, = to fit
