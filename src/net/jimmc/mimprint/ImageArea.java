@@ -235,8 +235,7 @@ public class ImageArea extends JLabel implements ImageWindow {
                             setCursorVisible(false);
                 break;
             case KeyEvent.VK_ESCAPE:
-                viewer.setScreenMode(Viewer.SCREEN_PRINT);
-                                //back to default screen mode
+                viewer.restorePreviousScreenMode();
                 break;
                     case KeyEvent.VK_ENTER:
                             viewer.activateSelection();

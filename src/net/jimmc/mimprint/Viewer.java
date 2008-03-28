@@ -72,9 +72,11 @@ public class Viewer extends JsFrame {
         //frame (Viewer), which causes problems.
     /** Alternate screen window. */
     private JWindow altWindow;
+    private JFrame dualWindow;
 
     /** The current screen mode. */
     private int screenMode;
+    private int previousScreenMode;
 
     private JMenu layoutMenu;
     private MenuAction printMenuItem;
@@ -82,6 +84,7 @@ public class Viewer extends JsFrame {
     //Menu items for screen mode
     private CheckBoxMenuAction cbmaSlideShow;
     private CheckBoxMenuAction cbmaAlternate;
+    private CheckBoxMenuAction cbmaDualWindow;
     private CheckBoxMenuAction cbmaFull;
     private CheckBoxMenuAction cbmaPrint;
 
@@ -106,7 +109,7 @@ public class Viewer extends JsFrame {
         this.app = app;
         setJMenuBar(createMenuBar());
         initForm();
-        setScreenMode(SCREEN_PRINT);
+        setScreenMode(SCREEN_MODE_DEFAULT);
         pack();
 
         cbmaSplitPane.setState(true);   //start off with horizontal split
@@ -340,6 +343,15 @@ public class Viewer extends JsFrame {
             }
         };
         m.add(cbmaAlternate);
+        cbmaAlternate.setVisible(hasAlternateScreen());
+
+        label = getResourceString("menu.View.ScreenModeDualWindow.label");
+        cbmaDualWindow = new CheckBoxMenuAction(label) {
+            public void action() {
+                setScreenMode(SCREEN_DUAL_WINDOW);
+            }
+        };
+        m.add(cbmaDualWindow);
 
         label = getResourceString("menu.View.ScreenModeFull.label");
         cbmaFull = new CheckBoxMenuAction(label) {
@@ -523,6 +535,8 @@ public class Viewer extends JsFrame {
     public final static int SCREEN_FULL = 1;
     public final static int SCREEN_PRINT = 2;
     public final static int SCREEN_ALT = 3;
+    public final static int SCREEN_DUAL_WINDOW = 4;
+        private final static int SCREEN_MODE_DEFAULT = SCREEN_SLIDESHOW;
     /** Set the image area to take up the full screen, or unset.
      * @param mode The screen mode to use, one of the SCREEN_* constants.
      */
@@ -568,28 +582,15 @@ public class Viewer extends JsFrame {
             break;
         case SCREEN_ALT:
             {
-            GraphicsEnvironment ge = GraphicsEnvironment.
-                    getLocalGraphicsEnvironment();
-            GraphicsDevice[] gs = ge.getScreenDevices();
-            Vector configs = new Vector();
-            for (int i=0; i<gs.length; i++) {
-                GraphicsDevice gd = gs[i];
-                GraphicsConfiguration[] gc = gd.getConfigurations();
-                for (int j=0; j<gc.length; j++) {
-                    configs.addElement(gc[j]);
-                }
-            }
-            if (configs.size()<2) {
-                getToolkit().beep();
-                return;         //only one display, no mode change
-            }
             //TODO - if more than 2 configs, ask which one to use
             //For now, just use the second config
 
-            GraphicsConfiguration gc = 
-                    (GraphicsConfiguration)configs.elementAt(1);
+            GraphicsConfiguration gc = getAlternateGraphicsConfiguration(1);
+            if (gc==null) {
+                getToolkit().beep();
+                return;         //only one display, no mode change
+            }
             Rectangle altScreenBounds = gc.getBounds();
-
             fullImageArea = new ImageArea(app,this);
             altWindow = new JWindow();
             altWindow.getContentPane().add(fullImageArea);
@@ -599,6 +600,19 @@ public class Viewer extends JsFrame {
             altWindow.show();
             fullImageArea.requestFocus();
             imageArea.showText("see alternate screen for image");
+            }
+            break;
+        case SCREEN_DUAL_WINDOW:
+            {
+            Rectangle dualScreenBounds = imagePane.getBounds();
+            fullImageArea = new ImageArea(app,this);
+            dualWindow = new JFrame();
+            dualWindow.getContentPane().add(fullImageArea);
+            dualWindow.setBounds(dualScreenBounds);
+            dualWindow.setBackground(fullImageArea.getBackground());
+            imageLister.setImageWindow(fullImageArea);
+            dualWindow.show();
+            fullImageArea.requestFocus();
             }
             break;
         case SCREEN_PRINT:
@@ -626,7 +640,7 @@ public class Viewer extends JsFrame {
             imageArea.showText("see image pane for image");
             }
             break;
-}
+        }
         if (mode!=SCREEN_FULL && fullWindow!=null) {
             fullWindow.hide();
             fullWindow.dispose();
@@ -637,6 +651,13 @@ public class Viewer extends JsFrame {
             altWindow.dispose();
             altWindow = null;
         }
+        if (mode!=SCREEN_DUAL_WINDOW && dualWindow!=null) {
+            dualWindow.hide();
+            dualWindow.dispose();
+            dualWindow = null;
+        }
+        if (screenMode!=SCREEN_FULL)
+            previousScreenMode = screenMode;
         screenMode = mode;
         imageLister.displayCurrentSelection();
         try {
@@ -646,6 +667,8 @@ public class Viewer extends JsFrame {
         }
         if (altWindow!=null)
             altWindow.validate();
+        if (dualWindow!=null)
+            dualWindow.validate();
         if (fullWindow!=null)
             fullWindow.validate();
         else {
@@ -658,8 +681,42 @@ public class Viewer extends JsFrame {
 
         cbmaSlideShow.setState(mode==SCREEN_SLIDESHOW);
         cbmaAlternate.setState(mode==SCREEN_ALT);
+        cbmaDualWindow.setState(mode==SCREEN_DUAL_WINDOW);
         cbmaFull.setState(mode==SCREEN_FULL);
         cbmaPrint.setState(mode==SCREEN_PRINT);
+    }
+
+    private boolean hasAlternateScreen() {
+        return (getAlternateGraphicsConfiguration(1)!=null);
+    }
+
+    /** Get an alternate Graphics Configuration.
+     * @param n The index of the config to get, 0 is the primary screen.
+     * @return The indicated config, or null if it does not exist.
+     */
+    private GraphicsConfiguration getAlternateGraphicsConfiguration(int n) {
+        if (n<0)
+            throw new IllegalArgumentException("negative index not valid");
+        GraphicsEnvironment ge = GraphicsEnvironment.
+                getLocalGraphicsEnvironment();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        Vector configs = new Vector();
+        for (int i=0; i<gs.length; i++) {
+            GraphicsDevice gd = gs[i];
+            GraphicsConfiguration[] gc = gd.getConfigurations();
+            for (int j=0; j<gc.length; j++) {
+                configs.addElement(gc[j]);
+            }
+        }
+        if (configs.size()<n+1) {
+            return null;        //no such config
+        }
+        GraphicsConfiguration gc = (GraphicsConfiguration)configs.elementAt(n);
+        return gc;
+    }
+
+    public void restorePreviousScreenMode() {
+        setScreenMode(previousScreenMode);
     }
 
     /** Set the specified mode on the lister, and update the states

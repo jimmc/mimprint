@@ -767,8 +767,7 @@ public class ImagePage extends JComponent
                 setCursorVisible(false);
                 break;
             case KeyEvent.VK_ESCAPE:
-                viewer.setScreenMode(Viewer.SCREEN_PRINT);
-                    //back to default mode
+                viewer.restorePreviousScreenMode();
                 break;
             case KeyEvent.VK_ENTER:
                 viewer.activateSelection();

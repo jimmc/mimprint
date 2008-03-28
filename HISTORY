@@ -1,3 +1,23 @@
+mimprint v0.2.0
+
+  Enhancements:
+
+  * The "N of M" messages now keep separate counts for folders versus files.
+  * The new Dual Window Mode opens a second window on the same screen.
+    This can then be moved onto another screen if desired, for cases where
+    the Alternate Screen Mode is not working.
+  * The Alternate Screen Mode menu command is now available only when
+    there is an alternate screen.
+
+  Bug Fixes:
+
+  * The "N of M" messages are now properly sorted.
+  * Pushing ESC from Full Screen mode now returns to whatever mode was
+    previously selected.  ESC will also toggle from any mode to the
+    previously selected mode, as long as that was not Full Screen Mode.
+
+----------------------------------------------------------------------
+
 mimprint v0.1.2  January 11, 2007
 
   Bug Fixes:

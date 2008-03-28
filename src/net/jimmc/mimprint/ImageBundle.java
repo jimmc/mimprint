@@ -58,6 +58,22 @@ public class ImageBundle {
         image = toolkit.createImage(path);
     }
 
+    protected void finalize() {
+        release();
+    }
+
+    /** Release our image resources. */
+    private void release() {
+        if (image!=null) {
+            image.flush();
+            image = null;
+        }
+        if (transformedImage!=null) {
+            transformedImage.flush();
+            transformedImage = null;
+        }
+    }
+
     public void setImageWindow(ImageWindow imageWindow) {
         this.imageWindow = imageWindow;
         this.toolkit = imageWindow.getToolkit();
@@ -131,6 +147,7 @@ public class ImageBundle {
         loadCompleteImage(si);
         app.debugMsg("Bundle loadTransformedImage B scaledImage="+si);
         Image ri = createRotatedImage(si);
+        si.flush();
         app.debugMsg("Bundle loadTransformedImage C txImage="+ri);
         transformedImage = ri;
         loadCompleteImage(transformedImage);

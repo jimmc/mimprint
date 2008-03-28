@@ -1,3 +1,5 @@
+- Fix memory leaks. (080327)
+
 - Make sure image dragging works on all platforms, or add workaround. (051119)
 - Deal with i18n TODO comments. (051118)
 - Create library of template files (uniform, mixed, labels). (051116)

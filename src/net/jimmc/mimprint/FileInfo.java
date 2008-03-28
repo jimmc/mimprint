@@ -23,6 +23,8 @@ public class FileInfo {
     public static final String MIMPRINT_EXTENSION = "mpr";
 
     int index;          //the index of this entry within the containing list
+    int dirCount;       //number of directories in the list
+    int fileCount;      //number of files in the list
     int totalCount;     //total number of items in the list
     File dir;           //the directory containing the file
     String name;        //name of the file within the directory
@@ -44,9 +46,12 @@ public class FileInfo {
 
     public FileInfo() {}
 
-    public FileInfo(int index, int totalCount, File dir, String name) {
+    public FileInfo(int index, int dirCount, int fileCount,
+                File dir, String name) {
         this.index = index;
-        this.totalCount = totalCount;
+        this.dirCount = dirCount;
+        this.fileCount = fileCount;
+        this.totalCount = dirCount + fileCount;
         this.dir = dir;
         this.name = name;
 
@@ -138,7 +143,12 @@ public class FileInfo {
 
         //Add (N of M)
         int thisIndex = index+1;
-        sb.append("; "+thisIndex+" of "+totalCount);  //TBD i18n
+        if (isDirectory()) {
+            sb.append("; Folder "+thisIndex+" of "+dirCount);  //TBD i18n
+        } else {
+            int fileIndex = thisIndex - dirCount;
+            sb.append("; File "+fileIndex+" of "+fileCount);  //TBD i18n
+        }
 
         //Add file size
         long fileSize = f.length();
@@ -255,5 +265,15 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
         this.text = text;
         html = getFileTextInfo(true);
         info = getFileTextInfo(false);
+    }
+
+    public static int countDirectories(File dir, String[] fileNames) {
+        int dirCount = 0;
+        for (int i=0; i<fileNames.length; i++) {
+            File f = new File(dir,fileNames[i]);
+            if (f.isDirectory())
+                dirCount++;
+        }
+        return dirCount;
     }
 }

@@ -70,3 +70,13 @@
   non-directory file. [060822]
 - Display updated image info after editing it with edit-info. [060823]
 - v0.1.1. [060824]
+- v0.1.2. [070111]
+- Fix bug that caused "N of M" to give the wrong value for N (unsorted).[080327]
+- Changed "N of M" text to list Folders and Files separately. [080327]
+- Changed default screen mode back to Slideshow. [080327]
+- Changed ESC from full screen mode to go back to whatever screen mode was
+  previously selected. [080327]
+- Call flush() on images from ImageBundle finalizer to hopefully avoid
+  running out of memory. [080327]
+- Add Dual Window mode. [080327]
+- Make Alternate Screen mode menu item visible only when there is one. [080327]

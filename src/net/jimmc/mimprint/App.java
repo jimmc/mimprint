@@ -64,7 +64,7 @@ public class App implements ResourceSource {
         if (target==null)
             target = ".";    //default is to display current dir
         viewer = new Viewer(this);
-                imageUtil = new ImageUtil(this,viewer);
+        imageUtil = new ImageUtil(this,viewer);
         viewer.show();        //open the main window
         viewer.open(target);    //display the target
     }
