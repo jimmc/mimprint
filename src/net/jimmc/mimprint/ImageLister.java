@@ -841,6 +841,7 @@ public class ImageLister extends JPanel {
             }
         };
         String[] list = dir.list(filter);
+        Arrays.sort(list,new ImageFileNameComparator(dir));
         if (list==null)
             list = new String[0];
         String[] listPlus = new String[list.length+2];

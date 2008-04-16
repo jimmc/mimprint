@@ -80,3 +80,4 @@
   running out of memory. [080327]
 - Add Dual Window mode. [080327]
 - Make Alternate Screen mode menu item visible only when there is one. [080327]
+- Bug fix: when moving Left, always select the last file in the list. [080409]
