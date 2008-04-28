@@ -8,9 +8,16 @@ mimprint v0.2.0
     the Alternate Screen Mode is not working.
   * The Alternate Screen Mode menu command is now available only when
     there is an alternate screen.
+  * The new "Include Folder Dates In List" option in the View mwnu,
+    which is off by default, allows to show or hide the folder date,
+    which can be confusing since it is the date of the last edit of any
+    file in that folder.
 
   Bug Fixes:
 
+  * The correct screen mode is now shown as selected on startup.
+  * Changes to the choice of what is displayed in the List from the View menu
+    now take effect immediately.
   * The "N of M" messages are now properly sorted.
   * Pushing ESC from Full Screen mode now returns to whatever mode was
     previously selected.  ESC will also toggle from any mode to the

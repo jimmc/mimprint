@@ -66,10 +66,10 @@ public class FileInfo {
             type = FileInfo.IMAGE;
     }
 
-    public void loadInfo() {
+    public void loadInfo(boolean includeDirDates) {
         text = getFileText();
-        html = getFileTextInfo(true);
-        info = getFileTextInfo(false);
+        html = getFileTextInfo(true,includeDirDates);
+        info = getFileTextInfo(false,includeDirDates);
         infoLoaded = true;
     }
 
@@ -107,7 +107,7 @@ public class FileInfo {
      * @param useHtml True to format with for HTML, false for plain text.
      * @return The info about the image
      */
-    protected String getFileTextInfo(boolean useHtml) {
+    protected String getFileTextInfo(boolean useHtml, boolean includeDirDates) {
         String path = getPath();
         if (path==null) {
             return null;	//no file, so no info
@@ -162,38 +162,40 @@ public class FileInfo {
         sb.append("; ");
         sb.append(fileSizeStr);
 
-        //Add file modification date/time
-        long modTimeMillis = f.lastModified();
-        Date modDate = new Date(modTimeMillis);
-        SimpleDateFormat dFmt =
-                (SimpleDateFormat)DateFormat.getDateTimeInstance();
-        String tzPath = getTimeZoneFileNameForImage(path);
-        File tzFile = new File(tzPath);
-        if (tzFile.exists()) {
-            try {
-                //What a hack... the SimpleDateFormat code doesn't
-                //do the right time-zone calculations, it uses
-                //TimeZone.getRawOffset, which just gets the first
-                //offset in the timezone.  We need it to get the
-                //offset for the specified time.
-                TimeZone tz = new ZoneInfo(tzFile);
-                int zOff = tz.getOffset(modTimeMillis);
-                SimpleTimeZone stz = new SimpleTimeZone(zOff,tz.getID());
-                dFmt.setTimeZone(stz);
-                dFmt.applyPattern(dFmt.toPattern()+" zzzz");
-            } catch (IOException ex) {
-System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
-                //do nothing to change timezone or format
+        if (includeDirDates || type!=DIR) {
+            //Add file modification date/time
+            long modTimeMillis = f.lastModified();
+            Date modDate = new Date(modTimeMillis);
+            SimpleDateFormat dFmt =
+                    (SimpleDateFormat)DateFormat.getDateTimeInstance();
+            String tzPath = getTimeZoneFileNameForImage(path);
+            File tzFile = new File(tzPath);
+            if (tzFile.exists()) {
+                try {
+                    //What a hack... the SimpleDateFormat code doesn't
+                    //do the right time-zone calculations, it uses
+                    //TimeZone.getRawOffset, which just gets the first
+                    //offset in the timezone.  We need it to get the
+                    //offset for the specified time.
+                    TimeZone tz = new ZoneInfo(tzFile);
+                    int zOff = tz.getOffset(modTimeMillis);
+                    SimpleTimeZone stz = new SimpleTimeZone(zOff,tz.getID());
+                    dFmt.setTimeZone(stz);
+                    dFmt.applyPattern(dFmt.toPattern()+" zzzz");
+                } catch (IOException ex) {
+    System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
+                    //do nothing to change timezone or format
+                }
             }
-        }
-        String dateStr = dFmt.format(modDate);
-        if (useHtml) {
-            sb.append("<br><i>");
-            sb.append(dateStr);
-            sb.append("</i>");
-        } else {
-            sb.append("; ");
-            sb.append(dateStr);
+            String dateStr = dFmt.format(modDate);
+            if (useHtml) {
+                sb.append("<br><i>");
+                sb.append(dateStr);
+                sb.append("</i>");
+            } else {
+                sb.append("; ");
+                sb.append(dateStr);
+            }
         }
 
         //Add file info text
@@ -263,8 +265,8 @@ System.out.println("IOException reading ZoneInfo: "+ex.getMessage());
     /** Set our text field, update the info and html fields. */
     public void setText(String text) {
         this.text = text;
-        html = getFileTextInfo(true);
-        info = getFileTextInfo(false);
+        html = getFileTextInfo(true,true);
+        info = getFileTextInfo(false,true);
     }
 
     public static int countDirectories(File dir, String[] fileNames) {

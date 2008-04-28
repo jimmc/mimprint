@@ -13,12 +13,7 @@
   for showing filename, file date and file text. (051116)
 
 Bugs:
-* Alternate screen mode doesn't work when displaying remotely onto Mac
-  using X Windows.  Perhaps add a two-window mode where the image is displayed
-  in one window, the the controls are in the other; that way the image window
-  can be moved onto the second screen and resized to be the size of that
-  screen. (071230)
-  
+
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)
@@ -36,6 +31,7 @@ PlayLists:
   from the current viewing information. (020828)
 
 Misc:
+- Add ability to search through summary.txt and image.txt files. (080425)
 * Add pan/zoom commands. (020818)
 * Add auto-slideshow mode, so that it automatically advances to the next
   slide after N seconds (settable in a perference dialog). (071230)

@@ -78,6 +78,12 @@
   previously selected. [080327]
 - Call flush() on images from ImageBundle finalizer to hopefully avoid
   running out of memory. [080327]
-- Add Dual Window mode. [080327]
+- Add Dual Window mode. (071230) [080327]
 - Make Alternate Screen mode menu item visible only when there is one. [080327]
 - Bug fix: when moving Left, always select the last file in the list. [080409]
+- Bug fix: make the right Screen Mode choice selected on startup. [080425]
+- Add "Include Folder Dates In List" option to View menu, default false.[080425]
+- Make folder items in list have a different background color. [080425]
+- Add a line border around each list item to see separation more easily.[080425]
+- Make changes to list info appear immediately. [080425]
+- Make rotation in dual window work properly. [080426]

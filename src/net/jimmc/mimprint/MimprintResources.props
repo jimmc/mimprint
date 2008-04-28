@@ -1,8 +1,11 @@
 about.info=\
 	mimprint\n\
-	Copyright 2001-2006 Jim McBeath\n\
+	Copyright 2001-2008 Jim McBeath\n\
 	%VERSION%  %VDATE%
 about.title=About Mimprint
+
+button.NextImage.label=Next Image
+button.PreviousImage.label=Previous Image
 
 error.BadPageUnit=page unit must be "cm" or "in"
 error.MissingEndAreaElement=Expectede area end element before </page>
@@ -71,6 +74,7 @@ menu.Layout.LoadTemplate.label=Load Template...
 menu.Layout.SaveTemplateAs.label=Save Template As...
 
 menu.View.label=View
+menu.View.ListIncludeDirDates.label=Include Folder Dates In List
 menu.View.ListIncludeInfo.label=Show Info In List
 menu.View.ListIncludeImage.label=Show Image and Info In List
 menu.View.ScreenModeAlternate.label=Alternate Screen Mode

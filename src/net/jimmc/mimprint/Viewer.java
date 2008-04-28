@@ -5,6 +5,7 @@
 
 package net.jimmc.mimprint;
 
+import net.jimmc.swing.ButtonAction;
 import net.jimmc.swing.CheckBoxMenuAction;
 import net.jimmc.swing.GridBagger;
 import net.jimmc.swing.JsFrame;
@@ -59,7 +60,7 @@ public class Viewer extends JsFrame {
 
     /** Our image display area. */
     private ImageArea imageArea;
-    private ImageArea fullImageArea;
+    private ImageArea altImageArea;
     private ImagePage imagePage;
     private JPanel imagePagePanel;
 
@@ -91,6 +92,7 @@ public class Viewer extends JsFrame {
     private CheckBoxMenuAction cbmaSplitPane;
     private CheckBoxMenuAction cbmaListIncludeInfo;
     private CheckBoxMenuAction cbmaListIncludeImage;
+    private CheckBoxMenuAction cbmaListIncludeDirDates;
     private CheckBoxMenuAction cbmaShowAreaOutlines;
 
     /** The screen bounds when in slideshow mode. */
@@ -146,6 +148,35 @@ public class Viewer extends JsFrame {
             maxSimpleMessageLength = 0;    //use special dialogs
         }
         return textArea;
+    }
+
+    protected JPanel createToolBar() {
+        JPanel p = new JPanel();
+        p.add(createPreviousButton());
+        p.add(createNextButton());
+        return p;
+    }
+
+    protected ButtonAction createPreviousButton() {
+        String label = getResourceString("button.PreviousImage.label");
+        //TODO - icon
+        ButtonAction b = new ButtonAction(label) {
+            public void action() {
+                moveUp();
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createNextButton() {
+        String label = getResourceString("button.NextImage.label");
+        //TODO - icon
+        ButtonAction b = new ButtonAction(label) {
+            public void action() {
+                moveDown();
+            }
+        };
+        return b;
     }
 
     /** Create our menu bar. */
@@ -361,7 +392,8 @@ public class Viewer extends JsFrame {
         };
         m.add(cbmaFull);
 
-        cbmaPrint.setState(true); //default view mode is printable
+        //Make sure the correct choice button is shown as selected
+        setScreenModeButtons();
 
         m.add(new JSeparator());
 
@@ -392,6 +424,15 @@ public class Viewer extends JsFrame {
             }
         };
         m.add(cbmaListIncludeImage);
+
+        label = getResourceString("menu.View.ListIncludeDirDates.label");
+        cbmaListIncludeDirDates = new CheckBoxMenuAction(label) {
+            public void action() {
+                imageLister.setIncludeDirDates(
+                        cbmaListIncludeDirDates.getState());
+            }
+        };
+        m.add(cbmaListIncludeDirDates);
 
         label = getResourceString("menu.View.ShowAreaOutlines.label");
         cbmaShowAreaOutlines = new CheckBoxMenuAction(label) {
@@ -447,6 +488,7 @@ public class Viewer extends JsFrame {
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(splitPane,BorderLayout.CENTER);
         getContentPane().add(statusLine,BorderLayout.SOUTH);
+        //getContentPane().add(createToolBar(),BorderLayout.NORTH);
     }
 
     /** Get our App. */
@@ -561,21 +603,21 @@ public class Viewer extends JsFrame {
                 imagePane.remove(imagePagePanel);
             imagePane.add(imageArea);
             imageLister.setImageWindow(imageArea);
-            fullImageArea = null;
+            altImageArea = null;
             imageArea.requestFocus();
             }
             break;
         case SCREEN_FULL:
             {
             Dimension screenSize = getToolkit().getScreenSize();
-            fullImageArea = new ImageArea(app,this);
+            altImageArea = new ImageArea(app,this);
             fullWindow = new JFrame();
-            fullWindow.getContentPane().add(fullImageArea);
+            fullWindow.getContentPane().add(altImageArea);
             fullWindow.setBounds(0,0,screenSize.width,screenSize.height);
-            fullWindow.setBackground(fullImageArea.getBackground());
-            imageLister.setImageWindow(fullImageArea);
+            fullWindow.setBackground(altImageArea.getBackground());
+            imageLister.setImageWindow(altImageArea);
             fullWindow.show();
-            fullImageArea.requestFocus();
+            altImageArea.requestFocus();
             this.hide();
             imageArea.showText("see full page window for image");
             }
@@ -591,28 +633,29 @@ public class Viewer extends JsFrame {
                 return;         //only one display, no mode change
             }
             Rectangle altScreenBounds = gc.getBounds();
-            fullImageArea = new ImageArea(app,this);
+            altImageArea = new ImageArea(app,this);
             altWindow = new JWindow();
-            altWindow.getContentPane().add(fullImageArea);
+            altWindow.getContentPane().add(altImageArea);
             altWindow.setBounds(altScreenBounds);
-            altWindow.setBackground(fullImageArea.getBackground());
-            imageLister.setImageWindow(fullImageArea);
+            altWindow.setBackground(altImageArea.getBackground());
+            imageLister.setImageWindow(altImageArea);
             altWindow.show();
-            fullImageArea.requestFocus();
+            altImageArea.requestFocus();
             imageArea.showText("see alternate screen for image");
             }
             break;
         case SCREEN_DUAL_WINDOW:
             {
             Rectangle dualScreenBounds = imagePane.getBounds();
-            fullImageArea = new ImageArea(app,this);
+            altImageArea = new ImageArea(app,this);
             dualWindow = new JFrame();
-            dualWindow.getContentPane().add(fullImageArea);
+            dualWindow.getContentPane().add(altImageArea);
             dualWindow.setBounds(dualScreenBounds);
-            dualWindow.setBackground(fullImageArea.getBackground());
-            imageLister.setImageWindow(fullImageArea);
+            dualWindow.setBackground(altImageArea.getBackground());
+            imageLister.setImageWindow(altImageArea);
             dualWindow.show();
-            fullImageArea.requestFocus();
+            altImageArea.requestFocus();
+            imageArea.showText("see alternate window for image");
             }
             break;
         case SCREEN_PRINT:
@@ -678,12 +721,15 @@ public class Viewer extends JsFrame {
 
         layoutMenu.setEnabled(mode==SCREEN_PRINT);
         printMenuItem.setEnabled(mode==SCREEN_PRINT);
+        setScreenModeButtons();
+    }
 
-        cbmaSlideShow.setState(mode==SCREEN_SLIDESHOW);
-        cbmaAlternate.setState(mode==SCREEN_ALT);
-        cbmaDualWindow.setState(mode==SCREEN_DUAL_WINDOW);
-        cbmaFull.setState(mode==SCREEN_FULL);
-        cbmaPrint.setState(mode==SCREEN_PRINT);
+    private void setScreenModeButtons() {
+        cbmaSlideShow.setState(screenMode==SCREEN_SLIDESHOW);
+        cbmaAlternate.setState(screenMode==SCREEN_ALT);
+        cbmaDualWindow.setState(screenMode==SCREEN_DUAL_WINDOW);
+        cbmaFull.setState(screenMode==SCREEN_FULL);
+        cbmaPrint.setState(screenMode==SCREEN_PRINT);
     }
 
     private boolean hasAlternateScreen() {
@@ -798,7 +844,8 @@ public class Viewer extends JsFrame {
         switch (screenMode) {
         case SCREEN_FULL:
         case SCREEN_ALT:
-            fullImageArea.rotate(quarters);
+        case SCREEN_DUAL_WINDOW:
+            altImageArea.rotate(quarters);
             break;
         case SCREEN_PRINT:
             imagePage.rotate(quarters);

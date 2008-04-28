@@ -34,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
@@ -55,6 +56,7 @@ public class ImageLister extends JPanel {
             //the size of each icon in the list
     private final static int ICON_LIST_WIDTH=450;
             //width of each list element when showing images and file text
+    private final static Color dirBgColor = new Color(0.9f, 0.8f, 0.8f);
 
     /** Our App. */
     private App app;
@@ -82,6 +84,7 @@ public class ImageLister extends JPanel {
         public static final int MODE_INFO = 1;
         public static final int MODE_FULL = 2;
         private static final int MODE_MAX = MODE_FULL; //highest legal value
+    private boolean includeDirectoryDates = false;
 
     /** The status area. */
     private JTextArea statusLabel;
@@ -98,6 +101,8 @@ public class ImageLister extends JPanel {
     /** The file names we are displaying, within the targetDirectory. */
     private String[] fileNames;
     private FileInfo[] fileInfos;
+    private int dirCount;
+    private int fileCount;
 
     /** The currently displayed image. */
     protected ImageBundle currentImage;
@@ -233,6 +238,19 @@ public class ImageLister extends JPanel {
         listOnly = t;
     }
 
+    /** Set whether or not the dates of directories are included when
+     * the list mode is set to MODE_INFO.
+     */
+    public void setIncludeDirDates(boolean incDates) {
+        if (includeDirectoryDates==incDates)
+            return;             //no change
+        synchronized(this) {
+            includeDirectoryDates = incDates;
+        }
+        updateListInfos();
+        fileNameList.updateUI();
+    }
+
     /** Set the mode for what we display in the image file list. */
     public void setListMode(int mode) {
         if (mode<0 || mode>MODE_MAX)
@@ -259,7 +277,18 @@ public class ImageLister extends JPanel {
             }
             listMode = mode;
         }
-        //TODO - redisplay the list
+        updateListInfos();
+        fileNameList.updateUI();
+    }
+
+    //redisplay the list info
+    private void updateListInfos() {
+        if (fileNames==null || fileInfos==null)
+            return;     //avoid NPE on startup
+        for (int i=0; i<fileNames.length; i++) {
+            fileInfos[i] = new FileInfo(i,dirCount,fileCount,
+                    targetDirectory, fileNames[i]);
+        }
     }
 
     /** Initialize our image loader thread. */
@@ -373,23 +402,14 @@ public class ImageLister extends JPanel {
         nextImage = null;
         previousImage = null;
         fileNames = getListableFileNames(targetDirectory);
-        int dirCount = FileInfo.countDirectories(targetDirectory,fileNames);
-        int fileCount = fileNames.length - dirCount;
+        dirCount = FileInfo.countDirectories(targetDirectory,fileNames);
+        fileCount = fileNames.length - dirCount;
         Arrays.sort(fileNames,new ImageFileNameComparator(targetDirectory));
             //Do the sort before we create the FileInfo objects so that the
             //index number in their description is correct
         fileInfos = new FileInfo[fileNames.length];
             //Allocate space for the rest of the file info
-        for (int i=0; i<fileNames.length; i++) {
-            fileInfos[i] = new FileInfo(i,dirCount,fileCount,
-                    targetDirectory, fileNames[i]);
-        }
-        //Arrays.sort(fileInfos,new ImageFileNameComparator(targetDirectory));
-        String[] sortedFileNames = new String[fileInfos.length];
-        for (int i=0; i<fileInfos.length; i++) {
-            sortedFileNames[i] = fileInfos[i].name;
-        }
-        fileNames = sortedFileNames;
+        updateListInfos();
         if (formerTargetDirectory==null || targetDirectory==null ||
                 !formerTargetDirectory.toString().equals(
                         targetDirectory.toString())) {
@@ -671,7 +691,7 @@ public class ImageLister extends JPanel {
         writeFileText(path,imageText);
         int index = currentImage.getListIndex();
         FileInfo fileInfo = getFileInfo(index);
-        fileInfo.loadInfo();    //reload info with new text
+        fileInfo.loadInfo(includeDirectoryDates);  //reload info with new text
         fileNameListModel.fireItemChanged(index);
     }
 
@@ -863,7 +883,7 @@ public class ImageLister extends JPanel {
             return fileInfo;        //already loaded
         //int totalCount = fileNameList.getModel().getSize();
         //fileInfo = new FileInfo(index,totalCount,targetDirectory,fileNames[index]);
-        fileInfo.loadInfo();
+        fileInfo.loadInfo(includeDirectoryDates);
 
         //leave icon null, let iconLoader fill it in
         //fileInfos[index] = fileInfo;
@@ -997,12 +1017,19 @@ public class ImageLister extends JPanel {
                 cell.setBackground(list.getSelectionBackground());
                 cell.setForeground(list.getSelectionForeground());
             } else {
-                cell.setBackground(list.getBackground());
+                Color bg = fileInfo.isDirectory?dirBgColor:list.getBackground();
+                cell.setBackground(bg);
                 cell.setForeground(list.getForeground());
             }
             cell.setEnabled(list.isEnabled());
             cell.setFont(list.getFont());
             */
+            //If this item is a directory folder rather than an image,
+            //color it differently in the list.
+            if (!isSelected && fileInfo.isDirectory()) {
+                cell.setBackground(dirBgColor);
+            }
+            cell.setBorder(BorderFactory.createLineBorder(Color.black));
             return cell;
         }
     }
