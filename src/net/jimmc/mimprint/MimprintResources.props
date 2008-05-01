@@ -115,6 +115,7 @@ prompt.Print.PageSizeMismatch.PaperSize=Paper size is {0} by {1} {2}
 prompt.SaveLayoutTemplateAs=Save Layout Template As...
 prompt.TextForImage=Text for {0}
 
+query.Confirm.title=Mimprint - Confirm
 query.EditLayout.title=Page Description
 query.Exit.prompt=Exit Mimprint?
 query.FileToOpen=File or Directory to Open

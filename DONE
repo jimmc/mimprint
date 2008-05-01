@@ -88,3 +88,5 @@
 - Make changes to list info appear immediately. [080425]
 - Make rotation in dual window work properly. [080426]
 - Add Tool Bar, with some viewing modes, image nav, rotate. (071230) [080501]
+- In dialog advancing to next directory, give the name of this directory
+  and the next one. (020818) [080501]

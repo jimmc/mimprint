@@ -749,7 +749,14 @@ public class ImageLister extends JPanel {
             sel += inc;         //skip non-images when using arrows from image area
         */
         if (sel<0) {
-            String prompt = "At beginning; move to previous dir?";
+            String prompt = "At beginning of "+targetDirectory+";\n";
+            File newDir = getPreviousDirectory(targetDirectory);
+            if (newDir==null) {
+                String eMsg = prompt + "No previous directory";
+                viewer.errorDialog(eMsg);
+                return;
+            }
+            prompt = prompt + "move to previous directory "+newDir+"?";
                     //TBD i18n this section
             if (!viewer.confirmDialog(prompt))
                 return;        //cancelled
@@ -759,7 +766,14 @@ public class ImageLister extends JPanel {
             return;
         }
         if (sel>=maxIndex) {
-            String prompt = "At end; move to next dir?";
+            String prompt = "At end of "+targetDirectory+";\n";
+            File newDir = getNextDirectory(targetDirectory);
+            if (newDir==null) {
+                String eMsg = prompt + "No next directory";
+                viewer.errorDialog(eMsg);
+                return;
+            }
+            prompt = prompt + "move to next directory "+newDir+"?";
                     //TBD i18n this section
             if (!viewer.confirmDialog(prompt))
                 return;        //cancelled
