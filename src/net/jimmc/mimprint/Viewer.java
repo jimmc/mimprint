@@ -41,6 +41,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
@@ -57,7 +58,7 @@ public class Viewer extends JsFrame {
     private JPanel imagePane;
     //private CardLayout imagePaneLayout;
     private JTextField statusLine;
-    private JPanel toolBar;
+    private JToolBar toolBar;
 
     /** Our image display area. */
     private ImageArea imageArea;
@@ -153,8 +154,8 @@ public class Viewer extends JsFrame {
         return textArea;
     }
 
-    protected JPanel createToolBar() {
-        JPanel p = new JPanel();
+    protected JToolBar createToolBar() {
+        JToolBar p = new JToolBar();
 
         p.add(createModeDualButton());
         p.add(createModeFullButton());

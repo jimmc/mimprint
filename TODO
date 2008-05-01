@@ -2,15 +2,10 @@
 
 - Make sure image dragging works on all platforms, or add workaround. (051119)
 - Deal with i18n TODO comments. (051118)
-- Create library of template files (uniform, mixed, labels). (051116)
-  templates/labels
-  templates/mixedsize
-  templates/onesize
 - Add a Users Guide. (060123)
 
 - Allow opening a jar or zip file, display contents. (051115)
-- Option in template to display captions under photos: separate control
-  for showing filename, file date and file text. (051116)
+
 
 Bugs:
 
@@ -46,6 +41,9 @@ Printable:
   slots on the multiple pages, advancing to the next page when each page
   is full. (071230)
 - Add a command to clear an image area. (060123)
+- Add templates for labels to template library. (051116)
+- Option in template to display captions under photos: separate control
+  for showing filename, file date and file text. (051116)
 
 Misc:
 - Add ability to search through summary.txt and image.txt files. (080425)
