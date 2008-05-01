@@ -119,7 +119,7 @@
             destfile="${mimprint.jar}"
             basedir="${src.dir}"
             update="true"
-            includes="**/*.gif"
+            includes="**/*.gif **/*.png"
         />
     </target>
 

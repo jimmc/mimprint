@@ -30,11 +30,14 @@ PlayLists:
   the images.mmp file; add a command to tell it to create an images.mmp file
   from the current viewing information. (020828)
 
-Misc:
-- Add ability to search through summary.txt and image.txt files. (080425)
+Pan/Zoom:
 * Add pan/zoom commands. (020818)
-* Add auto-slideshow mode, so that it automatically advances to the next
-  slide after N seconds (settable in a perference dialog). (071230)
+- Use +, - and = to zoom in, out, and zoom to 1.0 scale.  When zoomed in,
+  use scroll bars on viewing area. (021101)
+- Use _ to zoom to fit-to-window (or perhaps _ to use 1.0 scale, = to fit
+  window?). (021211)
+
+Printable:
 * Add a "mark for print" command that adds this image to an in-memory list
   of images to be printed.  Put an indicator in the image filename list
   so user can see it is marked for printing. 
@@ -42,17 +45,17 @@ Misc:
   pages.  Add a command to take the marked images and drop them into the
   slots on the multiple pages, advancing to the next page when each page
   is full. (071230)
+- Add a command to clear an image area. (060123)
+
+Misc:
+- Add ability to search through summary.txt and image.txt files. (080425)
+* Add auto-slideshow mode, so that it automatically advances to the next
+  slide after N seconds (settable in a perference dialog). (071230)
+- Add slideshow mode, random order, loop within directory vs auto-advance,
+  slideshow on playlist. (021211)
 - Create a .mim directory within each viewed directory: put thumbnails there,
   put a file there with rotation info.  Could also put the mark-for-print
   info there, so that you can spend a long time marking and come back later
   to print. (071230)
-- Add a tool bar with buttons for the viewing modes. (071230)
-- Use +, - and = to zoom in, out, and zoom to 1.0 scale.  When zoomed in,
-  use scroll bars on viewing area. (021101)
-- Use _ to zoom to fit-to-window (or perhaps _ to use 1.0 scale, = to fit
-  window?). (021211)
 - In dialog advancing to next directory, give the name of this directory
   and the next one. (020818)
-- Add slideshow mode, random order, loop within directory vs auto-advance,
-  slideshow on playlist. (021211)
-- Add a command to clear an image area. (060123)

@@ -57,6 +57,7 @@ public class Viewer extends JsFrame {
     private JPanel imagePane;
     //private CardLayout imagePaneLayout;
     private JTextField statusLine;
+    private JPanel toolBar;
 
     /** Our image display area. */
     private ImageArea imageArea;
@@ -94,6 +95,7 @@ public class Viewer extends JsFrame {
     private CheckBoxMenuAction cbmaListIncludeImage;
     private CheckBoxMenuAction cbmaListIncludeDirDates;
     private CheckBoxMenuAction cbmaShowAreaOutlines;
+    private CheckBoxMenuAction cbmaShowToolBar;
 
     /** The screen bounds when in slideshow mode. */
     private Rectangle slideShowBounds;
@@ -109,6 +111,7 @@ public class Viewer extends JsFrame {
         super();
         setResourceSource(app);
         this.app = app;
+        toolBar = createToolBar();
         setJMenuBar(createMenuBar());
         initForm();
         setScreenMode(SCREEN_MODE_DEFAULT);
@@ -152,15 +155,44 @@ public class Viewer extends JsFrame {
 
     protected JPanel createToolBar() {
         JPanel p = new JPanel();
-        p.add(createPreviousButton());
-        p.add(createNextButton());
+
+        p.add(createModeDualButton());
+        p.add(createModeFullButton());
+
+        p.add(createPreviousFolderButton());
+        p.add(createPreviousImageButton());
+        p.add(createNextImageButton());
+        p.add(createNextFolderButton());
+
+        p.add(createRotateCcwButton());
+        p.add(createRotateCwButton());
+        //p.add(createRotate180Button());
+            //No need for a 180 button, user can just press the
+            //rotate left or right button twice, and we want to save
+            //the space for other buttons.
         return p;
     }
 
-    protected ButtonAction createPreviousButton() {
-        String label = getResourceString("button.PreviousImage.label");
-        //TODO - icon
-        ButtonAction b = new ButtonAction(label) {
+    protected ButtonAction createModeDualButton() {
+        ButtonAction b = new ButtonAction(app,"button.ModeDual") {
+            public void action() {
+                setScreenMode(SCREEN_DUAL_WINDOW);
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createModeFullButton() {
+        ButtonAction b = new ButtonAction(app,"button.ModeFull") {
+            public void action() {
+                setScreenMode(SCREEN_FULL);
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createPreviousImageButton() {
+        ButtonAction b = new ButtonAction(app,"button.PreviousImage") {
             public void action() {
                 moveUp();
             }
@@ -168,12 +200,55 @@ public class Viewer extends JsFrame {
         return b;
     }
 
-    protected ButtonAction createNextButton() {
-        String label = getResourceString("button.NextImage.label");
-        //TODO - icon
-        ButtonAction b = new ButtonAction(label) {
+    protected ButtonAction createNextImageButton() {
+        ButtonAction b = new ButtonAction(app,"button.NextImage") {
             public void action() {
                 moveDown();
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createPreviousFolderButton() {
+        ButtonAction b = new ButtonAction(app,"button.PreviousFolder") {
+            public void action() {
+                moveLeft();
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createNextFolderButton() {
+        ButtonAction b = new ButtonAction(app,"button.NextFolder") {
+            public void action() {
+                moveRight();
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createRotateCcwButton() {
+        ButtonAction b = new ButtonAction(app,"button.RotateCcw") {
+            public void action() {
+                rotateCurrentImage(1);
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createRotateCwButton() {
+        ButtonAction b = new ButtonAction(app,"button.RotateCw") {
+            public void action() {
+                rotateCurrentImage(-1);
+            }
+        };
+        return b;
+    }
+
+    protected ButtonAction createRotate180Button() {
+        ButtonAction b = new ButtonAction(app,"button.Rotate180") {
+            public void action() {
+                rotateCurrentImage(2);
             }
         };
         return b;
@@ -451,6 +526,18 @@ public class Viewer extends JsFrame {
 
         m.add(new JSeparator());
 
+        label = getResourceString("menu.View.ShowToolBar.label");
+        cbmaShowToolBar = new CheckBoxMenuAction(label) {
+            public void action() {
+                toolBar.setVisible(cbmaShowToolBar.getState());
+            }
+        };
+        m.add(cbmaShowToolBar);
+        cbmaShowToolBar.setState(true);
+        toolBar.setVisible(cbmaShowToolBar.getState());
+
+        m.add(new JSeparator());
+
         label = getResourceString("menu.View.ShowHelpDialog.label");
         mi = new MenuAction(label) {
             public void action() {
@@ -488,7 +575,7 @@ public class Viewer extends JsFrame {
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(splitPane,BorderLayout.CENTER);
         getContentPane().add(statusLine,BorderLayout.SOUTH);
-        //getContentPane().add(createToolBar(),BorderLayout.NORTH);
+        getContentPane().add(toolBar,BorderLayout.NORTH);
     }
 
     /** Get our App. */

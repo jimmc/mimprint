@@ -4,8 +4,22 @@ about.info=\
 	%VERSION%  %VDATE%
 about.title=About Mimprint
 
+button.ModeDual.icon=nuvola/22/window_list.png
+button.ModeDual.label=Dual Window
+button.ModeFull.icon=nuvola/22/view_fullscreen.png
+button.ModeFull.label=Full Screen
+button.NextFolder.icon=nuvola/22/2rightarrow.png
+button.NextFolder.label=Next Folder
+button.NextImage.icon=nuvola/22/1rightarrow.png
 button.NextImage.label=Next Image
+button.PreviousFolder.icon=nuvola/22/2leftarrow.png
+button.PreviousFolder.label=Previous Folder
+button.PreviousImage.icon=nuvola/22/1leftarrow.png
 button.PreviousImage.label=Previous Image
+button.RotateCcw.icon=nuvola/22/rotate_ccw.png
+button.RotateCcw.label=Rotate Left
+button.RotateCw.icon=nuvola/22/rotate_cw.png
+button.RotateCw.label=Rotate Right
 
 error.BadPageUnit=page unit must be "cm" or "in"
 error.MissingEndAreaElement=Expectede area end element before </page>
@@ -83,6 +97,7 @@ menu.View.ScreenModeFull.label=Full Screen Mode
 menu.View.ScreenModePrint.label=Printable Mode
 menu.View.ScreenModeSlideShow.label=SlideShow Mode
 menu.View.ShowAreaOutlines.label=Show Area Outlines
+menu.View.ShowToolBar.label=Show Tool Bar
 menu.View.ShowHelpDialog.label=Show Help Dialog
 menu.View.SplitPaneHorizontal.label=List on Left
 
