@@ -1,6 +1,7 @@
 <project name="mimprint" default="jar">
 
     <target name="init">
+        <property file="local.properties"/>
         <property file="build.properties"/>
         <property file="VERSION"/>
 
@@ -19,10 +20,52 @@
 	<property name="jshortcut.jar" value="${jshortcut.dir}/jshortcut.jar"/>
 	<property name="jshortcut.dll" value="${jshortcut.dir}/jshortcut.dll"/>
 
+        <property name="junit.dir"
+                 value="${u-j-releases}/junit${junit.version}"/>
+        <property name="junit.jar" value="${junit.dir}/junit.jar"/>
+
+        <property name="hansel.dir"
+                 value="${u-j-releases}/hansel-${hansel.version}"/>
+        <property name="hansel.jar" value="${hansel.dir}/lib/hansel.jar"/>
+        <property name="hansel-bcel.jar" value="${hansel.dir}/lib/bcel.jar"/>
+
+        <!-- Unit testing, things you might want to change -->
+        <property name="test.coverage" value=""/>
+        <property name="test.headlessarg" value="-Djava.awt.headless=true"/>
+        <property name="test.includes" value="**/Test*.java"/>
+        <property name="test.jvmarg" value=""/>
+
+        <!-- You should not have to change these values -->
+        <property name="testsrc.dir" value="testsrc"/>
+        <property name="testobj.dir" value="${build.dir}/testobj"/>
+        <property name="test.results.dir" value="${build.dir}/test/results"/>
+        <property name="test.reports.dir" value="${build.dir}/test/reports"/>
+        <property name="test.jar" value="${build.dir}/test.jar"/>
+        <property name="testresources.properties"
+            value="${testobj.dir}/net/jimmc/racer/TestResources.properties"/>
+
         <!-- The classpath for compiling our java classes. -->
         <path id="compile.classpath">
             <pathelement location="${class.dir}"/>
 	    <pathelement location="${jshortcut.jar}"/>
+        </path>
+
+	<!-- The classpath for compiling our test java classes -->
+	<path id="testcompile.classpath">
+	    <path refid="compile.classpath"/>
+	    <pathelement location="${testobj.dir}"/>
+	    <pathelement location="${junit.jar}"/>
+	    <pathelement location="${hansel.jar}"/>
+	    <pathelement location="${hansel-bcel.jar}"/>
+	</path>
+
+        <!-- The classpath for running our tests -->
+        <path id="test.classpath">
+            <path refid="compile.classpath"/>
+            <pathelement location="${testobj.dir}"/>
+            <pathelement location="${junit.jar}"/>
+            <pathelement location="${hansel.jar}"/>
+            <pathelement location="${hansel-bcel.jar}"/>
         </path>
 
         <!-- The classpath for creating our javadoc docs. -->
@@ -35,6 +78,7 @@
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${class.dir}"/>
         <mkdir dir="${release.dir}"/>
+        <mkdir dir="${testobj.dir}"/>
     </target>
 
     <target name="compile" depends="init,mkdirs">
@@ -48,6 +92,21 @@
             <include name="**/*.java"/>
 	    <exclude name="*/*.old/*.java"/>
         </javac>
+    </target>
+
+    <!-- Compile the test java classes -->
+    <target name="testcompile" depends="init,mkdirs"
+    		description="Compile all unit test java classes">
+        <javac
+	    srcdir="${testsrc.dir}"
+	    destdir="${testobj.dir}" 
+	    debug="${javac.debug}"
+	    classpathref="testcompile.classpath"
+	    source="1.4"
+	>
+	    <include name="**/*.java"/>
+	    <exclude name="**/*.old/**/*.java"/>
+	</javac>
     </target>
 
     <!-- Create the default properties file from all of the props files -->
@@ -101,6 +160,52 @@
 	<delete file="${resources.properties}.tmp"/>
     </target>
 
+    <!-- Create the test properties file from all of the test props files -->
+    <target name="testproperties"
+	    depends="init,check-testproperties,concat-testproperties"/>
+
+    <!-- See if the test properties file is up to date -->
+    <target name="check-testproperties">
+        <uptodate property="testproperties-uptodate"
+		targetfile="${testresources.properties}"
+        >
+	    <srcfiles dir="${testsrc.dir}" includes="**/*.props"/>
+	</uptodate>
+    </target>
+
+    <!-- Create the test properties file if it is not up to date. -->
+    <target name="concat-testproperties" unless="testproperties-uptodate">
+    	<echo message="A test echo"/>
+<!--
+    	<echo destfile="${testobj.dir}/props.header" message="#Auto-generated"/>
+	<echo destfile="${testobj.dir}/props.header">
+#This file is automatically created from the *.props files
+#in various source directories.
+</echo>
+-->
+	<mkdir dir="${testobj.dir}/net/jimmc/racer"/>
+        <concat
+		destfile="${testresources.properties}.tmp"
+	>
+	    <filelist dir="${testobj.dir}" files="props.header"/>
+	    <fileset dir="${testsrc.dir}">
+	    	<include name="**/*.props"/>
+	    	<exclude name="**/*.old/**/*.props"/>
+	    </fileset>
+	    <!-- TBD - would be nice if we could get separators between
+	      the files, like we had from the Makefile -->
+	</concat>
+	<!-- Now that the props have been collected, replace the VERSION
+	     and VDATE strings. -->
+	<copy file="${testresources.properties}.tmp"
+		tofile="${testresources.properties}">
+	    <filterset begintoken="%" endtoken="%">
+	        <filter token="VERSION" value="v${versionNumber}"/>
+	        <filter token="VDATE" value="${versionDate}"/>
+	    </filterset>
+	</copy>
+    </target>
+
     <target name="jar" depends="compile,properties-default"
             description="Build the application">
         <!-- Start by creating the jar file with all our classes. -->
@@ -121,6 +226,67 @@
             update="true"
             includes="**/*.gif **/*.png"
         />
+    </target>
+
+    <!-- Make the jar file with the test classes -->
+    <target name="testjar" depends="testcompile,testproperties"
+    		description="Create the test.jar file">
+        <jar
+	    jarfile="${test.jar}"
+	    basedir="${testobj.dir}"
+	/>
+    </target>
+
+    <target name="test" depends="jar,testjar"
+    		description="Run the unit tests">
+        <delete dir="${test.results.dir}"/>
+        <delete dir="${test.reports.dir}"/>
+        <mkdir dir="${test.results.dir}"/>
+        <mkdir dir="${test.reports.dir}"/>
+
+	<junit	printsummary="true"
+		errorProperty="test.failed"
+		failureProperty="test.failed"
+                fork="yes">
+            <!-- Add JVM args to run with debugger enabled -->
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xnoagent"/>
+            <jvmarg line="-Djava.compiler=NONE ${test.jvmarg} ${test.headlessarg}"/>
+                <!-- we would put test.jvmarg and test.headlessarg
+                     each in its own jvmarg, but we want
+                     to be able to set them to blank, which doesn't work
+                     properly when each is its own arg. -->
+	    <formatter type="plain"/>
+	    <formatter type="xml"/>
+	    <classpath refid="test.classpath"/>
+	    <sysproperty key="JR_TEST_COVERAGE"
+	    	value="${test.coverage}"/>
+	    <batchtest todir="${test.results.dir}">
+	        <fileset dir="${testsrc.dir}">
+		    <include name="${test.includes}"/>
+		</fileset>
+	    </batchtest>
+        </junit>
+
+<!-- junitreport seems to be broken, so skip it...
+	<junitreport todir="${test.reports.dir}">
+	    <fileset dir="${test.results.dir}">
+	        <include name="TEST-*.xml"/>
+	    </fileset>
+	    <report format="frames" todir="${test.reports.dir}"/>
+	</junitreport>
+-->
+
+	<fail message="Test failures, see ${test.reports.dir}"
+		if="test.failed"/>
+    </target>
+
+    <target name="testdebug" description="Run unit tests with suspend for debug">
+        <property name="test.debugjvmarg"
+                value="-Xrunjdwp:transport=dt_socket,address=2000,server=y,suspend=y"/>
+        <antcall target="test">
+	    <param name="test.jvmarg" value="${test.debugjvmarg}"/>
+	</antcall>
     </target>
 
     <target name="clean" depends="init"
@@ -159,8 +325,14 @@
 	</javadoc>
     </target>
 
-    <target name="all" depends="jar,doc"
-    		description="Build all files for release"/>
+    <target name="coverage" description="Run unit tests with coverage">
+        <antcall target="test">
+            <param name="test.coverage" value="1"/>
+        </antcall>
+    </target>
+
+    <target name="all" depends="jar,doc,test"
+    		description="Build all files and run all tests for release"/>
 
     <target name="arch" depends="init"
     		description="Copy the reljar and README files to the Arch dir">
