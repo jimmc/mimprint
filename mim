@@ -1,17 +1,38 @@
 #!/bin/sh -
-
-if [ "$JAVAHOME" = "" ]; then
-    #JAVAHOME=/u/java/j2sdk1.4.2_10
-    #JAVAHOME=/u/java/jdk1.5.0
-    #JAVAHOME=/u/java/jdk1.5.0_06
-    JAVAHOME=/u/java/jdk1.6
+#A sample startup script for mimprint for Linux or Mac OSX.
+machine=`uname -m`
+if [ "$machine" = "Power Macintosh" ]; then
+    #Running on Mac OS X
+    MAC_OPT_MENUBAR="-Dapple.laf.useScreenMenuBar=true"
+    MAC_OPT_DOCKNAME="-Xdock:name=mimprint"
+    MAC_OPT_DOCKICON="-Xdock:icon=XXX"
+    MAC_OPT_ABOUTNAME="-Dcom.apple.mrj.application.apple.menu.about.name=mimprint"
+    #The useScreenMenuBar flag causes ClassCastException on startup
+    MAC_OPTS="$MAC_OPT_DOCKNAME $MAC_OPT_ABOUTNAME"
+    JAVA=java
+else
+    #Assume running on Linux.  You might want to change this location.
+    if [ "$JAVAHOME" = "" ]; then
+        #JAVAHOME=/u/java/j2sdk1.4.2_10
+        #JAVAHOME=/u/java/jdk1.5
+        JAVAHOME=/u/java/jdk1.6
+    fi
 fi
 JAVA=${JAVA:-$JAVAHOME/bin/java}
-MIMPRINTHOME=/u/jimmc/src/mimprint
+MIMSCRIPT=$0
+while [ -L $MIMSCRIPT ]; do
+    MIMSCRIPT=`readlink $MIMSCRIPT`
+done
+MIMPRINTHOME=`dirname $MIMSCRIPT`
 
-JAVA_ARGS="-mx200m"
+JAVA_ARGS="-Xmx200m"
 while [ $# -gt 0 ]; do
     case "$1" in
+    "-debug")
+        DEBUG_PORT=2000
+        JDEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=n"
+        shift;
+        ;;
     "-J")
 	JAVA_ARGS="$JAVA_ARGS $2"
 	shift; shift;
@@ -20,4 +41,5 @@ while [ $# -gt 0 ]; do
 	;;
     esac
 done
-exec $JAVA $JAVA_ARGS -jar $MIMPRINTHOME/mimprint.jar "$@"
+
+exec $JAVA $JAVA_ARGS $JDEBUG $MAC_OPTS -jar $MIMPRINTHOME/mimprint.jar "$@"
