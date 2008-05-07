@@ -103,6 +103,7 @@ public class ImageLister extends JPanel {
     private FileInfo[] fileInfos;
     private int dirCount;
     private int fileCount;
+    private PlayList playList;
 
     /** The currently displayed image. */
     protected ImageBundle currentImage;
@@ -363,14 +364,20 @@ public class ImageLister extends JPanel {
         listValueChanged();
     }
 
+    public void open(File targetFile) {
+        open(targetFile,false);
+    }
+
     /** Open the specified target.
      * If it is a directory, list all of the image files in the directory
      * and select the first one.
      * If it is a file, list all of the image files in the containing
      * directory, and selected the given file.
      * @param targetFile The file or directory to open.
+     * @param lastFile If true, select the last file in the folder or playlist;
+     *          if false, select the first file in the folder.
      */
-    public void open(File targetFile) {
+    public void open(File targetFile, boolean lastFile) {
         if (!targetFile.exists()) {
             Object[] eArgs = { targetFile.getName() };
             String msg = app.getResourceFormatted("error.NoSuchFile",eArgs);
@@ -385,10 +392,20 @@ public class ImageLister extends JPanel {
             throw new MoreException(ex);
         }
         File formerTargetDirectory = targetDirectory;
+        boolean isPlayList = false;
+        File indexFile = null;
         if (targetFile.isDirectory()) {
             //It's a directory, use it
             targetDirectory = targetFile;
-            targetFile = null;    //get the real file later
+            String indexFileName = "index."+FileInfo.MIMPRINT_EXTENSION;
+            indexFile = new File(targetFile,indexFileName);
+            if (indexFile.exists()) {
+                targetFile = indexFile;
+                isPlayList = true;
+            } else {
+                //No index file, we will read the directory
+                targetFile = null;    //get the real file later
+            }
         } else {
             //It's not a directory, get the containing directory
             targetDirectory = targetFile.getParentFile();
@@ -397,16 +414,38 @@ public class ImageLister extends JPanel {
                 //directory, so the directory must be "."
                 targetDirectory = new File(".");
             }
+            if (targetFile.toString().endsWith(
+                    "."+FileInfo.MIMPRINT_EXTENSION)) {
+                isPlayList = true;      //assume playlist by extension
+                indexFile = targetFile;
+            }
         }
         currentImage = null;
         nextImage = null;
         previousImage = null;
+        //Even when reading a playlist, we need to scan the directory
+        //in order to get the list of subdirectories.
         fileNames = getListableFileNames(targetDirectory);
         dirCount = FileInfo.countDirectories(targetDirectory,fileNames);
         fileCount = fileNames.length - dirCount;
         Arrays.sort(fileNames,new ImageFileNameComparator(targetDirectory));
             //Do the sort before we create the FileInfo objects so that the
-            //index number in their description is correct
+            //index number in their description is correct.
+            //Directories sort to the beginning.
+        playList = null;
+        if (isPlayList) {
+            try {
+                playList = PlayList.load(indexFile);
+            } catch (IOException ex) {
+                throw new RuntimeException("Failed to load index playlist",ex);
+            }
+            fileCount = playList.size();
+            String[] plFileNames = playList.getFileNames();
+            String[] newFileNames = new String[dirCount+fileCount];
+            System.arraycopy(fileNames,0,newFileNames,0,dirCount);
+            System.arraycopy(plFileNames,0,newFileNames,dirCount,fileCount);
+            fileNames = newFileNames;
+        }
         fileInfos = new FileInfo[fileNames.length];
             //Allocate space for the rest of the file info
         updateListInfos();
@@ -419,8 +458,16 @@ public class ImageLister extends JPanel {
         fileNameList.setModel(fileNameListModel);
         if (fileNames.length==0) {
             //No files in the list, so don't try to select anything
-        } else if (targetFile==null) {
-            //No file specified, so select the first file in the dir
+        } else if (targetFile==null || isPlayList) {
+            //No image file specified, so select the first or last file
+            if (fileCount>0) {
+                if (lastFile)
+                    setSelectedIndex(dirCount+fileCount-1); //last file
+                else
+                    setSelectedIndex(dirCount); //first file
+            }
+            /*
+            if (
             for (int i=0; i<fileNames.length; i++) {
                 File ff = new File(targetDirectory,fileNames[i]);
                 if (!ff.isDirectory()) {
@@ -428,6 +475,7 @@ public class ImageLister extends JPanel {
                     break;
                 }
             }
+            */
         } else {
             //Find the index of the specified file and select it
             String targetFileName = targetFile.getName();
@@ -617,6 +665,13 @@ public class ImageLister extends JPanel {
             return;
         }
         currentImage = new ImageBundle(app,imageWindow,file,newSelection);
+        if (playList!=null) {
+            int itemIndex = newSelection - dirCount;
+            PlayItem item = playList.getItem(itemIndex);
+            int rotFlag = item.getRotFlag();
+            if (rotFlag!=0)
+                currentImage.rotate(rotFlag);
+        }
     }
 
     /** Set up the next and previous images. */
@@ -635,6 +690,13 @@ public class ImageLister extends JPanel {
                     imageLoader.notifyAll();
                             //start imageLoader
                 }
+                if (playList!=null) {
+                    int itemIndex = currentSelection+1 - dirCount;
+                    PlayItem item = playList.getItem(itemIndex);
+                    int rotFlag = item.getRotFlag();
+                    if (rotFlag!=0)
+                        nextImage.rotate(rotFlag);
+                }
             }
         }
         if (previousImage==null && currentSelection-1>=0) {
@@ -645,6 +707,13 @@ public class ImageLister extends JPanel {
                 synchronized(imageLoader) {
                     imageLoader.notifyAll();
                             //start imageLoader
+                }
+                if (playList!=null) {
+                    int itemIndex = currentSelection-1 - dirCount;
+                    PlayItem item = playList.getItem(itemIndex);
+                    int rotFlag = item.getRotFlag();
+                    if (rotFlag!=0)
+                        previousImage.rotate(rotFlag);
                 }
             }
         }
@@ -711,11 +780,8 @@ public class ImageLister extends JPanel {
             viewer.errorDialog(eMsg);
             return;
         }
-        File lastFile = getLastFileInDir(newDir);
-        if (lastFile!=null)
-            open(lastFile);
-        else
-            open(newDir);    //TBD - skip back farther?
+        open(newDir,true);      //open the last file in this folder
+
     }
 
     /** Move to next directory */
@@ -836,19 +902,18 @@ public class ImageLister extends JPanel {
             //Check to see if the list selection changed while
             //we were busy updating.  If so, don't do the wait.
             int newSelection = fileNameList.getSelectedIndex();
-        if (newSelection>=0) {
-        FileInfo fileInfo = getFileInfo(newSelection);
-        if (fileInfo.isDirectory())
-            newSelection = -1;    //no image file selected
-        }
+            if (newSelection>=0) {
+            FileInfo fileInfo = getFileInfo(newSelection);
+            if (fileInfo.isDirectory())
+                newSelection = -1;    //no image file selected
+            }
             int currentSelection = (currentImage==null)?
                     -1:currentImage.getListIndex();
             if (newSelection==currentSelection) {
                 //selection is correct, wait for a notify
                 synchronized(displayUpdater) {
                     try {
-                        app.debugMsg(
-                            "display updater thread waiting");
+                        app.debugMsg("display updater thread waiting");
                         displayUpdater.wait();
                     } catch (InterruptedException ex) {
                         //ignore

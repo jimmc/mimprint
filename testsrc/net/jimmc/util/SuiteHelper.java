@@ -69,6 +69,23 @@ public class SuiteHelper {
         }
     }
 
+    /** Given two arrays of Strings, assert their contents are the same.
+     */
+    public static void assertEquals(TestCase test,
+            String[] expected, String[] actual) {
+        if (expected==actual)
+            return;
+        if (expected==null) {
+            test.assertNull(actual);
+            return;
+        }
+        test.assertNotNull(actual);
+        test.assertEquals("array lengths",expected.length,actual.length);
+        for (int i=0; i<expected.length; i++) {
+            test.assertEquals("array["+i+"]",expected[i],actual[i]);
+        }
+    }
+    
     private static void deleteDir(File f) {
 	File[] subs = f.listFiles();
 	for (int i=0; i<subs.length; i++) {
