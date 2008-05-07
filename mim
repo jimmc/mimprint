@@ -1,0 +1,23 @@
+#!/bin/sh -
+
+if [ "$JAVAHOME" = "" ]; then
+    #JAVAHOME=/u/java/j2sdk1.4.2_10
+    #JAVAHOME=/u/java/jdk1.5.0
+    #JAVAHOME=/u/java/jdk1.5.0_06
+    JAVAHOME=/u/java/jdk1.6
+fi
+JAVA=${JAVA:-$JAVAHOME/bin/java}
+MIMPRINTHOME=/u/jimmc/src/mimprint
+
+JAVA_ARGS="-mx200m"
+while [ $# -gt 0 ]; do
+    case "$1" in
+    "-J")
+	JAVA_ARGS="$JAVA_ARGS $2"
+	shift; shift;
+	;;
+    *) break
+	;;
+    esac
+done
+exec $JAVA $JAVA_ARGS -jar $MIMPRINTHOME/mimprint.jar "$@"
