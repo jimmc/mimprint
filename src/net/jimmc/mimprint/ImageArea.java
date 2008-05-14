@@ -64,6 +64,8 @@ public class ImageArea extends JLabel implements ImageWindow {
     /** True if our image should be scaled to fit the window. */
     protected boolean scaled;
 
+    private RotationListener rotationListener;
+    
     /** Create an ImageArea. */
     public ImageArea(App app, Viewer viewer) {
         super();
@@ -88,6 +90,10 @@ public class ImageArea extends JLabel implements ImageWindow {
         worker = new Worker();
         worker.setPriority(worker.getPriority()-1);
         worker.start();
+    }
+
+    public void setRotationListener(RotationListener rl) {
+        rotationListener = rl;
     }
 
     private void initCursors() {
@@ -177,6 +183,8 @@ public class ImageArea extends JLabel implements ImageWindow {
     public void rotate(int inc) {
         currentImage.rotate(inc);
         showCurrentImage();
+        if (rotationListener!=null)
+            rotationListener.rotate(inc);
     }
 
     /** We return true to allow keyboard focus and thus input. */

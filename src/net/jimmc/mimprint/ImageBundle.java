@@ -113,6 +113,10 @@ public class ImageBundle {
         transformedImage = null;
     }
 
+    public int getRotation() {
+        return rotation;
+    }
+
     /** Get the image object. */
     public Image getImage() {
         return image;

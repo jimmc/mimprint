@@ -73,4 +73,17 @@ public class TestPlayItem extends TestCase {
         String refStr = "#line 1\n#line 2\nfoo.jpg;-r\n";
         assertEquals(refStr,out.toString());
     }
+
+    public void testCopy() {
+        PlayItem item = new PlayItem();
+        item.addTextLine("#line 1");
+        item.addTextLine("#line 2");
+        item.setImageInfoLine("foo.jpg;-r");
+
+        PlayItem c = (PlayItem)item.clone();    //calls copy in PlayItem
+        assertEquals(2,c.lineCount());
+        assertEquals("foo.jpg",c.getFileName());
+        assertEquals(-1,c.getRotFlag());
+    }
+
 }

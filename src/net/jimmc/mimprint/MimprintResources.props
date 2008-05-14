@@ -5,21 +5,36 @@ about.info=\
 about.title=About Mimprint
 
 button.ModeDual.icon=nuvola/22/window_list.png
-button.ModeDual.label=Dual Window
+button.ModeDual.toolTip=Dual Window
 button.ModeFull.icon=nuvola/22/view_fullscreen.png
-button.ModeFull.label=Full Screen
+button.ModeFull.toolTip=Full Screen
 button.NextFolder.icon=nuvola/22/2rightarrow.png
-button.NextFolder.label=Next Folder
+button.NextFolder.toolTip=Next Folder
 button.NextImage.icon=nuvola/22/1rightarrow.png
-button.NextImage.label=Next Image
+button.NextImage.toolTip=Next Image
 button.PreviousFolder.icon=nuvola/22/2leftarrow.png
-button.PreviousFolder.label=Previous Folder
+button.PreviousFolder.toolTip=Previous Folder
 button.PreviousImage.icon=nuvola/22/1leftarrow.png
-button.PreviousImage.label=Previous Image
+button.PreviousImage.toolTip=Previous Image
 button.RotateCcw.icon=nuvola/22/rotate_ccw.png
-button.RotateCcw.label=Rotate Left
+button.RotateCcw.toolTip=Rotate Left
 button.RotateCw.icon=nuvola/22/rotate_cw.png
-button.RotateCw.label=Rotate Right
+button.RotateCw.toolTip=Rotate Right
+
+dialog.PlayList.Load.field.Append.label=Append to current PlayList contents
+dialog.PlayList.Load.field.Append.toolTip=\
+    If unchecked, current PlayList contents will be discarded
+dialog.PlayList.Load.label.Append=Append:
+dialog.PlayList.Load.title=Load PlayList
+
+dialog.PlayList.LoadSave.button.Browse.label=Browse
+dialog.PlayList.LoadSave.label.File=File:
+dialog.PlayList.LoadSave.label.PlayList=PlayList:
+
+dialog.PlayList.Save.title=Save PlayList
+
+dialog.PlayList.FileBrowser.Load.title=Load PlayList File
+#dialog.PlayList.FileBrowser.Load.prompt=Load PlayList File
 
 error.BadPageUnit=page unit must be "cm" or "in"
 error.MissingEndAreaElement=Expectede area end element before </page>
@@ -87,6 +102,10 @@ menu.Layout.EditDescription.label=Edit Description...
 menu.Layout.LoadTemplate.label=Load Template...
 menu.Layout.SaveTemplateAs.label=Save Template As...
 
+menu.PlayList.label=PlayList
+menu.PlayList.Load.label=Load...
+menu.PlayList.Save.label=Save...
+
 menu.View.label=View
 menu.View.ListIncludeDirDates.label=Include Folder Dates In List
 menu.View.ListIncludeInfo.label=Show Info In List
@@ -116,6 +135,7 @@ prompt.SaveLayoutTemplateAs=Save Layout Template As...
 prompt.TextForImage=Text for {0}
 
 query.Confirm.title=Mimprint - Confirm
+query.Confirm.FileExists.prompt=File {0} exists;\noverwrite it?
 query.EditLayout.title=Page Description
 query.Exit.prompt=Exit Mimprint?
 query.FileToOpen=File or Directory to Open

@@ -20,6 +20,8 @@ mimprint v0.2.0
     which is off by default, allows to show or hide the folder date,
     which can be confusing since it is the date of the last edit of any
     file in that folder.
+  * The distribution now includes a startup script called "mim" for
+    Linux and Mac systems.
 
   Bug Fixes:
 
@@ -30,6 +32,8 @@ mimprint v0.2.0
   * Pushing ESC from Full Screen mode now returns to whatever mode was
     previously selected.  ESC will also toggle from any mode to the
     previously selected mode, as long as that was not Full Screen Mode.
+  * When moving to the previous directory and displaying the last item
+    in the list, the list now scrolls to the end so that item is visible.
 
   Playlist file format:
 

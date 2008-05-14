@@ -104,6 +104,7 @@ public class ImageLister extends JPanel {
     private int dirCount;
     private int fileCount;
     private PlayList playList;
+    private PlayList originalPlayList;  //only set if playlist is modified
 
     /** The currently displayed image. */
     protected ImageBundle currentImage;
@@ -326,6 +327,15 @@ public class ImageLister extends JPanel {
 
     /** Set the ImageWindow. */
     public void setImageWindow(ImageWindow imageWindow) {
+        if (imageWindow instanceof ImageArea) {
+            ((ImageArea)imageWindow).setRotationListener(
+                new RotationListener() {
+                    public void rotate(int inc) {
+                        imageAreaRotated(inc);
+                    }
+                }
+            );
+        }
         this.imageWindow = imageWindow;
         if (currentImage!=null)
             currentImage.setImageWindow(imageWindow);
@@ -333,6 +343,31 @@ public class ImageLister extends JPanel {
             nextImage.setImageWindow(imageWindow);
         if (previousImage!=null)
             previousImage.setImageWindow(imageWindow);
+    }
+
+    protected void imageAreaRotated(int inc) {
+        if (playList==null)
+            return;             //no playlist, nothing to update
+        int n = fileNameList.getSelectedIndex();
+        if (n<0)
+            return;             //nothing selected
+
+        //Before changing the playlist for the first time, make a copy of
+        //it so we can check later to see if it has changed.
+        //We do this rather than just setting a playListIsModified flag
+        //so that we don't have to tell the user the playlist changed
+        //if he happens to rotate an image and rotate it back later.
+        if (originalPlayList==null)
+            originalPlayList = playList.copy();
+
+        int playListIndex = n - dirCount;
+        PlayItem item = playList.getItem(playListIndex);
+        int rot = item.getRotFlag()+inc;
+        if (rot<-1)
+            rot += 4;
+        else if (rot>2)
+            rot -= 4;
+        item.setRotFlag(rot);
     }
 
     /** Open the specified target.
@@ -348,6 +383,7 @@ public class ImageLister extends JPanel {
         try {
             appIsSelecting = true;
             fileNameList.setSelectedIndex(n);
+            fileNameList.ensureIndexIsVisible(n);
         } finally {
             appIsSelecting = false;
         }
@@ -378,6 +414,11 @@ public class ImageLister extends JPanel {
      *          if false, select the first file in the folder.
      */
     public void open(File targetFile, boolean lastFile) {
+        if (originalPlayList!=null && !originalPlayList.equals(playList)) {
+            //There was a change to our playlist, see if the user wants to save
+            System.out.println("PlayList changed"); //TODO
+        }
+
         if (!targetFile.exists()) {
             Object[] eArgs = { targetFile.getName() };
             String msg = app.getResourceFormatted("error.NoSuchFile",eArgs);
@@ -433,6 +474,7 @@ public class ImageLister extends JPanel {
             //index number in their description is correct.
             //Directories sort to the beginning.
         playList = null;
+        originalPlayList = null;
         if (isPlayList) {
             try {
                 playList = PlayList.load(indexFile);
@@ -445,6 +487,8 @@ public class ImageLister extends JPanel {
             System.arraycopy(fileNames,0,newFileNames,0,dirCount);
             System.arraycopy(plFileNames,0,newFileNames,dirCount,fileCount);
             fileNames = newFileNames;
+        } else {
+            playList = new PlayList(fileNames,dirCount,fileCount);
         }
         fileInfos = new FileInfo[fileNames.length];
             //Allocate space for the rest of the file info
@@ -772,16 +816,30 @@ public class ImageLister extends JPanel {
         return fileInfo.info;
     }
 
+    //Save our playlist to the specified file.
+    //We assume someone else has already checked to see if the file exists
+    //and got the user's OK to overwrite if so.
+    protected void savePlayList(String fileName) {
+        try {
+            playList.save(fileName);
+            originalPlayList = null;    //clear the "changed" flag
+            String msg = "Saved main PlayList to file "+fileName; //TODO i18n
+            viewer.showStatus(msg);
+        } catch (IOException ex) {
+            String eMsg = "Error saving playlist: "+ex.getMessage();
+            viewer.errorDialog(eMsg);
+        }
+    }
+
     /** Move to previous directory */
     public void left() {
         File newDir = getPreviousDirectory(targetDirectory);
         if (newDir==null) {
-            String eMsg = "No previous directory";
+            String eMsg = "No previous directory";      //TODO i18n
             viewer.errorDialog(eMsg);
             return;
         }
         open(newDir,true);      //open the last file in this folder
-
     }
 
     /** Move to next directory */

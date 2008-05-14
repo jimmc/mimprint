@@ -187,6 +187,15 @@ public class StringUtil {
 	}
 	return s;
     }
+
+    /** True if both strings are null, or both are not null and are equal. */
+    public static boolean equals(String s1, String s2) {
+        if (s1==s2)
+            return true;        //includes the case where both are null
+        if (s1==null || s2==null)
+            return false;       //one is null but not the other
+        return s1.equals(s2);
+    }
 }
 
 /* end */

@@ -150,6 +150,11 @@ public class PageLayout {
         return areaLayout;
     }
 
+    /** Build a playlist. */
+    protected void addToPlayList(PlayList playList) {
+        areaLayout.addToPlayList(playList);
+    }
+
     /** Write the current layout template. */
     protected void writeLayoutTemplate(PrintWriter pw) {
         pw.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");  //XML header line

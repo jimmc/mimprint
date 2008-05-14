@@ -27,8 +27,9 @@ public class ButtonAction extends JButton implements ActionListener {
      *        string we use.  We append the following to the prefix:
      * @param exceptionHandler The handler to deal with exceptions.
      * <ul>
-     * <li>.label - to get the string to display on the button.
-     * <li>.toolTip  - to get the toolTip text.
+     * <li>.label - the string to display on the button.
+     * <li>.icon - the path to the file containing the icon for the button.
+     * <li>.toolTip  - the toolTip text.
      * </ul>
      */
     public ButtonAction(ResourceSource resourceSource,
@@ -47,6 +48,12 @@ public class ButtonAction extends JButton implements ActionListener {
             //Make the text sit under the icon
             setVerticalTextPosition(AbstractButton.BOTTOM);
             setHorizontalTextPosition(AbstractButton.CENTER);
+            if (resourceSource.getResourceString(resourcePrefix+".label").
+                    equals(resourcePrefix+".label")) {
+                //No label string specified, but since we have an icon,
+                //that's OK.  Set the label to null.
+                setText(null);
+            }
         }
 
         setExceptionHandler(exceptionHandler);

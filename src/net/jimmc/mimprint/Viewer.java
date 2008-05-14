@@ -59,6 +59,7 @@ public class Viewer extends JsFrame {
     //private CardLayout imagePaneLayout;
     private JTextField statusLine;
     private JToolBar toolBar;
+    private PlayListManager playListManager;
 
     /** Our image display area. */
     private ImageArea imageArea;
@@ -112,6 +113,7 @@ public class Viewer extends JsFrame {
         super();
         setResourceSource(app);
         this.app = app;
+        playListManager = new PlayListManager(app,this);
         toolBar = createToolBar();
         setJMenuBar(createMenuBar());
         initForm();
@@ -156,15 +158,18 @@ public class Viewer extends JsFrame {
 
     protected JToolBar createToolBar() {
         JToolBar p = new JToolBar();
+        p.setRollover(true);
 
         p.add(createModeDualButton());
         p.add(createModeFullButton());
 
+        p.addSeparator();
         p.add(createPreviousFolderButton());
         p.add(createPreviousImageButton());
         p.add(createNextImageButton());
         p.add(createNextFolderButton());
 
+        p.addSeparator();
         p.add(createRotateCcwButton());
         p.add(createRotateCwButton());
         //p.add(createRotate180Button());
@@ -260,6 +265,7 @@ public class Viewer extends JsFrame {
         JMenuBar mb = new JMenuBar();
         mb.add(createFileMenu());
         mb.add(createImageMenu());
+        mb.add(createPlayListMenu());
         mb.add(layoutMenu=createLayoutMenu());
         layoutMenu.setEnabled(false);
         mb.add(createViewMenu());
@@ -305,7 +311,7 @@ public class Viewer extends JsFrame {
     protected JMenu createImageMenu() {
         JMenu m = new JMenu(getResourceString("menu.Image.label"));
         MenuAction mi;
-                String label;
+        String label;
 
         label = getResourceString("menu.Image.PreviousImage.label");
         mi = new MenuAction(label) {
@@ -381,6 +387,31 @@ public class Viewer extends JsFrame {
         mi = new MenuAction(label) {
             public void action() {
                 showImageInfoDialog();
+            }
+        };
+        m.add(mi);
+
+        return m;
+    }
+
+    /** Create our PlayList menu. */
+    protected JMenu createPlayListMenu() {
+        JMenu m = new JMenu(getResourceString("menu.PlayList.label"));
+        MenuAction mi;
+        String label;
+
+        label = getResourceString("menu.PlayList.Load.label");
+        mi = new MenuAction(label) {
+            public void action() {
+                playListManager.load();
+            }
+        };
+        m.add(mi);
+
+        label = getResourceString("menu.PlayList.Save.label");
+        mi = new MenuAction(label) {
+            public void action() {
+                playListManager.save();
             }
         };
         m.add(mi);
@@ -515,8 +546,7 @@ public class Viewer extends JsFrame {
             public void action() {
                 if (imagePage==null)
                     return;   //shouldn't get here, but avoid NPE if so
-                imagePage.setShowOutlines(
-                        cbmaShowAreaOutlines.getState());
+                imagePage.setShowOutlines(cbmaShowAreaOutlines.getState());
                 imagePage.repaint();
             }
         };
@@ -1024,6 +1054,18 @@ public class Viewer extends JsFrame {
         if (newText==null)
                 return;        //cancelled
         pageLayout.setDescription(newText);
+    }
+
+    public void saveMainPlayList(String fileName) {
+        imageLister.savePlayList(fileName);
+    }
+
+    public void savePrintablePlayList(String fileName) {
+        if (imagePage==null) {
+            errorDialog("No Printable PlayList");
+            return;
+        }
+        imagePage.savePlayList(fileName);
     }
 
     /** Put up a help dialog. */

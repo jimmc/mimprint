@@ -46,6 +46,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import javax.swing.JComponent;
@@ -176,6 +177,20 @@ public class ImagePage extends JComponent
         return showOutlines;
     }
 
+    public void savePlayList(String fileName) {
+        try {
+            PlayList playList = new PlayList();
+            pageLayout.addToPlayList(playList);
+            File f = new File(fileName);
+            PrintWriter pw = new PrintWriter(f);
+            playList.save(pw,f.getParentFile());
+            pw.flush();
+            pw.close();
+        } catch (IOException ex) {
+            throw new RuntimeException("failed to save PlayList",ex);
+        }
+    }
+
  //Drag-and-drop stuff
     private void setupDrag() {
         //enabled dragging from this component
@@ -187,8 +202,7 @@ public class ImagePage extends JComponent
 
         //enable dropping into this component
         dtListener = new DTListener();
-        dropTarget = new DropTarget(this,dropActions,
-                dtListener, true);
+        dropTarget = new DropTarget(this, dropActions, dtListener, true);
     }
 
   class ImagePageDragGestureListener implements DragGestureListener {

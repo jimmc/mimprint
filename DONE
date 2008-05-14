@@ -92,3 +92,8 @@
   and the next one. (020818) [080501]
 - Add unit testing directories and build.xml pieces. [080506]
 - Begin PlayList implementation. [080506]
+- Add mim script. [080507]
+- When moving left to end of a dir, make sure the last item in the list
+  is visible. [080507]
+- Implement PlayList menu with Load (NYI) and Save for Main and Printable
+  playlists.  Not quite done. [080513]

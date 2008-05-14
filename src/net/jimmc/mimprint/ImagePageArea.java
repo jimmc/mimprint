@@ -11,6 +11,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.File;
+import java.io.PrintWriter;
 
 public class ImagePageArea extends AreaLayout {
     private ImageBundle imageBundle;
@@ -88,5 +90,24 @@ public class ImagePageArea extends AreaLayout {
         g2.translate(b.x,b.y);
         ImagePage.scaleAndTranslate(g2,image.getWidth(null),image.getHeight(null),b.width,b.height);
         g2.drawImage(image,transform,null);
+    }
+
+    //Add our area info to the specified PlayList
+    protected void addToPlayList(PlayList playList) {
+        PlayItem item = new PlayItem();
+        String path = getImagePath();
+        if (path==null)
+            item.addTextLine("#empty image area");
+                    //TODO - how to put in placeholder?
+        else {
+            File f = new File(path);
+            File baseDir = f.getParentFile();
+            String fileName = f.getName();
+            int rot = imageBundle.getRotation();
+            item.setRotFlag(rot);
+            item.setBaseDir(baseDir);
+            item.setFileName(fileName);
+        }
+        playList.addItem(item);
     }
 }
