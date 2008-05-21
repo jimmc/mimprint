@@ -177,10 +177,16 @@ public class ImagePage extends JComponent
         return showOutlines;
     }
 
+    /** Get a PlayList with the images from out printable page. */
+    public PlayList getPlayList() {
+        PlayList playList = new PlayList();
+        pageLayout.addToPlayList(playList);
+        return playList;
+    }
+
     public void savePlayList(String fileName) {
         try {
-            PlayList playList = new PlayList();
-            pageLayout.addToPlayList(playList);
+            PlayList playList = getPlayList();
             File f = new File(fileName);
             PrintWriter pw = new PrintWriter(f);
             playList.save(pw,f.getParentFile());
@@ -827,7 +833,10 @@ public class ImagePage extends JComponent
                 viewer.processFileOpen();
                 setCursorVisible(false);    //turn cursor back off
                 break;
-            case 'p':    //the print screen
+            case 'p':   //add current image to printable playlist
+                viewer.addCurrentImageToPrintable();
+                break;
+            case 'P':    //the print screen
                 viewer.setScreenMode(Viewer.SCREEN_PRINT);
                 break;
             case 'r':    //rotate CCW

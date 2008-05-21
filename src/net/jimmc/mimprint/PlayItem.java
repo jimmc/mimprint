@@ -159,11 +159,20 @@ out.println("#Our basedir="+this.baseDir+"; list baseDir="+baseDir);
         return fileName;
     }
 
+    /** True if we have no filename. */
+    public boolean isEmpty() {
+        return (fileName==null || fileName.equals(""));
+    }
+
     public void setRotFlag(int rot) {
         this.rotFlag = (rot+1)%4 - 1;
     }
 
     public int getRotFlag() {
         return rotFlag;
+    }
+
+    public String toString() {
+        return getImageInfoLine();      //TODO - add basedir?
     }
 }

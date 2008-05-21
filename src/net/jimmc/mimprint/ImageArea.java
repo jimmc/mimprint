@@ -283,7 +283,10 @@ public class ImageArea extends JLabel implements ImageWindow {
                 viewer.processFileOpen();
                 setCursorVisible(false);    //turn cursor back off
                 break;
-            case 'p':    //the print screen
+            case 'p':   //add current image to printable playlist
+                viewer.addCurrentImageToPrintable();
+                break;
+            case 'P':    //show printable screen
                 viewer.setScreenMode(Viewer.SCREEN_PRINT);
                 break;
             case 'r':    //rotate CCW

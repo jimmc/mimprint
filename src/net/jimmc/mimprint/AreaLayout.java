@@ -519,6 +519,19 @@ public abstract class AreaLayout {
         }
     }
 
+    /** Add an ImageBundle to our first empty area.
+     * @return true if we had an empty area and we added them item there.
+     */
+    protected boolean addImageBundle(ImageBundle b) {
+        if (areas==null)
+            return false;     //no subareas, nowhere to add
+        for (int i=0; i<areas.length; i++) {
+            if (areas[i].addImageBundle(b))
+                return true;
+        }
+        return false;
+    }
+
     //Add all of our areas to the specified PlayList as items
     protected void addToPlayList(PlayList playList) {
         if (areas==null)

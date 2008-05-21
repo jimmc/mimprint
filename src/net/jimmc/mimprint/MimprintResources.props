@@ -21,6 +21,9 @@ button.RotateCcw.toolTip=Rotate Left
 button.RotateCw.icon=nuvola/22/rotate_cw.png
 button.RotateCw.toolTip=Rotate Right
 
+dialog.PlayList.Active.label.PlayListNew=New PlayList:
+dialog.PlayList.Active.title=Set Active PlayList
+
 dialog.PlayList.Load.field.Append.label=Append to current PlayList contents
 dialog.PlayList.Load.field.Append.toolTip=\
     If unchecked, current PlayList contents will be discarded
@@ -64,7 +67,8 @@ info.ImageHelp=Available commands:\n\
 	e - edit text about the image\n\
 	i - show info about the image\n\
 	o - open the file-open dialog\n\
-        p - printable screen mode\n\
+        p - add current image to Printable screen\n\
+        P - printable screen mode\n\
 	r - rotate image 90 degrees counter-clockwise\n\
 	R - rotate image 90 degrees clockwise\n\
 	Ctrl R - rotate image 180 degrees\n\
@@ -86,6 +90,7 @@ menu.Help.label=Help
 menu.Help.About.label=About Mimprint
 
 menu.Image.label=Image
+menu.Image.AddCurrentToPrintable.label=Add Image to Printable Screen
 menu.Image.NextDirectory.label=Next Directory
 menu.Image.NextImage.label=Next Image
 menu.Image.PreviousDirectory.label=Previous Directory
@@ -103,6 +108,7 @@ menu.Layout.LoadTemplate.label=Load Template...
 menu.Layout.SaveTemplateAs.label=Save Template As...
 
 menu.PlayList.label=PlayList
+menu.PlayList.Active.label=Active...
 menu.PlayList.Load.label=Load...
 menu.PlayList.Save.label=Save...
 

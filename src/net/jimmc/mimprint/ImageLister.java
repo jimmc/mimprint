@@ -345,6 +345,17 @@ public class ImageLister extends JPanel {
             previousImage.setImageWindow(imageWindow);
     }
 
+    public PlayItem getCurrentPlayItem() {
+        if (playList==null)
+            return null;             //no playlist, nothing to update
+        int n = fileNameList.getSelectedIndex();
+        if (n<0)
+            return null;             //nothing selected
+        int playListIndex = n - dirCount;
+        PlayItem item = playList.getItem(playListIndex);
+        return item;
+    }
+
     protected void imageAreaRotated(int inc) {
         if (playList==null)
             return;             //no playlist, nothing to update

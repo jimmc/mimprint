@@ -105,6 +105,17 @@ public class PlayList implements Cloneable {
         return items.size();
     }
 
+    /** Count the number of non-empty items. */
+    public int countNonEmpty() {
+        int n = 0;
+        for (int i=0; i<size(); i++) {
+            PlayItem item = getItem(i);
+            if (item!=null && !item.isEmpty())
+                n++;
+        }
+        return n;
+    }
+
     public PlayItem getItem(int n) {
         return (PlayItem)items.get(n);
     }

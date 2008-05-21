@@ -92,6 +92,13 @@ public class ImagePageArea extends AreaLayout {
         g2.drawImage(image,transform,null);
     }
 
+    protected boolean addImageBundle(ImageBundle b) {
+        if (imageBundle!=null)
+            return false;       //we already have an image
+        setImage(b);
+        return true;
+    }
+
     //Add our area info to the specified PlayList
     protected void addToPlayList(PlayList playList) {
         PlayItem item = new PlayItem();

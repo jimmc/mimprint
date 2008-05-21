@@ -375,6 +375,14 @@ public class Viewer extends JsFrame {
         };
         rotateMenu.add(mi);
 
+        label = getResourceString("menu.Image.AddCurrentToPrintable.label");
+        mi = new MenuAction(label) {
+            public void action() {
+                addCurrentImageToPrintable();
+            }
+        };
+        rotateMenu.add(mi);
+
         label = getResourceString("menu.Image.ShowEditDialog.label");
         mi = new MenuAction(label) {
             public void action() {
@@ -396,27 +404,7 @@ public class Viewer extends JsFrame {
 
     /** Create our PlayList menu. */
     protected JMenu createPlayListMenu() {
-        JMenu m = new JMenu(getResourceString("menu.PlayList.label"));
-        MenuAction mi;
-        String label;
-
-        label = getResourceString("menu.PlayList.Load.label");
-        mi = new MenuAction(label) {
-            public void action() {
-                playListManager.load();
-            }
-        };
-        m.add(mi);
-
-        label = getResourceString("menu.PlayList.Save.label");
-        mi = new MenuAction(label) {
-            public void action() {
-                playListManager.save();
-            }
-        };
-        m.add(mi);
-
-        return m;
+        return playListManager.createMenu();
     }
 
     /** Create our Layout menu. */
@@ -778,21 +766,7 @@ public class Viewer extends JsFrame {
             break;
         case SCREEN_PRINT:
             {
-            if (imagePage==null) {
-                imagePage = new ImagePage(this);
-                imagePage.setBackground(Color.gray);
-                imagePage.setForeground(Color.black);
-                imagePage.setPageColor(Color.white);
-                imagePagePanel = new JPanel();
-                imagePagePanel.setLayout(new BorderLayout());
-                imagePagePanel.add(imagePage,BorderLayout.CENTER);
-                imagePageControls = new ImagePageControls(app,imagePage);
-                imagePage.setControls(imagePageControls);
-                imagePagePanel.add(imagePage,BorderLayout.CENTER);
-                imagePagePanel.add(imagePageControls,BorderLayout.NORTH);
-                //imagePane.add(imagePagePanel,"print");
-                cbmaShowAreaOutlines.setEnabled(true);
-            }
+            initImagePage();
             //imagePaneLayout.show(imagePane,"print");
             imagePane.remove(imageArea);
             imagePane.add(imagePagePanel,BorderLayout.CENTER);
@@ -840,6 +814,25 @@ public class Viewer extends JsFrame {
         layoutMenu.setEnabled(mode==SCREEN_PRINT);
         printMenuItem.setEnabled(mode==SCREEN_PRINT);
         setScreenModeButtons();
+    }
+
+    //Ensure that our printable page is set up
+    private void initImagePage() {
+        if (imagePage!=null)
+            return;             //already inited
+        imagePage = new ImagePage(this);
+        imagePage.setBackground(Color.gray);
+        imagePage.setForeground(Color.black);
+        imagePage.setPageColor(Color.white);
+        imagePagePanel = new JPanel();
+        imagePagePanel.setLayout(new BorderLayout());
+        imagePagePanel.add(imagePage,BorderLayout.CENTER);
+        imagePageControls = new ImagePageControls(app,imagePage);
+        imagePage.setControls(imagePageControls);
+        imagePagePanel.add(imagePage,BorderLayout.CENTER);
+        imagePagePanel.add(imagePageControls,BorderLayout.NORTH);
+        //imagePane.add(imagePagePanel,"print");
+        cbmaShowAreaOutlines.setEnabled(true);
     }
 
     private void setScreenModeButtons() {
@@ -973,6 +966,31 @@ public class Viewer extends JsFrame {
             imageArea.rotate(quarters);
             break;
         }
+    }
+
+    public void addCurrentImageToPrintable() {
+        PlayItem item = imageLister.getCurrentPlayItem();
+        initImagePage();
+        ImageBundle b = createImageBundleFromItem(item);
+        //TODO - i18n
+        if (!imagePage.getAreaLayout().addImageBundle(b)) {
+            showStatus("Failed to add item "+item+" to printable page (full?)");
+            return;
+        }
+        PlayList p = imagePage.getPlayList();
+        int numItems = p.countNonEmpty();
+        showStatus("Added "+item+" to printable page as item "+numItems);
+    }
+
+    private ImageBundle createImageBundleFromItem(PlayItem item) {
+        File fn = new File(item.getFileName());
+        File dir = item.getBaseDir();
+        File p = new File(dir,fn.getPath());
+        int rot = item.getRotFlag();
+        rot = (rot+1)%4 - 1;
+        ImageBundle b = new ImageBundle(app,imagePage, p, -1);
+        b.rotate(rot);
+        return b;
     }
 
     /** Move the active image up to the previous image in the lister. */
