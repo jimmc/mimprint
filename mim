@@ -1,5 +1,16 @@
 #!/bin/sh -
 #A sample startup script for mimprint for Linux or Mac OSX.
+
+#SCALA_HOME=$HOME/net/scala/scala-2.6.0
+SCALA_HOME=$HOME/net/scala/scala-current
+SCALA_LIB_DIR=$SCALA_HOME/share/scala/lib
+[ -d $SCALA_HOME/lib ] && SCALA_LIB_DIR=$SCALA_HOME/lib
+#SCALA_COMPILER_JAR=${SCALA_HOME}/share/scala/lib/scala-compiler.jar
+#SCALA_LIBRARY_JAR=${SCALA_HOME}/share/scala/lib/scala-library.jar
+SCALA_CLASSPATH=`echo $SCALA_LIB_DIR/*.jar | tr ' ' ':'`
+SCALAMAIN_CLASS=scala.tools.nsc.MainGenericRunner
+APP_MAIN_CLASS=net.jimmc.mimprint.AppS
+
 machine=`uname -m`
 if [ "$machine" = "Power Macintosh" ]; then
     #Running on Mac OS X
@@ -42,4 +53,6 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-exec $JAVA $JAVA_ARGS $JDEBUG $MAC_OPTS -jar $MIMPRINTHOME/mimprint.jar "$@"
+CP=${SCALA_CLASSPATH}:${MIMPRINTHOME}/mimprint.jar
+exec $JAVA $JAVA_ARGS $JDEBUG $MAC_OPTS -cp $CP \
+    $SCALA_MAIN_CLASS $APP_MAIN_CLASS "$@"

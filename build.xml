@@ -29,6 +29,13 @@
         <property name="hansel.jar" value="${hansel.dir}/lib/hansel.jar"/>
         <property name="hansel-bcel.jar" value="${hansel.dir}/lib/bcel.jar"/>
 
+        <property name="scala.home.dir"
+                value="${home.dir}/net/scala/scala-2.6.0"/>
+        <property name="scala.compiler.jar"
+                value="${scala.home.dir}/share/scala/lib/scala-compiler.jar"/>
+        <property name="scala.library.jar"
+                value="${scala.home.dir}/share/scala/lib/scala-library.jar"/>
+
         <!-- Unit testing, things you might want to change -->
         <property name="test.coverage" value=""/>
         <property name="test.headlessarg" value="-Djava.awt.headless=true"/>
@@ -48,6 +55,13 @@
         <path id="compile.classpath">
             <pathelement location="${class.dir}"/>
 	    <pathelement location="${jshortcut.jar}"/>
+        </path>
+
+        <!-- The classpath for compiling our scala classes. -->
+        <path id="scala.classpath">
+            <pathelement location="${scala.compiler.jar}"/>
+            <pathelement location="${scala.library.jar}"/>
+            <pathelement location="${class.dir}"/>
         </path>
 
 	<!-- The classpath for compiling our test java classes -->
@@ -72,6 +86,12 @@
 	<path id="javadoc.classpath">
 	    <path refid="compile.classpath"/>
 	</path>
+
+        <!-- Define the scalac task -->
+        <taskdef resource="scala/tools/ant/antlib.xml">
+            <classpath refid="scala.classpath"/>
+        </taskdef>
+
     </target>
 
     <target name="mkdirs" depends="init">
@@ -81,7 +101,9 @@
         <mkdir dir="${testobj.dir}"/>
     </target>
 
-    <target name="compile" depends="init,mkdirs">
+    <target name="compile" depends="javac,scalac"/>
+
+    <target name="javac" depends="init,mkdirs">
         <javac
             srcdir="${src.dir}"
             destdir="${class.dir}"
@@ -92,6 +114,19 @@
             <include name="**/*.java"/>
 	    <exclude name="*/*.old/*.java"/>
         </javac>
+    </target>
+
+    <target name="scalac" depends="javac">
+        <!-- fsc task is same as scalac, but uses cached "fast scala compiler" -->
+        <!-- To clear out the compiler cache, run "fsc -reset" -->
+        <scalac
+             srcdir="${src.dir}"
+             destdir="${class.dir}"
+             classpathref="scala.classpath"
+             force="changed"
+        >
+            <include name="**/*.scala"/>
+        </scalac>
     </target>
 
     <!-- Compile the test java classes -->

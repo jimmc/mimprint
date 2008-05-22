@@ -16,6 +16,9 @@ import java.util.ResourceBundle;
  * information.
  */
 public class App implements ResourceSource {
+    private static App app;
+    private IAppFactory factory;
+
     /** Our viewer window. */
     protected Viewer viewer;
 
@@ -48,13 +51,31 @@ public class App implements ResourceSource {
 
     /** Program starts here. */
     public static void main(String[] args) {
-        App m = new App();
-        m.doMain(args);
+        app = new App();
+        app.doMain(args);
+    }
+
+    public static void setApp(App app0) {
+        app = app0;
+    }
+
+    public static App getApp() {
+        return app;
+    }
+
+    public void setFactory(IAppFactory factory) {
+        this.factory = factory;
+    }
+
+    public IAppFactory getFactory() {
+        return factory;
     }
 
     /** Run the main stuff. */
     public void doMain(String[] args) {
         startTime = System.currentTimeMillis();
+        if (factory==null)
+            factory = new AppFactoryJ();
         initResources();
         String aboutTitle = getResourceString("about.title");
         String aboutInfo = getResourceString("about.info");

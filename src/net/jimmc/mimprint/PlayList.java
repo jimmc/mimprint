@@ -82,7 +82,7 @@ public class PlayList implements Cloneable {
 
     private void processLine(String line, int lineNumber) {
         if (inputItem==null) {
-            inputItem = new PlayItem();
+            inputItem = App.getApp().getFactory().newPlayItem();
             inputItem.setBaseDir(baseDir);
         }
         if (inputItem.isOptionLine(line)) {

@@ -101,7 +101,7 @@ public class ImagePageArea extends AreaLayout {
 
     //Add our area info to the specified PlayList
     protected void addToPlayList(PlayList playList) {
-        PlayItem item = new PlayItem();
+        PlayItem item = App.getApp().getFactory().newPlayItem();
         String path = getImagePath();
         if (path==null)
             item.addTextLine("#empty image area");
