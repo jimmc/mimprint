@@ -375,10 +375,10 @@ public class Viewer extends JsFrame {
         };
         rotateMenu.add(mi);
 
-        label = getResourceString("menu.Image.AddCurrentToPrintable.label");
+        label = getResourceString("menu.Image.AddCurrentToPlayList.label");
         mi = new MenuAction(label) {
             public void action() {
-                addCurrentImageToPrintable();
+                addCurrentImageToPlayList();
             }
         };
         rotateMenu.add(mi);
@@ -968,18 +968,30 @@ public class Viewer extends JsFrame {
         }
     }
 
-    public void addCurrentImageToPrintable() {
+    public void addCurrentImageToPlayList() {
         PlayItem item = imageLister.getCurrentPlayItem();
-        initImagePage();
-        ImageBundle b = createImageBundleFromItem(item);
-        //TODO - i18n
-        if (!imagePage.getAreaLayout().addImageBundle(b)) {
-            showStatus("Failed to add item "+item+" to printable page (full?)");
-            return;
+        int activeIndex = playListManager.getActiveIndex();
+        if (activeIndex<=1) {
+            showStatus("No active PlayList");
+        } else if (activeIndex==1) {
+            initImagePage();
+            ImageBundle b = createImageBundleFromItem(item);
+            //TODO - i18n
+            if (!imagePage.getAreaLayout().addImageBundle(b)) {
+                showStatus("Failed to add item "+item+" to printable page (full?)");
+                return;
+            }
+            PlayList p = imagePage.getPlayList();
+            int numItems = p.countNonEmpty();
+            showStatus("Added "+item+" to printable page as item "+numItems);
+        } else {
+            PlayList p = playListManager.getActivePlayList();
+            String listName = playListManager.getActivePlayListName();
+            p.addItem(item.copy());
+            int numItems = p.countNonEmpty();
+            showStatus("Added "+item+" to PlayList "+listName+
+                    " as item "+numItems);
         }
-        PlayList p = imagePage.getPlayList();
-        int numItems = p.countNonEmpty();
-        showStatus("Added "+item+" to printable page as item "+numItems);
     }
 
     private ImageBundle createImageBundleFromItem(PlayItem item) {

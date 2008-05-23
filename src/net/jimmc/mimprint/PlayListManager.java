@@ -9,6 +9,8 @@ import net.jimmc.swing.JsTextField;
 import net.jimmc.swing.MenuAction;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import javax.swing.JComponent;
@@ -30,6 +32,7 @@ public class PlayListManager {
     private JLabel playListNewNameLabel;
     private CheckBoxAction appendField;
     private ArrayList customListNames = new ArrayList();
+    private ArrayList customPlayLists = new ArrayList();
     private int activeIndex = -1;
         //0==Main, 1==Printable, 2+==custom list
     private boolean playListIncludesNew;
@@ -141,7 +144,15 @@ public class PlayListManager {
             break;
         //case 2 and above are for aux playlists
         default:
-            System.out.println("NYI: save PL="+playListIndex+" file="+fileName);
+            PlayList playList = getActivePlayList();
+            try {
+                PrintWriter pw = new PrintWriter(f);
+                playList.save(pw,f.getParentFile());
+                pw.flush();
+                pw.close();
+            } catch (IOException ex) {
+                throw new RuntimeException("failed to save PlayList",ex);
+            }
             break;
         }
     }
@@ -156,8 +167,21 @@ public class PlayListManager {
             }
             //TODO - validate name syntax?
             customListNames.add(newListName);
+            customPlayLists.add(new PlayList());
         }
         activeIndex = playListIndex+1;
+    }
+
+    public int getActiveIndex() {
+        return activeIndex;
+    }
+
+    public PlayList getActivePlayList() {
+        return (PlayList)customPlayLists.get(activeIndex-2);
+    }
+
+    public String getActivePlayListName() {
+        return (String)customListNames.get(activeIndex-2);
     }
 
     private JComponent createLoadDialogPanel() {
@@ -286,7 +310,7 @@ public class PlayListManager {
 
     protected void playListSelected() {
         int listIndex = playListSourceField.getSelectedIndex();
-        System.out.println("PlayList "+listIndex+" selected");
+//System.out.println("PlayList "+listIndex+" selected");
         //If the last item is "New" and is selected, enable the
         //text field for entering a new playlist name, else disable it.
         if (playListIncludesNew &&

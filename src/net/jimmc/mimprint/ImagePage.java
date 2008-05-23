@@ -833,8 +833,8 @@ public class ImagePage extends JComponent
                 viewer.processFileOpen();
                 setCursorVisible(false);    //turn cursor back off
                 break;
-            case 'p':   //add current image to printable playlist
-                viewer.addCurrentImageToPrintable();
+            case 'p':   //add current image to active or printable playlist
+                viewer.addCurrentImageToPlayList();
                 break;
             case 'P':    //the print screen
                 viewer.setScreenMode(Viewer.SCREEN_PRINT);

@@ -1,12 +1,11 @@
 #!/bin/sh -
 #A sample startup script for mimprint for Linux or Mac OSX.
 
-#SCALA_HOME=$HOME/net/scala/scala-2.6.0
 SCALA_HOME=$HOME/net/scala/scala-current
-SCALA_LIB_DIR=$SCALA_HOME/share/scala/lib
+SCALA_LIB_DIR=$SCALA_HOME/lib
 [ -d $SCALA_HOME/lib ] && SCALA_LIB_DIR=$SCALA_HOME/lib
-#SCALA_COMPILER_JAR=${SCALA_HOME}/share/scala/lib/scala-compiler.jar
-#SCALA_LIBRARY_JAR=${SCALA_HOME}/share/scala/lib/scala-library.jar
+#SCALA_COMPILER_JAR=${SCALA_HOME}/lib/scala-compiler.jar
+#SCALA_LIBRARY_JAR=${SCALA_HOME}/lib/scala-library.jar
 SCALA_CLASSPATH=`echo $SCALA_LIB_DIR/*.jar | tr ' ' ':'`
 SCALAMAIN_CLASS=scala.tools.nsc.MainGenericRunner
 APP_MAIN_CLASS=net.jimmc.mimprint.AppS

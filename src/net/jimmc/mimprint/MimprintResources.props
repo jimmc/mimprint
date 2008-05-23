@@ -90,7 +90,7 @@ menu.Help.label=Help
 menu.Help.About.label=About Mimprint
 
 menu.Image.label=Image
-menu.Image.AddCurrentToPrintable.label=Add Image to Printable Screen
+menu.Image.AddCurrentToPlayList.label=Add Image to Active PlayList
 menu.Image.NextDirectory.label=Next Directory
 menu.Image.NextImage.label=Next Image
 menu.Image.PreviousDirectory.label=Previous Directory

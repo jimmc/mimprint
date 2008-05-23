@@ -30,11 +30,11 @@
         <property name="hansel-bcel.jar" value="${hansel.dir}/lib/bcel.jar"/>
 
         <property name="scala.home.dir"
-                value="${home.dir}/net/scala/scala-2.6.0"/>
+                value="${home.dir}/net/scala/scala-current"/>
         <property name="scala.compiler.jar"
-                value="${scala.home.dir}/share/scala/lib/scala-compiler.jar"/>
+                value="${scala.home.dir}/lib/scala-compiler.jar"/>
         <property name="scala.library.jar"
-                value="${scala.home.dir}/share/scala/lib/scala-library.jar"/>
+                value="${scala.home.dir}/lib/scala-library.jar"/>
 
         <!-- Unit testing, things you might want to change -->
         <property name="test.coverage" value=""/>
@@ -116,7 +116,7 @@
         </javac>
     </target>
 
-    <target name="scalac" depends="javac">
+    <target name="scalac" depends="init,mkdirs,javac">
         <!-- fsc task is same as scalac, but uses cached "fast scala compiler" -->
         <!-- To clear out the compiler cache, run "fsc -reset" -->
         <scalac
@@ -125,6 +125,11 @@
              classpathref="scala.classpath"
              force="changed"
         >
+            <!-- <include name="**/*.java"/> -->
+            <!-- Supposedly one can run scalac with a list of both java
+                 and scala files, but apparently that is not yet in the
+                 release as of 2.7.1; probably in one of the recent
+                 nightly builds (as of 2008-05-22). -->
             <include name="**/*.scala"/>
         </scalac>
     </target>
