@@ -987,7 +987,7 @@ public class Viewer extends JsFrame {
         } else {
             PlayList p = playListManager.getActivePlayList();
             String listName = playListManager.getActivePlayListName();
-            p.addItem(item.copy());
+            p.addItem(item);
             int numItems = p.countNonEmpty();
             showStatus("Added "+item+" to PlayList "+listName+
                     " as item "+numItems);

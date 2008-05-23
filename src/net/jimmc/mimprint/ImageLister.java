@@ -372,13 +372,7 @@ public class ImageLister extends JPanel {
             originalPlayList = playList.copy();
 
         int playListIndex = n - dirCount;
-        PlayItem item = playList.getItem(playListIndex);
-        int rot = item.getRotFlag()+inc;
-        if (rot<-1)
-            rot += 4;
-        else if (rot>2)
-            rot -= 4;
-        item.setRotFlag(rot);
+        playList.rotateItem(playListIndex,inc);
     }
 
     /** Open the specified target.

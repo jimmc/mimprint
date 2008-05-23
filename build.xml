@@ -36,6 +36,11 @@
         <property name="scala.library.jar"
                 value="${scala.home.dir}/lib/scala-library.jar"/>
 
+        <property name="scalatest.home.dir"
+                value="${home.dir}/net/scala/scalatest-current"/>
+        <property name="scalatest.jar"
+                value="${scalatest.home.dir}/scalatest-0.9.2.jar"/>
+
         <!-- Unit testing, things you might want to change -->
         <property name="test.coverage" value=""/>
         <property name="test.headlessarg" value="-Djava.awt.headless=true"/>
@@ -67,6 +72,8 @@
 	<!-- The classpath for compiling our test java classes -->
 	<path id="testcompile.classpath">
 	    <path refid="compile.classpath"/>
+            <path refid="scala.classpath"/>
+            <pathelement location="${scalatest.jar}"/>
 	    <pathelement location="${testobj.dir}"/>
 	    <pathelement location="${junit.jar}"/>
 	    <pathelement location="${hansel.jar}"/>
@@ -76,6 +83,8 @@
         <!-- The classpath for running our tests -->
         <path id="test.classpath">
             <path refid="compile.classpath"/>
+            <path refid="scala.classpath"/>
+            <pathelement location="${scalatest.jar}"/>
             <pathelement location="${testobj.dir}"/>
             <pathelement location="${junit.jar}"/>
             <pathelement location="${hansel.jar}"/>
@@ -134,8 +143,12 @@
         </scalac>
     </target>
 
+    <!-- Compile the test classes -->
+    <target name="testcompile" depends="testjavac,testscalac"
+    		description="Compile all unit test java classes"/>
+
     <!-- Compile the test java classes -->
-    <target name="testcompile" depends="init,mkdirs"
+    <target name="testjavac" depends="init,mkdirs"
     		description="Compile all unit test java classes">
         <javac
 	    srcdir="${testsrc.dir}"
@@ -147,6 +160,24 @@
 	    <include name="**/*.java"/>
 	    <exclude name="**/*.old/**/*.java"/>
 	</javac>
+    </target>
+
+    <target name="testscalac" depends="init,mkdirs,testjavac">
+        <!-- fsc task is same as scalac, but uses cached "fast scala compiler" -->
+        <!-- To clear out the compiler cache, run "fsc -reset" -->
+        <scalac
+             srcdir="${testsrc.dir}"
+             destdir="${testobj.dir}"
+             classpathref="testcompile.classpath"
+             force="changed"
+        >
+            <!-- <include name="**/*.java"/> -->
+            <!-- Supposedly one can run scalac with a list of both java
+                 and scala files, but apparently that is not yet in the
+                 release as of 2.7.1; probably in one of the recent
+                 nightly builds (as of 2008-05-22). -->
+            <include name="**/*.scala"/>
+        </scalac>
     </target>
 
     <!-- Create the default properties file from all of the props files -->
@@ -277,13 +308,17 @@
 	/>
     </target>
 
-    <target name="test" depends="jar,testjar"
-    		description="Run the unit tests">
+    <target name="test" depends="testinit,testjava,testscala"
+    		description="Run the unit tests"/>
+
+    <target name="testinit" depends="jar,testjar">
         <delete dir="${test.results.dir}"/>
         <delete dir="${test.reports.dir}"/>
         <mkdir dir="${test.results.dir}"/>
         <mkdir dir="${test.reports.dir}"/>
+    </target>
 
+    <target name="testjava" depends="testinit">
 	<junit	printsummary="true"
 		errorProperty="test.failed"
 		failureProperty="test.failed"
@@ -319,6 +354,24 @@
 
 	<fail message="Test failures, see ${test.reports.dir}"
 		if="test.failed"/>
+    </target>
+
+    <target name="testscala" depends="testinit">
+        <pathconvert property="runscalatest.classpath"
+                refid="test.classpath" pathsep=":"/>
+        <property name="test.main.class" value="org.scalatest.tools.Runner"/>
+        <property name="test.out.file" value="${test.results.dir}/scalatest.out"/>
+        <echo>scala -classpath ${runscalatest.classpath} ${test.main.class} -p ${testobj.dir} -o</echo>
+        <exec
+                executable="scala"
+                output="${test.out.file}"
+                failonerror="true"
+        >
+            <arg line="-classpath ${runscalatest.classpath}"/>
+            <arg line="${test.main.class}"/>
+            <arg line="-p ${testobj.dir}"/>
+            <arg line="-o"/>
+        </exec>
     </target>
 
     <target name="testdebug" description="Run unit tests with suspend for debug">

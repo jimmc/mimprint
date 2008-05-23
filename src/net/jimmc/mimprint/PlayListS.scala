@@ -1,29 +1,27 @@
 package net.jimmc.mimprint
 
-import net.jimmc.util.ArrayUtil
-import net.jimmc.util.StringUtil
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ListBuffer
 
 /** A playlist of images. */
 class PlayListS() extends PlayList {
     private var baseDir:File = _             //current base directory
-    private var inputItem:PlayItem = _         //item being built when loading
-    private var items:ArrayList[PlayItem] = _
+    private var items:ArrayBuffer[PlayItemS] = _
 
     /** Create an empty playlist. */
-    items = new ArrayList()        //no items
+    items = new ArrayBuffer[PlayItemS]        //no items
 
     /** Create a playlist from the given set of filenames. */
     def this(filenames:Array[String], start:Int, length:Int) {
         this()
         for (i <- 0 until length) {
-            processLine(filenames(i+start),i+1)
+            addItem(new PlayItemS(null,baseDir,filenames(i+start),0))
         }
     }
 
@@ -33,10 +31,8 @@ class PlayListS() extends PlayList {
 
     def copy():PlayList = {
         val c = new PlayListS()
-        for (i <- 0 until items.size()) {
-            c.addItem(items.get(i).copy())
-        }
         c.baseDir = baseDir
+        c.items ++= items
         c
     }
 
@@ -45,51 +41,36 @@ class PlayListS() extends PlayList {
         case other:PlayListS =>
             if ((baseDir==null || other.baseDir==null) && baseDir!=other.baseDir)
                 return false
-            if (!StringUtil.equals(baseDir.getPath(),other.baseDir.getPath()))
+            if (baseDir.getPath!=other.baseDir.getPath)
                 return false
-            return ArrayUtil.equals(items.toArray(),other.items.toArray())
+            return items==other.items
         case x => false
         }
     }
 
-    private def processLine(line:String, lineNumber:Int) {
-        if (inputItem==null) {
-            inputItem = App.getApp().getFactory().newPlayItem()
-            inputItem.setBaseDir(baseDir)
-        }
-        if (inputItem.isOptionLine(line)) {
-            inputItem.processOptionLine(line)
-        } else if (inputItem.isImageInfoLine(line)) {
-            inputItem.setImageInfoLine(line)
-            addItem(inputItem)
-            inputItem = null
-        } else {
-            inputItem.addTextLine(line);        //maintain all comments etc.
-        }
-    }
+    def addItem(item:PlayItem) = items += item.asInstanceOf[PlayItemS]
 
-    def addItem(item:PlayItem) = items.add(item)
+    def addEmptyItem() = addItem(new PlayItemS(null,null,null,0))
+
+    def rotateItem(itemIndex:Int, rot:Int) {
+        val item = items(itemIndex)
+        val newItem = PlayItemS.rotate(item,rot)
+        items(itemIndex) = newItem
+    }
 
     /** Return the number of items in the playlist. */
-    def size() = items.size()
+    def size() = items.length
 
     /** Count the number of non-empty items. */
-    def countNonEmpty():Int = {
-        var n = 0
-        for (i <- 0 until size) {
-            val item = getItem(i)
-            if (item!=null && !item.isEmpty())
-                n = n+1
-        }
-        n
-    }
+    def countNonEmpty():Int =
+        items.filter(item => item!=null && !item.isEmpty).length
 
-    def getItem(n:Int) = items.get(n)
+    def getItem(n:Int) = items(n)
 
     def getFileNames():Array[String] = {
         val fileNames = new Array[String](size())
-        for (i <- 0 until items.size()) {
-            fileNames(i) = items.get(i).getFileName()
+        for (i <- 0 until items.length) {
+            fileNames(i) = items(i).getFileName()
         }
         fileNames
     }
@@ -106,11 +87,7 @@ class PlayListS() extends PlayList {
     }
 
     def save(out:PrintWriter, baseDir:File) {
-        val n = size()
-        for (i <- 0 until n) {
-            val item = items.get(i)
-            item.printAll(out,baseDir)
-        }
+        items.foreach(_.printAll(out,baseDir))
     }
 }
 
@@ -130,11 +107,17 @@ object PlayListS {
     def load(in:LineNumberReader, baseDir:File):PlayList = {
         val p = new PlayListS()
         p.setBaseDir(baseDir)
+        var lines = new ListBuffer[String]
         var line:String = in.readLine()
         while (line!=null) {
-            p.processLine(line,in.getLineNumber())
+            lines += line
+            if (PlayItemS.isFinalLine(line)) {
+                p.addItem(PlayItemS(lines.toList,baseDir))
+                lines = new ListBuffer[String]
+            }
             line = in.readLine()
         }
+        //TODO - process trailling lines
         p
     }
 }

@@ -101,20 +101,17 @@ public class ImagePageArea extends AreaLayout {
 
     //Add our area info to the specified PlayList
     protected void addToPlayList(PlayList playList) {
-        PlayItem item = App.getApp().getFactory().newPlayItem();
         String path = getImagePath();
         if (path==null)
-            item.addTextLine("#empty image area");
-                    //TODO - how to put in placeholder?
+            playList.addEmptyItem();
         else {
             File f = new File(path);
             File baseDir = f.getParentFile();
             String fileName = f.getName();
             int rot = imageBundle.getRotation();
-            item.setRotFlag(rot);
-            item.setBaseDir(baseDir);
-            item.setFileName(fileName);
+            PlayItem item = App.getApp().getFactory().newPlayItem(
+                null,baseDir,fileName,rot);
+            playList.addItem(item);
         }
-        playList.addItem(item);
     }
 }

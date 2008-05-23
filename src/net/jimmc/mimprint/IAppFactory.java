@@ -3,7 +3,8 @@ package net.jimmc.mimprint;
 import java.io.File;
 
 public interface IAppFactory {
-    public PlayItem newPlayItem();
+    public PlayItem newPlayItem(
+            String[] comments, File baseDir, String fileName, int rotFlag);
 
     public PlayList newPlayList();
 

@@ -3,8 +3,9 @@ package net.jimmc.mimprint
 import java.io.File
 
 object AppFactoryS extends IAppFactory {
-    def newPlayItem : PlayItem = {
-        new PlayItemS()
+    def newPlayItem(comments:Array[String], baseDir:File, fileName:String,
+            rotFlag:Int) : PlayItem = {
+        new PlayItemS(List.fromArray(comments), baseDir, fileName, rotFlag)
     }
 
     def newPlayList() = new PlayListS()
