@@ -488,8 +488,8 @@ public class ImageLister extends JPanel {
         originalPlayList = null;
         if (isPlayList) {
             try {
-                playList = PlayList.load(indexFile);
-            } catch (IOException ex) {
+                playList = app.getFactory().loadPlayList(indexFile);
+            } catch (Exception ex) {
                 throw new RuntimeException("Failed to load index playlist",ex);
             }
             fileCount = playList.size();
@@ -499,7 +499,7 @@ public class ImageLister extends JPanel {
             System.arraycopy(plFileNames,0,newFileNames,dirCount,fileCount);
             fileNames = newFileNames;
         } else {
-            playList = new PlayList(fileNames,dirCount,fileCount);
+            playList = App.getApp().getFactory().newPlayList(fileNames,dirCount,fileCount);
         }
         fileInfos = new FileInfo[fileNames.length];
             //Allocate space for the rest of the file info

@@ -167,7 +167,7 @@ public class PlayListManager {
             }
             //TODO - validate name syntax?
             customListNames.add(newListName);
-            customPlayLists.add(new PlayList());
+            customPlayLists.add(app.getFactory().newPlayList());
         }
         activeIndex = playListIndex+1;
     }

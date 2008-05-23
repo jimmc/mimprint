@@ -47,13 +47,7 @@ public class App implements ResourceSource {
     /** The time we started running. */
     protected long startTime;
 
-        private ImageUtil imageUtil;
-
-    /** Program starts here. */
-    public static void main(String[] args) {
-        app = new App();
-        app.doMain(args);
-    }
+    private ImageUtil imageUtil;
 
     public static void setApp(App app0) {
         app = app0;
@@ -75,7 +69,7 @@ public class App implements ResourceSource {
     public void doMain(String[] args) {
         startTime = System.currentTimeMillis();
         if (factory==null)
-            factory = new AppFactoryJ();
+            throw new RuntimeException("No factory");
         initResources();
         String aboutTitle = getResourceString("about.title");
         String aboutInfo = getResourceString("about.info");
