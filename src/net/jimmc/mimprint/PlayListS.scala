@@ -13,17 +13,21 @@ import scala.collection.mutable.ListBuffer
 class PlayListS() extends PlayList {
     private var baseDir:File = _             //current base directory
     private var items:ArrayBuffer[PlayItemS] = _
+    private var comments:List[String] = Nil
+        //Header comments for the whole file
 
     /** Create an empty playlist. */
     items = new ArrayBuffer[PlayItemS]        //no items
 
     /** Create a playlist from the given set of filenames. */
-    def this(filenames:Array[String], start:Int, length:Int) {
+    def this(base:File, filenames:Array[String], start:Int, length:Int) {
         this()
         for (i <- 0 until length) {
-            addItem(new PlayItemS(null,baseDir,filenames(i+start),0))
+            addItem(new PlayItemS(null,base,filenames(i+start),0))
         }
     }
+
+    def setListComments(commentLines:List[String]) = comments = commentLines
 
     def setBaseDir(baseDir:File) = this.baseDir = baseDir
 
@@ -87,7 +91,13 @@ class PlayListS() extends PlayList {
     }
 
     def save(out:PrintWriter, baseDir:File) {
-        items.foreach(_.printAll(out,baseDir))
+        comments.foreach(out.println(_))        //write out the header comments
+        var itemBaseDir = baseDir
+        items.foreach { itemOldBase =>
+            val item = itemOldBase.usingBase(itemBaseDir)
+            item.printAll(out,itemBaseDir)  //write each PlayItem
+            itemBaseDir = item.getBaseDir
+        }
     }
 }
 
@@ -109,10 +119,22 @@ object PlayListS {
         p.setBaseDir(baseDir)
         var lines = new ListBuffer[String]
         var line:String = in.readLine()
+        //Read leading list-comment lines (starting with two # chars)
+        while (line!=null && isListComment(line)) {
+            lines += line
+            line = in.readLine()
+        }
+        if (lines.length>0) {
+            p.setListComments(lines.toList)
+            lines = new ListBuffer[String]
+        }
+        var itemBaseDir = baseDir;
         while (line!=null) {
             lines += line
             if (PlayItemS.isFinalLine(line)) {
-                p.addItem(PlayItemS(lines.toList,baseDir))
+                val item = PlayItemS(lines.toList,itemBaseDir)
+                p.addItem(item)
+                itemBaseDir = item.getBaseDir   //may not be what we passed in
                 lines = new ListBuffer[String]
             }
             line = in.readLine()
@@ -120,4 +142,7 @@ object PlayListS {
         //TODO - process trailling lines
         p
     }
+
+    //True if the line is a list comment line (for the whole file)
+    private def isListComment(line:String) = line.trim.startsWith("##")
 }

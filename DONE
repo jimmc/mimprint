@@ -97,3 +97,6 @@
   is visible. [080507]
 - Implement PlayList menu with Load (NYI) and Save for Main and Printable
   playlists.  Not quite done. [080513]
+- Start converting over to scala. [080522]
+- Add Scala unit tests. [080523]
+- Finish playlists to the point where they can be built up and saved. [080526]

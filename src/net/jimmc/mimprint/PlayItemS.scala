@@ -1,5 +1,7 @@
 package net.jimmc.mimprint
 
+import net.jimmc.util.FileUtilS
+
 import java.io.File
 import java.io.PrintWriter
 
@@ -31,11 +33,23 @@ class PlayItemS(
         }
     }
 
-    def printAll(out:PrintWriter, baseDir:File) : Unit = {
-//TODO - need to print our basedir if it is different from the previous item
-out.println("#Our basedir="+this.baseDir+"; list baseDir="+baseDir);
-        comments.foreach(out.println(_))
+    def printAll(out:PrintWriter, listBaseDir:File) : Unit = {
+        if (comments!=null)
+            comments.foreach(out.println(_))
+        //If the base dir for the list is not identical to our base dir,
+        // then we output our base dir.
+        //We could also perhaps just modify the path for the fileName
+        // to ensure that it works for the listBaseDir.
+        if (pathFor(baseDir)!=pathFor(listBaseDir))
+            out.println("-base="+pathFor(baseDir))
         out.println(getImageInfoLine())
+    }
+
+    private def pathFor(dir:File) : String = {
+        if (dir==null)
+            null
+        else
+            dir.toString
     }
 
     /** Get a line of text encoding all of the image info.
@@ -64,6 +78,21 @@ out.println("#Our basedir="+this.baseDir+"; list baseDir="+baseDir);
     def isEmpty() = fileName==null || fileName==""
 
     override def toString() = getImageInfoLine()      //TODO - add basedir?
+
+    /** Get another item referencing the same file but relative to
+     * a different baseDir.
+     */
+    def usingBase(newBase:File) : PlayItemS = {
+        if (pathFor(newBase)==pathFor(baseDir))
+            this
+        else {
+            val path = FileUtilS.collapseRelative(
+                    (new File(baseDir,fileName)).getPath())
+                //Put together base and file, collapse internal ".." elements
+            val relativePath = FileUtilS.relativeTo(path, newBase)
+            new PlayItemS(comments,newBase,relativePath,rotFlag)
+        }
+    }
 }
 
 object PlayItemS {

@@ -10,6 +10,9 @@ mimprint v0.2.0
     + You can open any playlist file by using the File/Open menu command.
       This allows you to have more than only playlist in a directory,
       or to have playlists that include files from multiple directories.
+    + The "p" keybaord shortcut copies the current item to the active
+      playlist.  The active playlist can be selected by using the Active
+      command in the new PlayList menu.
   * The "N of M" messages now keep separate counts for folders versus files.
   * The new Dual Window Mode opens a second window on the same screen.
     This can then be moved onto another screen if desired, for cases where
@@ -39,12 +42,20 @@ mimprint v0.2.0
 
   + The file is line oriented, each line is processed alone.
   + Lines starting with a pound sign (#) are treated as comments.
+  + Consectuvie lines starting with a double-pound sign (##) at the
+    beginning of a file are treated as comments associated with the file.
+    Other comment lines are associated with the following filename.
+    Comments after the last filename are ignore and will most likely
+    be dropped when the playlis is saved back to a file.
   + Blank lines are treated as comments.
   + Leading and trailing whitespace on a line are ignored.
   + Image filename lines consist of a filename, optionally followed
     by option values separated by a semicolon.
   + The option "-r" says to rotate the image clockwise 90 degress.
   + The option "+r" says to rotate the image counter-clockwise 90 degress.
+  + The option "++r" says to rotate the image by 180 degrees.
+  + An item entry may contain the special line "-empty" instead of a filename.
+    This represents an empty item in the playlist.
   + Example image filename line:
         foo.jpg;+r
 

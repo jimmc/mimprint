@@ -8,7 +8,7 @@ public interface IAppFactory {
 
     public PlayList newPlayList();
 
-    public PlayList newPlayList(String[] filenames,
+    public PlayList newPlayList(File base, String[] filenames,
          int dirCount, int fileCount);
 
     /** Load a playlist from a file. */

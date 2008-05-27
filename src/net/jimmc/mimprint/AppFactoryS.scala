@@ -10,8 +10,9 @@ object AppFactoryS extends IAppFactory {
 
     def newPlayList() = new PlayListS()
 
-    def newPlayList(filenames:Array[String], dirCount:Int, fileCount:Int) =
-        new PlayListS(filenames, dirCount, fileCount)
+    def newPlayList(baseDir:File, filenames:Array[String],
+            dirCount:Int, fileCount:Int) =
+        new PlayListS(baseDir, filenames, dirCount, fileCount)
 
     /** Load a playlist from a file. */
     def loadPlayList(f:File):PlayList = PlayListS.load(f)

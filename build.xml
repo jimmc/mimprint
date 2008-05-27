@@ -133,6 +133,7 @@
              destdir="${class.dir}"
              classpathref="scala.classpath"
              force="changed"
+             deprecation="on"
         >
             <!-- <include name="**/*.java"/> -->
             <!-- Supposedly one can run scalac with a list of both java

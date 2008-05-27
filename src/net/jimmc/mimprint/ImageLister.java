@@ -493,7 +493,8 @@ public class ImageLister extends JPanel {
             System.arraycopy(plFileNames,0,newFileNames,dirCount,fileCount);
             fileNames = newFileNames;
         } else {
-            playList = App.getApp().getFactory().newPlayList(fileNames,dirCount,fileCount);
+            playList = app.getFactory().newPlayList(targetDirectory,
+                    fileNames,dirCount,fileCount);
         }
         fileInfos = new FileInfo[fileNames.length];
             //Allocate space for the rest of the file info
