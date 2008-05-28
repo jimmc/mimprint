@@ -125,7 +125,7 @@ public class PlayListManager {
     private void save(int playListIndex, String fileName) {
         if (fileName==null || fileName.equals(""))
             throw new IllegalArgumentException("No filename specified");
-        if (playListIndex<0 || playListIndex>2)
+        if (playListIndex<0 || playListIndex>=(customListNames.size()+2))
             throw new IllegalArgumentException(
                     "Bad PlayList index "+playListIndex);
         File f = new File(fileName);
