@@ -545,6 +545,7 @@ public class Viewer extends JsFrame {
 
         m.add(new JSeparator());
 
+/* disable until we decide how to distribute icons (and which ones)...
         label = getResourceString("menu.View.ShowToolBar.label");
         cbmaShowToolBar = new CheckBoxMenuAction(label) {
             public void action() {
@@ -554,6 +555,8 @@ public class Viewer extends JsFrame {
         m.add(cbmaShowToolBar);
         cbmaShowToolBar.setState(true);
         toolBar.setVisible(cbmaShowToolBar.getState());
+*/
+if (toolBar!=null) toolBar.setVisible(false);
 
         m.add(new JSeparator());
 

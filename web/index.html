@@ -43,6 +43,34 @@ Scroll down to see the <a href="#news">latest news</a>.
    <p>
    <a name="news"><h3>News</h3></a>
    <ul>
+    <li>June 4, 2008: v0.2.0 released.
+        This version of mimprint is a bit messy because I have just
+	started converting it over to Scala.
+	I am posting it as an example
+	that demonstrates one way to build a program that combines
+	Scala and Java.
+	The problem with trying to compile both Java and Scala
+	in an application
+	is that the current version of the Scala compiler
+	does not handle Java files, so the Java and Scala files must be
+	separately compiled.  This makes it difficult for both kinds of
+	files to refer to code in the other kind of file.
+	I chose to solve this problem by eliminating references from
+	Java code to Scala, and only using references from Scala to Java.
+	This is done the following way:
+	<ol>
+	<li>For any place where I want to call Scala code from Java code,
+	    I create a Java interface and use that when calling from Java,
+	    then write a Scala class that implements that interface.
+	<li>To allow instantiating those Scala classes, I have a Factory
+	    interface, written in Java, and an instance of that Factory
+	    written in Scala.  Once the Java classes have a handle on that
+	    Factory instance, they can call its methods to create the Scala
+	    objects, which are returned with types that are Java interfaces.
+	<li>My main class is written in Scala.  It creates the instance of
+	    the Factory interface, then passes that instance to a Java class
+	    which can provide it to other Java classes that need it
+	</ol>
     <li>August 24, 2006: v0.1.1 released.
         A few small bug fixes.
     <li>February 24, 2006: v0.1.0 released.
