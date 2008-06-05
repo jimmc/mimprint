@@ -6,7 +6,7 @@
 <center>
 <h1>README</h1>
 <h3>Mimprint<br>
-    v0.1.1  August 24, 2006</h3>
+    v0.2.0  June 4, 2008</h3>
 </center>
 
 <p>
@@ -48,13 +48,18 @@ to download the latest version of Mimprint.
 <ul>
   <li>Licensed under GPL, freely redistributable with source.
   <li>Written in Java, runs on Windows, Mac and Unix.
-  <li>Four viewing modes:
+  <li>Five viewing modes:
   <ul>
     <li>Printable mode allows collecting images onto a page for printing.
     <li>SlideShow viewing mode allows easily stepping through a folder of
         image files.
     <li>Full screen mode scales images to fit in a full-window frame.
-    <li>Alternate screen mode displays images on a second screen with no frame.
+    <li>Alternate screen mode displays images on a second screen with no frame
+        (when a second screen is available).
+    <li>Secondary Window mode displays images in a second window, which can
+        be moved and resized to fit an alternate screen when mimprint is
+        used in an environment in which the alternate screen is not detected
+        (such as can happen when using X remotely).
   </ul>
   <li>Browser with icons allows easy navigation of image directories.
   <li>Browser allows easy navigation through collections of layout templates.
@@ -158,6 +163,9 @@ Mimprint (available after you have <a href="#source">unpacked the source</a>).
     accepting jobs.
     This is a problem with the way the Java VM interfaces to the system
     print queues.
+    In general, Java Printing is problematic, and may not work on some
+    versions of Java on some platforms.
+    Sorry - try another version of Java.
 </ul>
 <p>
 If you happen to know a solution to the above two problems,
@@ -236,6 +244,11 @@ to your mimprint directory.
 You must have the
 <a href="http://ant.apache.org/">ant</a> program installed on your
 system in order to build Mimprint from source files.
+
+<p>
+You will also need a scala development environment.
+You can download this from the
+<a href="http://www.scala-lang.org/">Scala web page</a>.
 
 <p>
 If you want to look at the Javadoc-generated API documentation

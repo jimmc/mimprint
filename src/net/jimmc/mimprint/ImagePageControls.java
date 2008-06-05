@@ -8,6 +8,7 @@ package net.jimmc.mimprint;
 import net.jimmc.swing.ComboBoxAction;
 import net.jimmc.swing.JsSpinner;
 import net.jimmc.swing.JsTextField;
+import net.jimmc.util.ResourceSource;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -25,7 +26,7 @@ import javax.swing.plaf.basic.ComboPopup;
 import javax.swing.SpinnerNumberModel;
 
 public class ImagePageControls extends JPanel {
-    private App app;
+    private ResourceSource res;
     private ImagePage imagePage;
     private boolean updatingSelected;
 
@@ -56,8 +57,8 @@ public class ImagePageControls extends JPanel {
 
     private AreaLayout[] allAreas;
 
-    public ImagePageControls(App app, ImagePage imagePage) {
-        this.app = app;
+    public ImagePageControls(ResourceSource res, ImagePage imagePage) {
+        this.res = res;
         this.imagePage = imagePage;
         initLayout();
     }
@@ -73,7 +74,7 @@ public class ImagePageControls extends JPanel {
     private void addFields() {
         String labelText;
 
-        areaChoiceField = new ComboBoxAction(app) {
+        areaChoiceField = new ComboBoxAction(res) {
             public void action() {
                 areaSelected(getSelectedIndex());
             }
@@ -102,7 +103,7 @@ public class ImagePageControls extends JPanel {
 
         unitsLabel = makeLabel("Units");
         add(unitsLabel);
-        unitsField = new ComboBoxAction(app) {
+        unitsField = new ComboBoxAction(res) {
             public void action() {
                 unitsSelected(getSelectedIndex());
             }
@@ -136,7 +137,7 @@ public class ImagePageControls extends JPanel {
         //Set up the Split fields
         splitOrientationLabel = makeLabel("SplitOrientation");
         add(splitOrientationLabel);
-        splitOrientationField = new ComboBoxAction(app) {
+        splitOrientationField = new ComboBoxAction(res) {
             public void action() {
                 splitOrientationSelected(getSelectedIndex());
             }
@@ -182,7 +183,7 @@ public class ImagePageControls extends JPanel {
         //Add the layout choice
         layoutLabel = makeLabel("Layout");
         add(layoutLabel);
-        layoutField = new ComboBoxAction(app) {
+        layoutField = new ComboBoxAction(res) {
             public void action() {
                 layoutSelected(getSelectedIndex());
             }
@@ -199,10 +200,10 @@ public class ImagePageControls extends JPanel {
 
     //Make a label, add tooltip if defined, using resources
     private JLabel makeLabel(String key) {
-        String labelText = app.getResourceString("toolbar.Layout."+key+".label");
+        String labelText = res.getResourceString("toolbar.Layout."+key+".label");
         JLabel label = new JLabel(labelText);
         String toolTipTextKey = "toolbar.Layout."+key+".toolTip";
-        String toolTipText = app.getResourceString(toolTipTextKey);
+        String toolTipText = res.getResourceString(toolTipTextKey);
         if (toolTipText!=null && !toolTipText.equals(toolTipTextKey))
             label.setToolTipText(toolTipText);
         return label;
@@ -661,11 +662,11 @@ public class ImagePageControls extends JPanel {
 
     /** Get a string from our resources. */
     public String getResourceString(String name) {
-            return app.getResourceString(name);
+            return res.getResourceString(name);
     }
 
     /** Get a string from our resources. */
     public String getResourceFormatted(String name, Object[] args) {
-            return app.getResourceFormatted(name, args);
+            return res.getResourceFormatted(name, args);
     }
 }
