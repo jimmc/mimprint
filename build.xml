@@ -476,8 +476,11 @@
         <property name="relsrc.includes"
                   value="README.build build.xml build.properties
 			${jarinst.files}
-			${src.dir}/**/*.java ${src.dir}/**/*.props
-			${src.dir}/**/*.html ${src.dir}/**/*.mf" />
+			${src.dir}/**/*.java
+			${src.dir}/**/*.scala
+                        ${src.dir}/**/*.props
+			${src.dir}/**/*.html
+                        ${src.dir}/**/*.mf" />
         <zip basedir="." destfile="${rel.dir}/src.zip"
 		includes="${relsrc.includes}"
 		excludes="**/*.old/**/*.*"
