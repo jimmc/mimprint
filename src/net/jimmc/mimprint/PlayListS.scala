@@ -1,16 +1,45 @@
 package net.jimmc.mimprint
 
+import net.jimmc.util.ActorPublisher
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 
+import scala.actors.Actor
+import scala.actors.Actor.loop
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
 
+/** Subscribers interested in receiving messages about changes to
+ * this playlist should subscribe by sending a Subscribe[PlayListMessage]
+ * message to this playlist.  See the ActorPublisher trait for
+ * the Subscribe and Unsubscribe messages. */
+sealed abstract class PlayListMessage
+
+/** PlayListAddItem is sent to subscribers after an item has been added to
+ * the playlist at the specified index. */
+case class PlayListAddItem(list:PlayListS, index:Int, item:PlayItemS)
+        extends PlayListMessage
+
+/** PlayListRemoveItem is sent to subscribers after an item has been removed
+ * from the playst at the specifid index. */
+case class PlayListRemoveItem(list:PlayListS, index:Int, item:PlayItemS)
+        extends PlayListMessage
+
+/** PlayListChangeItem is sent to subscribers after the item at the
+ * specified index has been changed. */
+case class PlayListChangeItem(
+        list:PlayListS, index:Int, oldItem:PlayItemS, newItem:PlayItemS)
+        extends PlayListMessage
+
+
 /** A playlist of images. */
-class PlayListS() extends PlayList {
+class PlayListS() extends Actor
+        with ActorPublisher[PlayListMessage]
+        with PlayList {
     private var baseDir:File = _             //current base directory
     private var items:ArrayBuffer[PlayItemS] = _
     private var comments:List[String] = Nil
@@ -19,12 +48,29 @@ class PlayListS() extends PlayList {
     /** Create an empty playlist. */
     items = new ArrayBuffer[PlayItemS]        //no items
 
+    /* We always start our actor right away so that clients can send
+     * us subscribe requests as soon as we are created.
+     */
+    this.start()
+
     /** Create a playlist from the given set of filenames. */
     def this(base:File, filenames:Array[String], start:Int, length:Int) {
         this()
         for (i <- 0 until length) {
-            addItem(new PlayItemS(null,base,filenames(i+start),0))
+            addItemNoMessage(new PlayItemS(null,base,filenames(i+start),0))
         }
+        //We can't have any subscribers yet, so we don't need to send
+        //out any messages.
+    }
+
+    def act() {
+        loop {
+            react (handleSubscribe orElse handleOther)
+        }
+    }
+    private val handleOther : PartialFunction[Any,Unit] = {
+        case _ => println("Unrecognized message to PlayList")
+        //TODO - add messages that change the playlist
     }
 
     def setListComments(commentLines:List[String]) = comments = commentLines
@@ -52,7 +98,13 @@ class PlayListS() extends PlayList {
         }
     }
 
-    def addItem(item:PlayItem) = items += item.asInstanceOf[PlayItemS]
+    def addItem(item:PlayItem) {
+        addItemNoMessage(item)
+        publish(PlayListAddItem(
+                this,items.length-1,item.asInstanceOf[PlayItemS]))
+    }
+    private def addItemNoMessage(item:PlayItem) =
+            items += item.asInstanceOf[PlayItemS]
 
     def addEmptyItem() = addItem(new PlayItemS(null,null,null,0))
 
@@ -60,6 +112,7 @@ class PlayListS() extends PlayList {
         val item = items(itemIndex)
         val newItem = PlayItemS.rotate(item,rot)
         items(itemIndex) = newItem
+        publish(PlayListChangeItem(this,itemIndex,item,newItem))
     }
 
     /** Return the number of items in the playlist. */
