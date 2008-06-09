@@ -89,9 +89,10 @@ class PlayListS() extends Actor
     override def equals(that:Any):Boolean = {
         that match {
         case other:PlayListS =>
-            if ((baseDir==null || other.baseDir==null) && baseDir!=other.baseDir)
-                return false
-            if (baseDir.getPath!=other.baseDir.getPath)
+            if (baseDir==null || other.baseDir==null) {
+		if (baseDir!=other.baseDir)
+		    return false	//one was null but not the other
+	    } else if (baseDir.getPath!=other.baseDir.getPath)
                 return false
             return items==other.items
         case x => false
