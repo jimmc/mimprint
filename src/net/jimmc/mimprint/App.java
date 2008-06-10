@@ -162,10 +162,9 @@ public class App implements ResourceSource {
 
     /** Set up our resources. */
     public void initResources() {
-                //Look for our resources in the same package
-                String pkgName = this.getClass().getPackage().getName();
-        resources = ResourceBundle.getBundle(
-            pkgName+".Resources");
+        //Look for our resources in the same package
+        String pkgName = this.getClass().getPackage().getName();
+        resources = ResourceBundle.getBundle(pkgName+".Resources");
     }
 
     /** Get a string from our resource file. */

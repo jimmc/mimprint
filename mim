@@ -8,7 +8,7 @@ SCALA_LIB_DIR=$SCALA_HOME/lib
 #SCALA_LIBRARY_JAR=${SCALA_HOME}/lib/scala-library.jar
 SCALA_CLASSPATH=`echo $SCALA_LIB_DIR/*.jar | tr ' ' ':'`
 SCALAMAIN_CLASS=scala.tools.nsc.MainGenericRunner
-APP_MAIN_CLASS=net.jimmc.mimprint.AppS
+APP_MAIN_CLASS=net.jimmc.mimprint.AppStart
 
 machine=`uname -m`
 if [ "$machine" = "Power Macintosh" ]; then

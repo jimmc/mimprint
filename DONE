@@ -101,3 +101,4 @@
 - Add Scala unit tests. [080523]
 - Finish playlists to the point where they can be built up and saved. [080526]
 - v0.2.0. [080604]
+- Start using git rather than CVS. [080608]

@@ -140,13 +140,21 @@ prompt.Print.PageSizeMismatch.PaperSize=Paper size is {0} by {1} {2}
 prompt.SaveLayoutTemplateAs=Save Layout Template As...
 prompt.TextForImage=Text for {0}
 
-query.Confirm.title=Mimprint - Confirm
+query.button.Details.label=Details
+query.button.OK.label=OK
+query.button.PrintTraceback.label=Print Traceback
+query.button.SaveTraceback.label=Save Traceback
+
+query.Confirm.title=Mimprint: Confirm
 query.Confirm.FileExists.prompt=File {0} exists;\noverwrite it?
 query.EditLayout.title=Page Description
+query.Error.title=Mimprint: Error
+query.ErrorDetails.title=Mimprint: Exception Details
 query.Exit.prompt=Exit Mimprint?
+query.Exit.title=Exit Mimprint?
 query.FileToOpen=File or Directory to Open
 query.Info.NoDescription=(No description)
-query.Info.title=Info
+query.Info.title=Mimprint: Info
 
 status.LoadedTemplateFromFile=Loaded template from file {0}
 status.SavedTemplateToFile=Saved template to file {0}

@@ -1,4 +1,4 @@
-/* Option.java
+/* CmdOption.java
  *
  * Jim McBeath, October 7, 2001
  */
@@ -6,9 +6,9 @@
 package net.jimmc.util;
 
 /** A command-line option.
- * @see OptionParser
+ * @see CmdOptionParser
  */
-public abstract class Option {
+public abstract class CmdOption {
     /** The name of the option, including the dash if used. */
     protected String name;
 
@@ -16,12 +16,12 @@ public abstract class Option {
     protected int argCount;
 
     /** Create an option which takes no arguments. */
-    public Option(String name) {
+    public CmdOption(String name) {
 	this(name,0);
     }
 
     /** Create an option with a specified number of required arguments. */
-    public Option(String name, int argumentCount) {
+    public CmdOption(String name, int argumentCount) {
 	this.name = name;
 	this.argCount = argumentCount;
     }

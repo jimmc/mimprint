@@ -1,4 +1,4 @@
-/* OptionParser.java
+/* CmdOptionParser.java
  *
  * Jim McBeath, October 7, 2001
  */
@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Parse options and arguments from an array of strings.
- * @see Option
+ * @see CmdOption
  */
-public class OptionParser {
+public class CmdOptionParser {
     /** Our defined options. */
     protected Map options;
 
@@ -25,21 +25,21 @@ public class OptionParser {
      * {@link #parseOptions} to parse the given options and execute
      * the action method of any specified option.
      */
-    public OptionParser(ResourceSource resourceSource) {
+    public CmdOptionParser(ResourceSource resourceSource) {
 	options = new HashMap();
 	this.res = resourceSource;
     }
 
     /** Define an option. */
-    public void addOption(Option option) {
+    public void addOption(CmdOption option) {
 	String name = option.getName();
 	name = name.toLowerCase();
 	options.put(name,option);
     }
 
     /** Get an option given its name. */
-    public Option getOption(String name) {
-	return (Option)options.get(name);
+    public CmdOption getOption(String name) {
+	return (CmdOption)options.get(name);
     }
 
     /** Get the names of all options. */
@@ -55,7 +55,7 @@ public class OptionParser {
 	int i = 0;
 	while (i<args.length) {
 	    String name = args[i];
-	    Option option = (Option)options.get(name.toLowerCase());
+	    CmdOption option = (CmdOption)options.get(name.toLowerCase());
 	    if (option==null) {
 		String resName;
 		if (name.startsWith("-"))
