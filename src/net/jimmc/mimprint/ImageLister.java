@@ -363,16 +363,16 @@ public class ImageLister extends JPanel {
         if (n<0)
             return;             //nothing selected
 
-        //Before changing the playlist for the first time, make a copy of
-        //it so we can check later to see if it has changed.
+        //Before changing the playlist for the first time, save the old list
+        //so we can check later to see if it has changed.
         //We do this rather than just setting a playListIsModified flag
         //so that we don't have to tell the user the playlist changed
         //if he happens to rotate an image and rotate it back later.
         if (originalPlayList==null)
-            originalPlayList = playList.copy();
+            originalPlayList = playList;
 
         int playListIndex = n - dirCount;
-        playList.rotateItem(playListIndex,inc);
+        playList = playList.rotateItem(playListIndex,inc);
     }
 
     /** Open the specified target.

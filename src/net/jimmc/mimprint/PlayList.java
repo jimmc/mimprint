@@ -5,19 +5,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /** A playlist of images. */
-public interface PlayList extends Cloneable {
+public interface PlayList {
 
-    public void setBaseDir(File baseDir);
+    public PlayList addItem(PlayItem item);
 
-    public PlayList copy();
-
-    public void addItem(PlayItem item);
-
-    public void addEmptyItem();
-
-    /** Rotate an item in the list.
-     */
-    public void rotateItem(int itemIndex, int rot);
+    /** Rotate an item in the list. */
+    public PlayList rotateItem(int itemIndex, int rot);
 
     /** Return the number of items in the playlist. */
     public int size();

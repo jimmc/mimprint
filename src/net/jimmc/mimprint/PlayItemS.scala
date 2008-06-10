@@ -18,7 +18,7 @@ class PlayItemS(
         val fileName:String,    //file name relative to the base directory
         val rotFlag:Int         //0=no rotation, 1 for +r ccw, 01 for -w cw,
                                 //  2 for +rr 180 degrees
-        ) extends PlayItem with Cloneable {
+        ) extends PlayItem {
 
     //We are not trying to use these in a hash table, so we do
     //not provide a hashCode method.

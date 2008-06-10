@@ -12,7 +12,7 @@ import java.io.PrintWriter;
  * we also store the text, such as comments, that preceeds the item
  * in the playlist file.
  */
-public interface PlayItem extends Cloneable {
+public interface PlayItem {
     public void printAll(PrintWriter out, File baseDir);
 
     public File getBaseDir();

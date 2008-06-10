@@ -177,11 +177,10 @@ public class ImagePage extends JComponent
         return showOutlines;
     }
 
-    /** Get a PlayList with the images from out printable page. */
+    /** Get a PlayList with the images from our printable page. */
     public PlayList getPlayList() {
         PlayList playList = App.getApp().getFactory().newPlayList();
-        pageLayout.addToPlayList(playList);
-        return playList;
+        return pageLayout.addToPlayList(playList);
     }
 
     public void savePlayList(String fileName) {

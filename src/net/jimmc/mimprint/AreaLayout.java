@@ -533,12 +533,14 @@ public abstract class AreaLayout {
     }
 
     //Add all of our areas to the specified PlayList as items
-    protected void addToPlayList(PlayList playList) {
-        if (areas==null)
-            return;     //no subareas
-        for (int i=0; i<areas.length; i++) {
-            areas[i].addToPlayList(playList);
+    protected PlayList addToPlayList(PlayList playList) {
+        if (areas!=null) {
+            for (int i=0; i<areas.length; i++) {
+                playList = areas[i].addToPlayList(playList);
+                    //TODO - could make this more efficient
+            }
         }
+        return playList;
     }
 
     protected void printlnIndented(PrintWriter pw, int indent, String s) {

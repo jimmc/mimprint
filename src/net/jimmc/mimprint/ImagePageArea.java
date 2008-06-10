@@ -100,18 +100,21 @@ public class ImagePageArea extends AreaLayout {
     }
 
     //Add our area info to the specified PlayList
-    protected void addToPlayList(PlayList playList) {
+    protected PlayList addToPlayList(PlayList playList) {
         String path = getImagePath();
-        if (path==null)
-            playList.addEmptyItem();
-        else {
+        if (path==null) {
+            //Create an empty item
+            PlayItem item = App.getApp().getFactory().newPlayItem(
+                    null,null,null,0);
+            return playList.addItem(item);
+        } else {
             File f = new File(path);
             File baseDir = f.getParentFile();
             String fileName = f.getName();
             int rot = imageBundle.getRotation();
             PlayItem item = App.getApp().getFactory().newPlayItem(
-                null,baseDir,fileName,rot);
-            playList.addItem(item);
+                    null,baseDir,fileName,rot);
+            return playList.addItem(item);
         }
     }
 }
