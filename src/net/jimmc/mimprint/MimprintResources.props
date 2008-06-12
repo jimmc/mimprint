@@ -143,7 +143,7 @@ prompt.TextForImage=Text for {0}
 query.button.Details.label=Details
 query.button.OK.label=OK
 query.button.PrintTraceback.label=Print Traceback
-query.button.SaveTraceback.label=Save Traceback
+query.button.SaveTracebackToFile.label=Save Traceback
 
 query.Confirm.title=Mimprint: Confirm
 query.Confirm.FileExists.prompt=File {0} exists;\noverwrite it?

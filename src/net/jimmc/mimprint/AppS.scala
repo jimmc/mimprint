@@ -14,6 +14,15 @@ class AppS extends SResourcesBundle {
 
         val viewer = new SViewer(this)
         viewer.show             //open the main window
+
+        //TODO - do a better job of parsing the command line args
+        for (i <- 0 until args.length) {
+            args(i) match {
+                case "-new" =>  //ignore
+                case fn =>       //assume filename
+                    viewer.mainOpen(fn)
+            }
+        }
     }
 }
 

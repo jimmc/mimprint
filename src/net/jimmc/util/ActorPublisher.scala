@@ -2,22 +2,23 @@ package net.jimmc.util
 
 import scala.actors.Actor
 
+/** Each subscriber must implement this trait as a marker to help
+ * ensure that it expects to receive messages of type E.
+ */
+trait Subscriber[E] extends Actor
+
+/** To subscribe or subscribe to the E messages, the subscriber
+ * must send an instance SubscriberRequest to the publisher.
+ */
+sealed abstract class SubscriberRequest[E]
+case class Subscribe[E](subscriber:Subscriber[E]) extends SubscriberRequest[E]
+case class Unsubscribe[E](subscriber:Subscriber[E]) extends SubscriberRequest[E]
+
 /** Manage a set of actor subscribers for an actor.
  * Each subscriber is an actor that is expecting to receive
  * messages of type E from this publisher.
  */
 trait ActorPublisher[E] {
-    /** Each subscriber must implement this trait as a marker to help
-     * ensure that it expects to receive messages of type E.
-     */
-    trait Subscriber[E] extends Actor
-
-    /** To subscribe or subscribe to the E messages, the subscriber
-     * must send an instance of one of these messages to the publisher.
-     */
-    case class Subscribe[E](subscriber:Subscriber[E])
-    case class Unsubscribe[E](subscriber:Subscriber[E])
-
     /** Our subscribers. */
     private var subscribers: List[Subscriber[E]] = Nil
 

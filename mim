@@ -43,6 +43,11 @@ while [ $# -gt 0 ]; do
         JDEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=n"
         shift;
         ;;
+    "-debugpause")
+        DEBUG_PORT=2000
+        JDEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=y"
+        shift;
+        ;;
     "-J")
 	JAVA_ARGS="$JAVA_ARGS $2"
 	shift; shift;

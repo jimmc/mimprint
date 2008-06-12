@@ -1,6 +1,7 @@
 package net.jimmc.mimprint
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -8,10 +9,11 @@ import java.io.PrintWriter;
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
+import scala.util.Sorting
 
 /** A playlist of images.  Immutable. */
 class PlayListS(
-        private val baseDir:File,
+        val baseDir:File,
         private val items:Array[PlayItemS],
         private val comments:List[String]
             //Header comments for the whole file
@@ -46,7 +48,7 @@ class PlayListS(
     }
 
     /** Return the number of items in the playlist. */
-    def size() = items.length
+    def size() = if (items==null) 0 else items.length
 
     /** Count the number of non-empty items. */
     def countNonEmpty():Int =
@@ -56,8 +58,10 @@ class PlayListS(
 
     def getFileNames():Array[String] = {
         val fileNames = new Array[String](size())
-        for (i <- 0 until items.length) {
-            fileNames(i) = items(i).getFileName()
+        if (size>0) {
+            for (i <- 0 until items.length) {
+                fileNames(i) = items(i).getFileName()
+            }
         }
         fileNames
     }
@@ -86,7 +90,7 @@ class PlayListS(
 
 object PlayListS {
     def apply():PlayListS = {
-        new PlayListS(null,null,null)    //TODO
+        new PlayListS(null,null,null)    //TODO - avoid nulls?
     }
 
     /** Create a playlist from the given set of filenames. */
@@ -100,14 +104,30 @@ object PlayListS {
     }
 
     /** Load a playlist from a file. */
-    def load(filename:String):PlayList = {
-        return load(new File(filename))
-    }
+    def load(filename:String):PlayList = load(new File(filename))
 
     /** Load a playlist from a file. */
     def load(f:File):PlayList = {
         val dir = f.getParentFile()
-        return load(new LineNumberReader(new FileReader(f)),dir)
+        if (f.isDirectory())
+            loadDirectory(f)
+        else
+            load(new LineNumberReader(new FileReader(f)),dir)
+    }
+
+    //Given a directory, look for a file called "index.mpr" and load
+    //that file; if not found, scan the directory for all files with
+    //acceptable filename extensions, in alphabetical order.
+    private def loadDirectory(dir:File):PlayList = {
+        val indexFileName = "index."+FileInfo.MIMPRINT_EXTENSION
+        val indexFile = new File(dir,indexFileName)
+        if (indexFile.exists)
+            load(indexFile)
+        else {
+            //No index file, scan the directory
+            val fileNames:Array[String] = getPlayableFileNames(dir)
+            apply(dir,fileNames,0,fileNames.length)
+        }
     }
 
     /** Load a playlist from a stream. */
@@ -142,4 +162,18 @@ object PlayListS {
 
     //True if the line is a list comment line (for the whole file)
     private def isListComment(line:String) = line.trim.startsWith("##")
+
+    //Return a list of all the filenames in a directory that
+    //we want to include in our PlayList.
+    private def getPlayableFileNames(dir:File):Array[String] = {
+        val filter = new FilenameFilter() {
+            override def accept(dir:File, name:String):Boolean =
+                    FileInfo.isImageFileName(name) ||
+                    FileInfo.isOurFileName(name)
+        }
+        val list = dir.list(filter);
+        Sorting.stableSort(list,
+            (s1:String,s2:String)=>FileInfo.compareFileNames(s1,s2)<0)
+        list
+    }
 }

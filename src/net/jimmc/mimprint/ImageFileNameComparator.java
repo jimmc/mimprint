@@ -42,7 +42,7 @@ public class ImageFileNameComparator implements Comparator {
             return (f1.isDirectory()?-1:1);
         String s1 = f1.name;
         String s2 = f2.name;
-        return compareFileNames(s1,s2);
+        return FileInfo.compareFileNames(s1,s2);
     }
 
     private int compareFiles(File f1, File f2) {
@@ -50,45 +50,12 @@ public class ImageFileNameComparator implements Comparator {
             return (f1.isDirectory()?-1:1);
         String s1 = f1.getName();
         String s2 = f2.getName();
-        return compareFileNames(s1,s2);
-    }
-
-    private int compareFileNames(String s1, String s2) {
-        long n1 = getLongFromString(s1);
-        long n2 = getLongFromString(s2);
-        if (n1>n2)
-            return 1;
-        else if (n1<n2)
-            return -1;
-        else
-            return s1.compareTo(s2);
+        return FileInfo.compareFileNames(s1,s2);
     }
 
     /** True if the objects are equal. */
     public boolean equals(Object that) {
         return (compare(this,that)==0);
-    }
-
-    /** Get an int from the string. */
-    private long getLongFromString(String s) {
-        int len = s.length();
-        int i;
-        for (i=0; i<len; i++) {
-            char c = s.charAt(i);
-            if (Character.isDigit(c) && c!='0')
-                break;    //found a digit
-        }
-        long n = 0;
-        for ( ; i<len; i++) {
-            char c = s.charAt(i);
-            if (!Character.isDigit(c))
-                break;
-            long n0 = Character.digit(c,10);
-            n *= 10;
-            if (n0>=0)
-                n += n0;
-        }
-        return n;
     }
 }
 

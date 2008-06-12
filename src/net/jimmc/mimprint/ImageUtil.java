@@ -70,7 +70,7 @@ public class ImageUtil {
     }
 
     /** Load an image, wait for it to be loaded. */
-    protected void loadCompleteImage(Image image) {
+    public void loadCompleteImage(Image image) {
         tracker.addImage(image,0);
         boolean loadStatus=false;
         try {

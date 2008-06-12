@@ -8,6 +8,7 @@ import net.jimmc.util.UserException
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
+import java.io.FileNotFoundException
 import javax.swing.JToolBar
 import javax.swing.JLabel
 import javax.swing.JMenu
@@ -18,7 +19,8 @@ import javax.swing.JTextField
 
 class SViewer(app:AppS) extends SFrame("Mimprint",app) {
 
-    val toolBar = createToolBar()
+    private val mainTracker = new PlayListTracker()
+    private val toolBar = createToolBar()
     setJMenuBar(createMenuBar())
     initForm()
     //setScreenMode(SCREEN_MODE_DEFAULT)
@@ -47,6 +49,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) {
     //Closing this window causes the app to exit
     override def processClose() = processFileExit
 
+    //Don't ask about exiting, just do it
+    override def confirmExit():Boolean = true
+
     private def createToolBar():JToolBar = {
         val tb = new JToolBar()
         tb.setRollover(true)
@@ -71,9 +76,13 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) {
     //Create the body of our form
     private def initForm() {
 
-val imageArea = new JLabel("Placeholder for Image Area")
-imageArea.setBackground(Color.gray)
-val imageLister = new JLabel("Placeholder for the Image Lister")
+        val mainList = new PlayViewList(mainTracker)
+        val imageLister = mainList.getComponent()
+        mainList.start();
+
+        val mainSingle = new PlayViewSingle(mainTracker)
+        val imageArea = mainSingle.getComponent()
+        mainSingle.start();
 
         val imagePane = new JPanel(new BorderLayout())
         imagePane.setMinimumSize(new Dimension(100,100))
@@ -93,4 +102,19 @@ val imageLister = new JLabel("Placeholder for the Image Lister")
         cp.add(statusLine,BorderLayout.SOUTH)
         cp.add(toolBar,BorderLayout.NORTH)
     }
+
+    def mainOpen(fileName:String) {
+        try {
+            mainTracker.load(fileName)
+        } catch {
+            case ex:FileNotFoundException =>
+                val msg = app.getResourceFormatted("error.NoSuchFile",fileName)
+                errorDialog(msg)
+            case ex:Exception =>
+                exceptionDialog(ex)
+        }
+    }
 }
+/*
+vi:
+*/

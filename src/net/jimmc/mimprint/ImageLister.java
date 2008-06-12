@@ -588,19 +588,6 @@ public class ImageLister extends JPanel {
         viewer.showStatus(status);
     }
 
-    /** True if the file name is for an image file that we recognize. */
-    public boolean isImageFileName(String name) {
-        int dotPos = name.lastIndexOf('.');
-        if (dotPos<0)
-            return false;    //no extension
-        String extension = name.substring(dotPos+1).toLowerCase();
-        if (extension.equals("gif") || extension.equals("jpg") ||
-                extension.equals("jpeg")) {
-            return true;
-        }
-        return false;
-    }
-
     class ImageListerListSelectionListener implements ListSelectionListener {
     //The ListSelectionListener interface
         /** Here when the list selection changes. */
@@ -998,7 +985,7 @@ public class ImageLister extends JPanel {
     private String[] getListableFileNames(File dir) {
         FilenameFilter filter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                return isImageFileName(name) ||
+                return FileInfo.isImageFileName(name) ||
                     FileInfo.isOurFileName(name) ||
                     new File(dir,name).isDirectory();
             }

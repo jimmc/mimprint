@@ -25,12 +25,17 @@ class PlayListTracker() extends Actor
         }
     }
     private val handleOther : PartialFunction[Any,Unit] = {
+        case init:PlayListRequestInit =>
+            init.view ! PlayListInit(playList)
         case add:PlayListRequestAdd =>
             if (listMatches(add.list))
                 addItem(add.item)
         case rot:PlayListRequestRotate =>
             if (listMatches(rot.list))
                 rotateItem(rot.index, rot.rot)
+        case sel:PlayListRequestSelect =>
+            if (listMatches(sel.list))
+                selectItem(sel.index)
         case _ => println("Unrecognized message to PlayList")
     }
 
@@ -59,10 +64,25 @@ class PlayListTracker() extends Actor
         playList = newPlayList
     }
 
+    private def selectItem(itemIndex:Int) {
+        //no change to the playlist, we just publish a message
+        publish(PlayListSelectItem(playList,itemIndex))
+    }
+
     ///Save our playlist to a file.
     def save(filename:String) = playList.save(filename)
 
     def save(f:File) = playList.save(f)
 
     def save(out:PrintWriter, baseDir:File) = playList.save(out, baseDir)
+
+    def load(fileName:String):Unit = load(fileName,false)
+
+    def load(fileName:String, selectLast:Boolean) {
+        val newPlayList = PlayListS.load(fileName).asInstanceOf[PlayListS]
+        publish(PlayListChangeList(playList,newPlayList))
+        if (newPlayList.size>0)
+            selectItem(if (selectLast) newPlayList.size - 1 else 0)
+        playList = newPlayList
+    }
 }

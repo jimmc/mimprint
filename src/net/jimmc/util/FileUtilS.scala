@@ -1,10 +1,28 @@
 package net.jimmc.util
 
 import java.io.File
+import java.io.FilenameFilter
 
 import scala.collection.mutable.ArrayBuffer
 
 object FileUtilS {
+    /** Convenience method for running the "list" method on a File,
+     * allowing us to pass in a filter function rather than
+     * having to create an inner class every time.
+     */
+    def listDir(dir:File,filter:(String)=>Boolean):Array[String] = {
+        val ff = new FilenameFilter() {
+            override def accept(dir:File, name:String) = filter(name)
+        }
+        dir.list(ff)
+    }
+    def listDir(dir:File,filter:(File,String)=>Boolean):Array[String] = {
+        val ff = new FilenameFilter() {
+            override def accept(dir:File, name:String) = filter(dir,name)
+        }
+        dir.list(ff)
+    }
+
     /** Given a path string, remove any internal ".." path parts along
      * with the preceding path part.
      */

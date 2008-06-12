@@ -228,6 +228,52 @@ public class FileInfo {
         return false;
     }
 
+    /** True if the file name is for an image file that we recognize. */
+    public static boolean isImageFileName(String name) {
+        int dotPos = name.lastIndexOf('.');
+        if (dotPos<0)
+            return false;    //no extension
+        String extension = name.substring(dotPos+1).toLowerCase();
+        if (extension.equals("gif") || extension.equals("jpg") ||
+                extension.equals("jpeg")) {
+            return true;
+        }
+        return false;
+    }
+
+    public static int compareFileNames(String s1, String s2) {
+        long n1 = getLongFromString(s1);
+        long n2 = getLongFromString(s2);
+        if (n1>n2)
+            return 1;
+        else if (n1<n2)
+            return -1;
+        else
+            return s1.compareTo(s2);
+    }
+
+    /** Get an int from the string. */
+    private static long getLongFromString(String s) {
+        int len = s.length();
+        int i;
+        for (i=0; i<len; i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c) && c!='0')
+                break;    //found a digit
+        }
+        long n = 0;
+        for ( ; i<len; i++) {
+            char c = s.charAt(i);
+            if (!Character.isDigit(c))
+                break;
+            long n0 = Character.digit(c,10);
+            n *= 10;
+            if (n0>=0)
+                n += n0;
+        }
+        return n;
+    }
+
     /** Get the name of the text file which contains the info
      * about the specified image file.
      * @param path The path to the image file.

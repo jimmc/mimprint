@@ -131,6 +131,7 @@
         <scalac
              srcdir="${src.dir}"
              destdir="${class.dir}"
+             addparams="-g:vars"
              classpathref="scala.classpath"
              force="changed"
              deprecation="on"
