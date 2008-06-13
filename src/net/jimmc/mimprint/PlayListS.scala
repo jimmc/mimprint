@@ -1,5 +1,7 @@
 package net.jimmc.mimprint
 
+import net.jimmc.util.BasicUi
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.FileReader;
@@ -13,6 +15,7 @@ import scala.util.Sorting
 
 /** A playlist of images.  Immutable. */
 class PlayListS(
+        val ui:BasicUi,
         val baseDir:File,
         private val items:Array[PlayItemS],
         private val comments:List[String]
@@ -35,7 +38,7 @@ class PlayListS(
     //Create a new PlayListS containing the same items as ours plus the new item
     def addItem(item:PlayItem):PlayList = {
         val newItems = items ++ Array(item.asInstanceOf[PlayItemS])
-        new PlayListS(baseDir,newItems,comments)
+        new PlayListS(ui,baseDir,newItems,comments)
     }
 
     //Create a new PlayListS containing the same items as ours except that
@@ -44,7 +47,7 @@ class PlayListS(
         val newItems:Array[PlayItemS] = Array.make(items.length,null)
         Array.copy(items,0,newItems,0,items.length)
         newItems(itemIndex) = PlayItemS.rotate(items(itemIndex),rot)
-        new PlayListS(baseDir,newItems,comments)
+        new PlayListS(ui,baseDir,newItems,comments)
     }
 
     /** Return the number of items in the playlist. */
@@ -89,49 +92,53 @@ class PlayListS(
 }
 
 object PlayListS {
-    def apply():PlayListS = {
-        new PlayListS(null,null,null)    //TODO - avoid nulls?
+    def apply(ui:BasicUi):PlayListS = {
+        new PlayListS(ui,null,null,null)    //TODO - avoid nulls?
     }
 
     /** Create a playlist from the given set of filenames. */
-    def apply(base:File, filenames:Array[String], start:Int, length:Int):
+    def apply(ui:BasicUi,
+            base:File, filenames:Array[String], start:Int, length:Int):
             PlayListS = {
         val items = new ArrayBuffer[PlayItemS]
         for (i <- 0 until length) {
             items += new PlayItemS(null,base,filenames(i+start),0)
         }
-        new PlayListS(base,items.toArray,Nil)
+        new PlayListS(ui,base,items.toArray,Nil)
     }
 
     /** Load a playlist from a file. */
-    def load(filename:String):PlayList = load(new File(filename))
+    def load(ui:BasicUi,
+            filename:String):PlayList = load(ui,new File(filename))
 
     /** Load a playlist from a file. */
-    def load(f:File):PlayList = {
+    def load(ui:BasicUi,f:File):PlayList = {
         val dir = f.getParentFile()
         if (f.isDirectory())
-            loadDirectory(f)
+            loadDirectory(ui,f)
         else
-            load(new LineNumberReader(new FileReader(f)),dir)
+            load(ui,new LineNumberReader(new FileReader(f)),dir)
     }
 
     //Given a directory, look for a file called "index.mpr" and load
     //that file; if not found, scan the directory for all files with
     //acceptable filename extensions, in alphabetical order.
-    private def loadDirectory(dir:File):PlayList = {
+    private def loadDirectory(ui:BasicUi,
+            dir:File):PlayList = {
         val indexFileName = "index."+FileInfo.MIMPRINT_EXTENSION
         val indexFile = new File(dir,indexFileName)
         if (indexFile.exists)
-            load(indexFile)
+            load(ui,indexFile)
         else {
             //No index file, scan the directory
             val fileNames:Array[String] = getPlayableFileNames(dir)
-            apply(dir,fileNames,0,fileNames.length)
+            apply(ui,dir,fileNames,0,fileNames.length)
         }
     }
 
     /** Load a playlist from a stream. */
-    def load(in:LineNumberReader, baseDir:File):PlayList = {
+    def load(ui:BasicUi,
+            in:LineNumberReader, baseDir:File):PlayList = {
         val items = new ArrayBuffer[PlayItemS]
         var listComments:List[String] = Nil
         var lines = new ListBuffer[String]
@@ -157,7 +164,7 @@ object PlayListS {
             line = in.readLine()
         }
         //TODO - process trailling lines
-        new PlayListS(baseDir,items.toArray,listComments)
+        new PlayListS(ui,baseDir,items.toArray,listComments)
     }
 
     //True if the line is a list comment line (for the whole file)

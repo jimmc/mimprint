@@ -3,6 +3,7 @@ package net.jimmc.mimprint
 import net.jimmc.swing.MenuAction
 import net.jimmc.swing.SButton
 import net.jimmc.swing.SFrame
+import net.jimmc.util.BasicUi
 import net.jimmc.util.UserException
 
 import java.awt.BorderLayout
@@ -17,9 +18,9 @@ import javax.swing.JPanel
 import javax.swing.JSplitPane
 import javax.swing.JTextField
 
-class SViewer(app:AppS) extends SFrame("Mimprint",app) {
+class SViewer(app:AppS) extends SFrame("Mimprint",app) with BasicUi {
 
-    private val mainTracker = new PlayListTracker()
+    private val mainTracker = new PlayListTracker(this)
     private val toolBar = createToolBar()
     setJMenuBar(createMenuBar())
     initForm()
@@ -113,6 +114,14 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) {
             case ex:Exception =>
                 exceptionDialog(ex)
         }
+    }
+
+    def warningMessage(msg:String) {
+        println("WARNING: "+msg)       //TODO better implementation
+    }
+
+    def errorMessage(msg:String) {
+        println("ERROR: "+msg)       //TODO better implementation
     }
 }
 /*

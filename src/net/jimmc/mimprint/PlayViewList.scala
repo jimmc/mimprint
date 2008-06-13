@@ -21,6 +21,10 @@ import javax.swing.JScrollPane
 import scala.util.Sorting
 
 class PlayViewList(tracker:PlayListTracker) extends PlayView(tracker) {
+    //TODO - add modes (display icons; include file info)
+    //TODO - add thread that loads image icons
+    //TODO - implement dragging to Printable view or other PlayViewList
+    //TODO - add support for viewing our MIMPRINT (mpr) template files
     private val dirBgColor = new Color(0.9f, 0.8f, 0.8f)
     private var includeDirectoryDates = false
 
@@ -56,15 +60,20 @@ class PlayViewList(tracker:PlayListTracker) extends PlayView(tracker) {
     }
 
     protected def playListAddItem(m:PlayListAddItem) {
-        println("PlayViewList.playListAddItem NYI")
+        println("PlayViewList.playListAddItem NYI")     //TODO
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
-        println("PlayViewList.playListRemoveItem NYI")
+        println("PlayViewList.playListRemoveItem NYI")  //TODO
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {
-        println("PlayViewList.playListChangeItem NYI")
+        playList = m.newList
+        redisplayList
+        val newSelection = m.index + dirCount
+        //If the selected item got changed, we have to re-highlight it
+        if (newSelection==currentSelection)
+            setSelectedIndex(currentSelection)
     }
 
     protected def playListSelectItem(m:PlayListSelectItem) {
@@ -79,7 +88,8 @@ class PlayViewList(tracker:PlayListTracker) extends PlayView(tracker) {
             try {
                 appIsSelecting = true
                 fileNameList.setSelectedIndex(n)
-                fileNameList.ensureIndexIsVisible(n)
+                if (n>=0)
+                    fileNameList.ensureIndexIsVisible(n)
             } finally {
                 appIsSelecting = false
             }

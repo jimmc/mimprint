@@ -85,7 +85,7 @@ public class ImageArea extends JLabel implements ImageWindow {
         addMouseListener(new ImageAreaMouseListener());
         addMouseMotionListener(new ImageAreaMouseMotionListener());
         addComponentListener(new ImageAreaComponentListener());
-                initCursors();
+        initCursors();
 
         worker = new Worker();
         worker.setPriority(worker.getPriority()-1);

@@ -1,5 +1,6 @@
 package net.jimmc.swing
 
+import net.jimmc.util.BasicQueries
 import net.jimmc.util.SResources
 import net.jimmc.util.StringUtil
 import net.jimmc.util.UserException
@@ -17,7 +18,7 @@ import javax.swing.JScrollPane
 import javax.swing.JTextArea
 
 /** A collection of standard dialog methods. */
-trait StandardDialogs {
+trait StandardDialogs extends BasicQueries {
     private val maxSimpleMessageLength = 80
     private val maxSimpleMessageLineCount = 30
     private val maxSimpleMessageLineWidth = 80
