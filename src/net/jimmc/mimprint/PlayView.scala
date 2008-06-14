@@ -15,18 +15,23 @@ abstract class PlayView(private val tracker:PlayListTracker) extends Actor
         tracker ! Subscribe(this)
         tracker ! PlayListRequestInit(this)       //send us an init message
         loop {
-            react (handleMessage)
+            react (handlePlayListMessage orElse handleOtherMessage)
         }
     }
 
-    //Edit this function to add message types for new functionality
-    protected val handleMessage : PartialFunction[Any,Unit] = {
+    //Handle our standard messages
+    protected val handlePlayListMessage : PartialFunction[Any,Unit] = {
         case m:PlayListInit => playListInit(m)
         case m:PlayListAddItem => playListAddItem(m)
         case m:PlayListRemoveItem => playListRemoveItem(m)
         case m:PlayListChangeItem => playListChangeItem(m)
         case m:PlayListSelectItem => playListSelectItem(m)
         case m:PlayListChangeList => playListChangeList(m)
+    }
+
+    //Extending class can override this val to add processing for
+    //its own message types.
+    protected val handleOtherMessage : PartialFunction[Any,Unit] = {
         case m:Any => println("Unrecognized message to PlayView: "+m)
     }
 

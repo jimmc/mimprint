@@ -223,31 +223,31 @@ public class ImageArea extends JLabel implements ImageWindow {
             knownKeyPress = true;    //assume we know it
             switch (keyCode) {
             case KeyEvent.VK_LEFT:
-                            setCursorVisible(true);
-                            viewer.moveLeft();
-                            setCursorVisible(false);
+                setCursorVisible(true);
+                viewer.moveLeft();
+                setCursorVisible(false);
                 break;
             case KeyEvent.VK_RIGHT:
-                            setCursorVisible(true);
-                            viewer.moveRight();
-                            setCursorVisible(false);
+                setCursorVisible(true);
+                viewer.moveRight();
+                setCursorVisible(false);
                 break;
             case KeyEvent.VK_DOWN:
-                            setCursorVisible(true);
-                            viewer.moveDown();
-                            setCursorVisible(false);
+                setCursorVisible(true);
+                viewer.moveDown();
+                setCursorVisible(false);
                 break;
             case KeyEvent.VK_UP:
-                            setCursorVisible(true);
-                            viewer.moveUp();
-                            setCursorVisible(false);
+                setCursorVisible(true);
+                viewer.moveUp();
+                setCursorVisible(false);
                 break;
             case KeyEvent.VK_ESCAPE:
                 viewer.restorePreviousScreenMode();
                 break;
-                    case KeyEvent.VK_ENTER:
-                            viewer.activateSelection();
-                            break;
+            case KeyEvent.VK_ENTER:
+                viewer.activateSelection();
+                break;
             default:    //ignore
                 knownKeyPress = false;
                 break;

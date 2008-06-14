@@ -2,6 +2,7 @@ package net.jimmc.util
 
 import java.io.File
 import java.io.FilenameFilter
+import java.util.Arrays
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -81,5 +82,46 @@ object FileUtilS {
             b = b.drop(1)
         }
         n
+    }
+
+    /** Given a directory, get the next sibling directory. */
+    def getNextDirectory(dir:File):File = getRelativeDirectory(dir,1)
+
+    def getPreviousDirectory(dir:File):File = getRelativeDirectory(dir,-1)
+
+    def getRelativeDirectory(dir:File, move:Int):File = {
+        var parentDir = dir.getParentFile()
+        if (parentDir==null)
+            parentDir = new File(".")
+        var siblings = parentDir.list()
+        var dirIndex=0;
+        if (siblings!=null) {
+            Arrays.sort(siblings.asInstanceOf[Array[Object]])
+            val dirName = dir.getName()
+            dirIndex = Arrays.binarySearch(
+                    siblings.asInstanceOf[Array[Object]],dirName) 
+            if (dirIndex<0) {
+                val msg = "Can't find dir "+dirName+" in parent list"
+                throw new RuntimeException(msg)
+            }
+        }
+        var newDirIndex = dirIndex + move
+        while (siblings==null || newDirIndex<0 || newDirIndex>=siblings.length){
+            //We are at the end/start of our sibling directories,
+            //so recurse up the directory tree and move the
+            //parent to the next directory.
+            parentDir = getRelativeDirectory(parentDir,move)
+            if (parentDir==null)
+                return null
+            siblings = parentDir.list()
+            if (siblings!=null && siblings.length!=0) {
+                Arrays.sort(siblings.asInstanceOf[Array[Object]])
+                if (newDirIndex<0)    //backing up
+                    newDirIndex = siblings.length-1;
+                else
+                    newDirIndex = 0
+            }
+        }
+        new File(parentDir,siblings(newDirIndex))
     }
 }

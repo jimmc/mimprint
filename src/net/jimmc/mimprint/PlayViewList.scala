@@ -20,7 +20,8 @@ import javax.swing.JScrollPane
 
 import scala.util.Sorting
 
-class PlayViewList(tracker:PlayListTracker) extends PlayView(tracker) {
+class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
+        extends PlayView(tracker) {
     //TODO - add modes (display icons; include file info)
     //TODO - add thread that loads image icons
     //TODO - implement dragging to Printable view or other PlayViewList
@@ -160,6 +161,11 @@ class PlayViewList(tracker:PlayListTracker) extends PlayView(tracker) {
         fileInfo
     }
 
+    override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
+        case m:PlayViewListRequestActivate => listValueChanged()
+        case m:Any => println("Unrecognized message to PlayViewList")
+    }
+
     class PlayViewListCellRenderer extends DefaultListCellRenderer {
         override def getListCellRendererComponent(list:JList,
                 value:Object, index:Int,
@@ -228,5 +234,9 @@ class PlayViewList(tracker:PlayListTracker) extends PlayView(tracker) {
                 tracker.load(fileInfo.getPath)
             }
         }
+        viewer ! SViewerRequestFocus(playList)
     }
 }
+
+sealed abstract class PlayViewListRequest
+case class PlayViewListRequestActivate(list:PlayListS)

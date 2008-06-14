@@ -2,3 +2,4 @@ build
 jtmp*
 local.properties
 mimprint.jar
+testsrc/net/jimmc/util/testFileUtil2.tmp

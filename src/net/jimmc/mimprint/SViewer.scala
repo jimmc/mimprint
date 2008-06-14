@@ -3,7 +3,8 @@ package net.jimmc.mimprint
 import net.jimmc.swing.MenuAction
 import net.jimmc.swing.SButton
 import net.jimmc.swing.SFrame
-import net.jimmc.util.BasicUi
+import net.jimmc.swing.SwingS
+import net.jimmc.util.AsyncUi
 import net.jimmc.util.UserException
 
 import java.awt.BorderLayout
@@ -18,17 +19,22 @@ import javax.swing.JPanel
 import javax.swing.JSplitPane
 import javax.swing.JTextField
 
-class SViewer(app:AppS) extends SFrame("Mimprint",app) with BasicUi {
+import scala.actors.Actor
+import scala.actors.Actor.loop
+
+class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi with Actor {
 
     private val mainTracker = new PlayListTracker(this)
     private val toolBar = createToolBar()
+    private var mainList:PlayViewList = _
+    private var mainSingle:PlayViewSingle = _
+
     setJMenuBar(createMenuBar())
     initForm()
     //setScreenMode(SCREEN_MODE_DEFAULT)
     pack()
 
     addWindowListener()
-    //End of constructor code
 
     private def createMenuBar():JMenuBar = {
         val mb = new JMenuBar()
@@ -77,11 +83,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with BasicUi {
     //Create the body of our form
     private def initForm() {
 
-        val mainList = new PlayViewList(mainTracker)
+        mainList = new PlayViewList(this,mainTracker)
         val imageLister = mainList.getComponent()
         mainList.start();
 
-        val mainSingle = new PlayViewSingle(mainTracker)
+        mainSingle = new PlayViewSingle(this,mainTracker)
         val imageArea = mainSingle.getComponent()
         mainSingle.start();
 
@@ -116,6 +122,10 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with BasicUi {
         }
     }
 
+    def invokeUi(code: =>Unit) {
+        SwingS.invokeLater(code)
+    }
+
     def warningMessage(msg:String) {
         println("WARNING: "+msg)       //TODO better implementation
     }
@@ -123,7 +133,28 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with BasicUi {
     def errorMessage(msg:String) {
         println("ERROR: "+msg)       //TODO better implementation
     }
+
+    //The Actor trait
+    def act() {
+        this ! SViewerRequestFocus(null)
+        loop { react (handleMessage) }
+    }
+
+    val handleMessage : PartialFunction[Any,Unit] = {
+        case m:SViewerRequestClose => processClose
+        case m:SViewerRequestActivate =>
+                mainList ! PlayViewListRequestActivate(m.list)
+        case m:SViewerRequestFocus =>
+                mainSingle ! PlayViewSingleRequestFocus()
+        //TODO - messages to set screen modes
+    }
 }
+
+sealed abstract class SViewerRequest
+case class SViewerRequestClose() extends SViewerRequest
+case class SViewerRequestActivate(list:PlayListS) extends SViewerRequest
+case class SViewerRequestFocus(list:PlayListS) extends SViewerRequest
+
 /*
 vi:
 */

@@ -1,7 +1,8 @@
 package net.jimmc.mimprint
 
 import net.jimmc.util.ActorPublisher
-import net.jimmc.util.BasicUi
+import net.jimmc.util.AsyncUi
+import net.jimmc.util.FileUtilS
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -10,7 +11,7 @@ import scala.actors.Actor
 import scala.actors.Actor.loop
 
 /** A playlist of images. */
-class PlayListTracker(val ui:BasicUi) extends Actor
+class PlayListTracker(val ui:AsyncUi) extends Actor
         with ActorPublisher[PlayListMessage] {
     //Our current playlist
     private var playList:PlayListS = PlayListS(ui)
@@ -88,7 +89,19 @@ class PlayListTracker(val ui:BasicUi) extends Actor
         if (currentIndex>0)
             selectItem(currentIndex - 1)
         else {
-            println("At first item in list")    //TODO dialog re previous
+            val prompt = "At beginning of "+playList.baseDir+";\n"
+            val newDir:File = FileUtilS.getPreviousDirectory(playList.baseDir)
+            if (newDir==null) {
+                val eMsg = prompt + "No previous directory"
+                ui.invokeUi(ui.errorDialog(eMsg))
+            } else {
+                val msg = prompt + "move to previous directory "+newDir+"?"
+                val leftMsg = PlayListRequestLeft(playList)
+                ui.invokeUi {
+                    if (ui.confirmDialog(msg))
+                        this ! leftMsg
+                }
+            }
         }
     }
 
@@ -96,16 +109,40 @@ class PlayListTracker(val ui:BasicUi) extends Actor
         if (currentIndex< playList.size - 1)
             selectItem(currentIndex + 1)
         else {
-            println("At last item in list")    //TODO dialog re previous
+            val prompt = "At end of "+playList.baseDir+";\n"
+            val newDir:File = FileUtilS.getNextDirectory(playList.baseDir)
+            if (newDir==null) {
+                val eMsg = prompt + "No next directory"
+                ui.invokeUi(ui.errorDialog(eMsg))
+            } else {
+                val msg = prompt + "move to next directory "+newDir+"?"
+                val leftMsg = PlayListRequestRight(playList)
+                ui.invokeUi {
+                    if (ui.confirmDialog(msg))
+                        this ! leftMsg
+                }
+            }
         }
     }
 
     private def selectLeft() {
-        println("LEFT NYI")    //TODO
+        val newDir:File = FileUtilS.getPreviousDirectory(playList.baseDir)
+        if (newDir==null) {
+            val eMsg = "No previous directory"
+            ui.invokeUi(ui.errorDialog(eMsg))
+        } else {
+            load(newDir.getPath,true)
+        }
     }
 
     private def selectRight() {
-        println("RIGHT NYI")    //TODO
+        val newDir:File = FileUtilS.getNextDirectory(playList.baseDir)
+        if (newDir==null) {
+            val eMsg = "No next directory"
+            ui.invokeUi(ui.errorDialog(eMsg))
+        } else {
+            load(newDir.getPath,false)
+        }
     }
 
     ///Save our playlist to a file.

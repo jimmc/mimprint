@@ -14,6 +14,7 @@ class AppS extends SResourcesBundle {
 
         val viewer = new SViewer(this)
         viewer.show             //open the main window
+        viewer.start
 
         //TODO - do a better job of parsing the command line args
         for (i <- 0 until args.length) {

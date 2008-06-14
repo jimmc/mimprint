@@ -1,5 +1,7 @@
 package net.jimmc.mimprint
 
+import net.jimmc.swing.SwingS
+
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Component
@@ -21,7 +23,8 @@ import javax.swing.ImageIcon
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class PlayViewSingle(tracker:PlayListTracker) extends PlayView(tracker) {
+class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
+        extends PlayView(tracker) {
     private var imageComponent:JLabel = _
     private var mediaTracker:MediaTracker = _
     private var playList:PlayListS = _
@@ -88,6 +91,11 @@ class PlayViewSingle(tracker:PlayListTracker) extends PlayView(tracker) {
         currentIndex = -1
         if (playList.size>0)
             imageSelected(0)
+    }
+
+    override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
+        case m:PlayViewSingleRequestFocus => imageComponent.requestFocus()
+        case m:Any => println("Unrecognized message to PlayViewSingle")
     }
 
     private def requestRotate(rot:Int) {
@@ -210,16 +218,23 @@ class PlayViewSingle(tracker:PlayListTracker) extends PlayView(tracker) {
                     tracker ! PlayListRequestDown(playList)
                 //TODO - implement ESC command
                 case KeyEvent.VK_ESCAPE => println("ESCAPE NYI")
+                case KeyEvent.VK_ENTER =>
+                        viewer ! SViewerRequestActivate(playList)
                 case _ => //ignore anything else
             }
         }
         def keyReleased(ev:KeyEvent) = ()       //ignored
         def keyTyped(ev:KeyEvent) {
             ev.getKeyChar() match {
+                case ' ' => viewer ! SViewerRequestActivate(playList)
                 case 'r' => requestRotate(1)   //rotate CCW
                 case 'R' => requestRotate(-1)  //rotate CW
                 case ControlR => requestRotate(2)    //rotate 180
-                //TODO - add other key commands
+                case 'x' => viewer ! SViewerRequestClose()
+                //TODO - add screen mode commands
+                //TODO - add image info and edit commands
+                //TODO - add help command
+                //TODO - add open and to-print commanads
                 case ch => println("NYI key "+ch)
             }
         }
@@ -246,3 +261,6 @@ class PlayViewSingle(tracker:PlayListTracker) extends PlayView(tracker) {
         def componentShown(ev:ComponentEvent) = ()
     }
 }
+
+sealed abstract class PlayViewSingleRequest
+case class PlayViewSingleRequestFocus
