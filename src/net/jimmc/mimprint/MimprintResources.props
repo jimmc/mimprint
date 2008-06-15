@@ -63,8 +63,8 @@ info.ImageHelp=Available commands:\n\
         DEL, BS - clear current image (Printable mode only)\n\
 	Ctrl L - refresh\n\
         a - alternate screen mode\n\
-	f - full screen mode\n\
 	e - edit text about the image\n\
+	f - full screen mode\n\
 	i - show info about the image\n\
 	o - open the file-open dialog\n\
         p - add current image to Printable screen\n\

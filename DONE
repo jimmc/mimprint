@@ -103,3 +103,5 @@
 - v0.2.0. [080604]
 - Start using git rather than CVS. [080608]
 - Add PlayListTracker, make PlayList immutable. [080610]
+- Finish (mostly) scala conversion of SViewer, PlayViewSingle and PlayViewList,
+  except for screen modes, dragging, and stuff related to Printable. [080614]

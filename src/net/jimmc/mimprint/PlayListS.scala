@@ -42,6 +42,15 @@ class PlayListS(
     }
 
     //Create a new PlayListS containing the same items as ours except that
+    //the item at the specified index has been replaced by the given item.
+    def replaceItem(itemIndex:Int, item:PlayItem): PlayListS = {
+        val newItems:Array[PlayItemS] = Array.make(items.length,null)
+        Array.copy(items,0,newItems,0,items.length)
+        newItems(itemIndex) = item.asInstanceOf[PlayItemS].usingBase(baseDir)
+        new PlayListS(ui,baseDir,newItems,comments)
+    }
+
+    //Create a new PlayListS containing the same items as ours except that
     //the specified image is rotated.
     def rotateItem(itemIndex:Int, rot:Int):PlayList = {
         val newItems:Array[PlayItemS] = Array.make(items.length,null)

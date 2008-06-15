@@ -279,7 +279,7 @@ public class FileInfo {
      * @param path The path to the image file.
      * @return The text file name, or null if we can't figure it out.
      */
-    protected static String getTextFileNameForImage(String path) {
+    public static String getTextFileNameForImage(String path) {
         File f = new File(path);
         if (f.isDirectory())
             return path+File.separator+"summary.txt";

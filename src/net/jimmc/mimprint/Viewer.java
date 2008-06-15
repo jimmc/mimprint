@@ -292,8 +292,8 @@ public class Viewer extends JsFrame {
                 processPrint();
             }
         };
-                printMenuItem.setEnabled(false);
-                    //only enabled when we are showing the Printable window
+        printMenuItem.setEnabled(false);
+                //only enabled when we are showing the Printable window
         m.add(mi);
 
         String exitLabel = getResourceString("menu.File.Exit.label");

@@ -20,7 +20,7 @@ case class PlayListAddItem(oldList:PlayListS, newList:PlayListS, index:Int)
 /** PlayListRemoveItem is sent to subscribers after an item has been removed
  * from the playst at the specifid index.
  * @param index The index of the removed item in oldList. */
-case class PlayListRemoveItem(oldList:PlayListS, newlist:PlayListS, index:Int)
+case class PlayListRemoveItem(oldList:PlayListS, newList:PlayListS, index:Int)
         extends PlayListMessage
 
 /** PlayListChangeItem is sent to subscribers after the item at the

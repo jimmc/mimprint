@@ -29,10 +29,13 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     }
     private val handleOther : PartialFunction[Any,Unit] = {
         case m:PlayListRequestInit =>
-            m.view ! PlayListInit(playList)
+            m.sub ! PlayListInit(playList)
         case m:PlayListRequestAdd =>
             if (listMatches(m.list))
                 addItem(m.item)
+        case m:PlayListRequestChange =>
+            if (listMatches(m.list))
+                changeItem(m.index,m.item)
         case m:PlayListRequestRotate =>
             if (listMatches(m.list))
                 rotateItem(m.index, m.rot)
@@ -69,6 +72,13 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         val newPlayList = playList.addItem(item).asInstanceOf[PlayListS]
         val newIndex = playList.size - 1
         publish(PlayListAddItem(playList,newPlayList,newIndex))
+        playList = newPlayList
+    }
+
+    private def changeItem(itemIndex:Int, item:PlayItem) {
+        val newPlayList = playList.replaceItem(itemIndex,item).
+                asInstanceOf[PlayListS]
+        publish(PlayListChangeItem(playList,newPlayList,itemIndex))
         playList = newPlayList
     }
 

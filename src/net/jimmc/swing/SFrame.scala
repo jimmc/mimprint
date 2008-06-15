@@ -12,7 +12,8 @@ import javax.swing.WindowConstants
 /** A general Frame with some utility methods and support for Scala idioms.
  */
 class SFrame(name:String, res:SResources)
-        extends JFrame with SResourcesFacade with StandardDialogs {
+        extends JFrame with SResourcesFacade with StandardDialogs
+        with EditTextDialog {
 
     val sResourcesBase = res            //for SResourcesFacade
     val dialogRes = res                 //for StandardDialogs

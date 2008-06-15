@@ -105,9 +105,7 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
     private def imageSelected(index:Int) {
         currentIndex = index
         if (index<0) {
-            //val msg = getResourceString("error.NoImageSelected")
-                //TODO - need an app to get resources from
-            val msg = "No image"
+            val msg = viewer.getResourceString("error.NoImageSelected")
             imageComponent.setText(msg)
             imageComponent.setIcon(null)
         } else {
@@ -216,10 +214,10 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
                     tracker ! PlayListRequestUp(playList)
                 case KeyEvent.VK_DOWN =>
                     tracker ! PlayListRequestDown(playList)
-                //TODO - implement ESC command
-                case KeyEvent.VK_ESCAPE => println("ESCAPE NYI")
+                case KeyEvent.VK_ESCAPE =>
+                    requestScreenMode(SViewer.SCREEN_PREVIOUS)
                 case KeyEvent.VK_ENTER =>
-                        viewer ! SViewerRequestActivate(playList)
+                    viewer ! SViewerRequestActivate(playList)
                 case _ => //ignore anything else
             }
         }
@@ -227,18 +225,35 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
         def keyTyped(ev:KeyEvent) {
             ev.getKeyChar() match {
                 case ' ' => viewer ! SViewerRequestActivate(playList)
+                case 'a' => requestScreenMode(SViewer.SCREEN_ALT)
+                case 'e' =>
+                        viewer ! SViewerRequestEditDialog(playList,currentIndex)
+                case 'f' => requestScreenMode(SViewer.SCREEN_FULL)
+                case 'i' =>
+                        viewer ! SViewerRequestInfoDialog(playList,currentIndex)
+                case 'o' => viewer ! SViewerRequestFileOpen()
+                case 'p' =>
+                    viewer ! SViewerRequestAddToActive(playList,currentIndex)
+                case 'P' => requestScreenMode(SViewer.SCREEN_PRINT)
                 case 'r' => requestRotate(1)   //rotate CCW
                 case 'R' => requestRotate(-1)  //rotate CW
                 case ControlR => requestRotate(2)    //rotate 180
+                case 's' => requestScreenMode(SViewer.SCREEN_SLIDESHOW)
                 case 'x' => viewer ! SViewerRequestClose()
-                //TODO - add screen mode commands
-                //TODO - add image info and edit commands
-                //TODO - add help command
-                //TODO - add open and to-print commanads
+                case '?' => showHelpDialog
                 case ch => println("NYI key "+ch)
             }
         }
         private val ControlR = 'R' - 0100
+        def requestScreenMode(mode:Int) =
+                viewer ! SViewerRequestScreenMode(mode)
+    }
+
+    private def showHelpDialog() {
+        val helpText = viewer.getResourceString("info.ImageHelp")
+        viewer.invokeUi {
+            viewer.infoDialog(helpText)
+        }
     }
 
     class PlayViewSingleMouseListener extends MouseListener {
