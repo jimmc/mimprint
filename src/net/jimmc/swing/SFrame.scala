@@ -33,7 +33,7 @@ class SFrame(name:String, res:SResources)
     }
 
     /** Get the parent to use for the standard dialogs. */
-    protected val dialogParent:Component = this
+    protected def dialogParent:Component = this
 
     /** Set to true to debug UserExceptions. */
     val debugUserExceptions = false

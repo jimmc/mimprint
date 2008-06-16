@@ -25,7 +25,7 @@ trait StandardDialogs extends BasicQueries {
 
     /** Extending class must provide a method to get the parent component
      * for our dialogs. */
-    protected val dialogParent:Component
+    protected def dialogParent:Component
 
     /** Extending class must provide resources for the dialogs. */
     val dialogRes:SResources

@@ -2,6 +2,7 @@ package net.jimmc.mimprint
 
 import net.jimmc.swing.AboutWindow
 import net.jimmc.swing.SButton
+import net.jimmc.swing.SCheckBoxMenuItem
 import net.jimmc.swing.SFrame
 import net.jimmc.swing.SMenuItem
 import net.jimmc.swing.SwingS
@@ -13,10 +14,15 @@ import net.jimmc.util.UserException
 
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dimension
+import java.awt.GraphicsConfiguration
+import java.awt.GraphicsDevice
+import java.awt.GraphicsEnvironment
+import java.awt.Rectangle
 import java.io.File
 import java.io.FileNotFoundException
-import javax.swing.JToolBar
+import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JMenuBar
@@ -24,6 +30,8 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.JSplitPane
 import javax.swing.JTextField
+import javax.swing.JToolBar
+import javax.swing.JWindow
 
 import scala.actors.Actor
 import scala.actors.Actor.loop
@@ -34,26 +42,43 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
     private val mainTracker = new PlayListTracker(this)
     private val toolBar = createToolBar()
+
     private var mainList:PlayViewList = _
     private var mainSingle:PlayViewSingle = _
+    private var fullSingle:PlayViewSingle = _
+    private var altSingle:PlayViewSingle = _
+    private var dualSingle:PlayViewSingle = _
     private var currentMainFile:File = _
     private var playList:PlayListS = _  //current main play list
     private var playListIndex:Int = -1  //currently selected item in main list
+    private var screenMode = SViewer.SCREEN_MODE_DEFAULT
+    private var previousScreenMode = screenMode
+    private var fullWindow:SFrame = _
+    private var altWindow:JWindow = _
+    private var dualWindow:SFrame = _
 
     setJMenuBar(createMenuBar())
     initForm()
     setScreenMode(SViewer.SCREEN_MODE_DEFAULT)
+    setScreenModeButtons()
     pack()
 
     addWindowListener()
 
+    override protected def dialogParent():Component = {
+        if (fullWindow!=null && fullWindow.isShowing)
+            fullWindow
+        else
+            this
+    }
+    
     private def createMenuBar():JMenuBar = {
         val mb = new JMenuBar()
         mb.add(createFileMenu())
         mb.add(createImageMenu())
         //TODO - create PlayList menu
         //TODO - create Layout menu
-        //TODO - create View menu
+        mb.add(createViewMenu())
         mb.add(createHelpMenu())
 
         mb
@@ -101,6 +126,42 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 showImageInfoDialog(playList,playListIndex)))
 
         m
+    }
+
+    private def createViewMenu():JMenu = {
+        val m = new JMenu(getResourceString("menu.View.label"))
+
+        val modeInfo = List(
+            (SViewer.SCREEN_PRINT, "Print"),
+            (SViewer.SCREEN_SLIDESHOW, "SlideShow"),
+            (SViewer.SCREEN_ALT, "Alternate"),
+            (SViewer.SCREEN_DUAL_WINDOW, "DualWindow"),
+            (SViewer.SCREEN_FULL, "Full")
+        )
+        screenModeButtons = modeInfo.map { mi =>
+            val (modeVal, modeName) = mi
+            val resKey = "menu.View.ScreenMode"+modeName
+            val checkBox = new SCheckBoxMenuItem(this,resKey)(
+                    setScreenMode(modeVal))
+            m.add(checkBox)
+            (modeVal, checkBox)
+        }
+        //Enable the Alternate Screen mode button only if we have an alt screen
+        screenModeButtons.filter(_._1==SViewer.SCREEN_ALT).foreach(
+            _._2.setVisible(hasAlternateScreen))
+
+        //TODO - add separator, then more commands for other View options
+
+        m
+    }
+    private var screenModeButtons:List[(Int,SCheckBoxMenuItem)] = _
+
+    private def setScreenModeButtons() {
+        screenModeButtons.foreach { info =>
+            val modeVal = info._1
+            val cb = info._2
+            cb.setState(screenMode == modeVal)
+        }
     }
 
     private def createHelpMenu():JMenu = {
@@ -171,11 +232,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
         mainList = new PlayViewList(this,mainTracker)
         val imageLister = mainList.getComponent()
-        mainList.start();
+        mainList.start()
 
-        mainSingle = new PlayViewSingle(this,mainTracker)
+        mainSingle = new PlayViewSingle("main",this,mainTracker)
         val imageArea = mainSingle.getComponent()
-        mainSingle.start();
+        mainSingle.start()
 
         val imagePane = new JPanel(new BorderLayout())
         imagePane.setMinimumSize(new Dimension(100,100))
@@ -186,6 +247,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         mainBody.setBackground(imageArea.getBackground())
 
         val statusLine = new JTextField()
+            //TODO - add showStatus method
         statusLine.setEditable(false)
         statusLine.setBackground(Color.lightGray)
 
@@ -236,7 +298,12 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         case m:SViewerRequestActivate =>
                 mainList ! PlayViewListRequestActivate(m.list)
         case m:SViewerRequestFocus =>
+            if (fullSingle!=null && fullSingle.isShowing)
+                fullSingle ! PlayViewSingleRequestFocus()
+            else if (mainSingle.isShowing)
                 mainSingle ! PlayViewSingleRequestFocus()
+            else
+                println("Neither mainSingle nor fullSingle is visible")
         case m:SViewerRequestScreenMode =>
                 setScreenMode(m.mode)
         case m:SViewerRequestInfoDialog =>
@@ -293,8 +360,143 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         setTitle(title)
     }
 
-    private def setScreenMode(mode:Int) {
-        println("screen modes NYI (mode "+mode+")")   //TODO
+    private def setScreenMode(reqMode:Int) {
+        val mode =
+            if (reqMode == SViewer.SCREEN_PREVIOUS) previousScreenMode
+            else reqMode
+        if (mode == screenMode)
+            return              //already in that mode
+        if (mode != SViewer.SCREEN_FULL)
+            this.show()
+
+        mode match {
+        case SViewer.SCREEN_ALT => setScreenModeAlt()
+        case SViewer.SCREEN_DUAL_WINDOW => setScreenModeDual()
+        case SViewer.SCREEN_FULL => setScreenModeFull()
+        case SViewer.SCREEN_SLIDESHOW => //TODO
+        case n => println("Screen mode "+n+" NYI")      //TODO
+        }
+
+        if (altWindow!=null) {
+            if (mode == SViewer.SCREEN_ALT)
+                altWindow.validate
+            else
+                altWindow.hide
+        }
+
+        if (dualWindow!=null) {
+            if (mode == SViewer.SCREEN_DUAL_WINDOW)
+                dualWindow.validate
+            else
+                dualWindow.hide
+        }
+
+        if (mode != SViewer.SCREEN_FULL && fullWindow!=null) {
+            fullWindow.hide
+        }
+        if (mode == SViewer.SCREEN_FULL && fullWindow!=null)
+            fullWindow.validate()
+        else {
+            this.validate()
+            this.repaint()
+        }
+
+        mainTracker ! PlayListRequestSelect(playList,playListIndex)
+            //send a notice to the new window to display the current image
+        this ! SViewerRequestFocus(null)
+            //make sure the right window has focus
+
+        if (screenMode!=SViewer.SCREEN_FULL)
+            previousScreenMode = screenMode
+        screenMode = mode
+        setScreenModeButtons()
+    }
+
+    private def setScreenModeAlt() {
+        //TODO - if more than 2 configs, ask which one to use
+        //For now, just use the second config
+
+        if (altSingle == null) {
+            val gc = getAlternateGraphicsConfiguration(1)
+            if (gc==null) {
+                getToolkit().beep()
+                return         //only one display, no mode change
+            }
+            val altScreenBounds:Rectangle = gc.getBounds()
+            altSingle = new PlayViewSingle("alt",this,mainTracker)
+            val imageArea = altSingle.getComponent()
+            altSingle.start()
+            altWindow = new JWindow()
+            altWindow.getContentPane().add(imageArea)
+            altWindow.setBounds(altScreenBounds)
+            altWindow.setBackground(imageArea.getBackground())
+        }
+        altWindow.show()
+    }
+
+    private def setScreenModeDual() {
+        if (dualSingle == null) {
+            //Create the dualSingle window the first time
+            dualSingle = new PlayViewSingle("dual",this,mainTracker)
+            val wSize = new Dimension(300,200)
+                //make it small, let user move it to other screen and resize
+            dualWindow = initializeSingle(dualSingle,wSize)
+        }
+        dualWindow.show()
+        //leave main window showing as well
+    }
+
+    private def setScreenModeFull() {
+        if (fullSingle == null) {
+            //Create the fullSingle window the first time
+            fullSingle = new PlayViewSingle("full",this,mainTracker)
+            val screenSize = getToolkit().getScreenSize()
+            fullWindow = initializeSingle(fullSingle,screenSize)
+        }
+        fullWindow.show()
+        this.hide()
+    }
+
+    private def initializeSingle(single:PlayViewSingle,
+            windowSize:Dimension):SFrame = {
+        val imageArea = single.getComponent()
+        single.start()
+        val sWindow = new SFrame(single.name+"Window",app) {
+            override def processClose() {
+                setVisible(false)
+                setScreenMode(SViewer.SCREEN_PREVIOUS)
+            }
+        }
+        sWindow.addWindowListener()
+        sWindow.getContentPane().add(imageArea)
+        sWindow.setBounds(0,0,windowSize.width,windowSize.height)
+        sWindow.setBackground(imageArea.getBackground())
+        sWindow
+    }
+
+    private def hasAlternateScreen():Boolean =
+        (getAlternateGraphicsConfiguration(1)!=null)
+
+    /** Get an alternate Graphics Configuration.
+     * @param n The index of the config to get, 0 is the primary screen.
+     * @return The indicated config, or null if it does not exist.
+     */
+    private def getAlternateGraphicsConfiguration(n:int):
+            GraphicsConfiguration  = {
+        if (n<0)
+            throw new IllegalArgumentException("negative index not valid")
+        val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+        val gs:Array[GraphicsDevice] = ge.getScreenDevices()
+
+        val configs = for {
+            i <- 0 until gs.length
+            gd = gs(i)
+            gc = gd.getConfigurations
+            j <- 0 until gc.length
+        } yield gc(j)
+        if (configs.size < n+1)
+            return null         //no such config
+        configs(n)      //a GraphicsConfiguration
     }
 
     private def showImageInfoDialog(pl:PlayListS, idx:Int) {

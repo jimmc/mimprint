@@ -23,12 +23,13 @@ import javax.swing.ImageIcon
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
+class PlayViewSingle(val name:String, viewer:SViewer, tracker:PlayListTracker)
         extends PlayView(tracker) {
     private var imageComponent:JLabel = _
     private var mediaTracker:MediaTracker = _
     private var playList:PlayListS = _
     private var currentIndex:Int = -1
+    private var currentItem:PlayItemS = _
 
     private var cursorBusy = false
     private var cursorVisible = true
@@ -52,6 +53,8 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
         mediaTracker = new MediaTracker(imageComponent)
         imageComponent
     }
+
+    def isShowing():Boolean = imageComponent.isShowing
 
     //TODO - add code to preload next/previous images?
 
@@ -103,12 +106,31 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
     }
 
     private def imageSelected(index:Int) {
-        currentIndex = index
+        if (!isShowing) {
+            //If we are not showing, don't waste time loading images
+            if (currentIndex >= 0) {
+//println("Single "+name+" not showing")
+                imageComponent.setText("")
+                imageComponent.setIcon(null)
+                currentIndex = -1
+                currentItem = null
+            }
+            return
+        }
         if (index<0) {
+//println("Single "+name+" setting no image")
             val msg = viewer.getResourceString("error.NoImageSelected")
             imageComponent.setText(msg)
             imageComponent.setIcon(null)
+            currentItem = null
         } else {
+            val item = playList.getItem(index)
+            if (item == currentItem) {
+                //We already have this image loaded and selected
+//println("Single "+name+" already showing image "+index)
+                return
+            }
+//println("Single "+name+" loading image "+index)
             setCursorBusy(true)
             val im = getTransformedImage(index)
                 //TODO - check for null im?
@@ -116,7 +138,9 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
             imageComponent.setIcon(ii)
             imageComponent.setText(null)
             setCursorBusy(false)
+            currentItem = item
         }
+        currentIndex = index
         imageComponent.revalidate()
     }
 
@@ -272,7 +296,10 @@ class PlayViewSingle(viewer:SViewer, tracker:PlayListTracker)
     class PlayViewSingleComponentListener extends ComponentListener {
         def componentHidden(ev:ComponentEvent) = ()
         def componentMoved(ev:ComponentEvent) = ()
-        def componentResized(ev:ComponentEvent) = imageSelected(currentIndex)
+        def componentResized(ev:ComponentEvent) = {
+            currentItem = null          //force reload of image to get new size
+            imageSelected(currentIndex)
+        }
         def componentShown(ev:ComponentEvent) = ()
     }
 }

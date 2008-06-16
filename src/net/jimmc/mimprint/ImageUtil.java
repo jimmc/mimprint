@@ -7,6 +7,7 @@ package net.jimmc.mimprint;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -19,10 +20,12 @@ public class ImageUtil {
 
     public static final int ICON_SIZE = 64;
 
-    public ImageUtil(App app, Viewer viewer) {
+    public ImageUtil(App app, Component viewer) {
         this.app = app;
         tracker = new MediaTracker(viewer);
     }
+
+    public ImageUtil() { }
 
     /** Create a transparent image the size of one of our image icons,
      *  suitable for dragging.
@@ -71,18 +74,20 @@ public class ImageUtil {
 
     /** Load an image, wait for it to be loaded. */
     public void loadCompleteImage(Image image) {
+        if (tracker==null)
+            throw new RuntimeException("No tracker set for this ImageUtil");
         tracker.addImage(image,0);
         boolean loadStatus=false;
         try {
-            app.debugMsg("Waiting for image "+image);
+            //app.debugMsg("Waiting for image "+image);
             loadStatus = tracker.waitForID(0,20000);
         } catch (InterruptedException ex) {
             String msg = "Interrupted waiting for image to load";
                     //TBD i18n, include ex.getMessage()
             throw new RuntimeException(msg);
         }
-        app.debugMsg("Done waiting for image "+image+
-                ", loadStatus="+loadStatus);
+        //app.debugMsg("Done waiting for image "+image+
+         //       ", loadStatus="+loadStatus);
         tracker.removeImage(image,0);
     }
     

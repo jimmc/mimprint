@@ -1,18 +1,29 @@
 package net.jimmc.mimprint
 
 import net.jimmc.swing.SwingS
+import net.jimmc.swing.SDragSource
 import net.jimmc.util.FileUtilS
 
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceAdapter;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.Image
+import java.awt.Point
 import java.io.File
 import javax.swing.AbstractListModel
 import javax.swing.BorderFactory
 import javax.swing.DefaultListCellRenderer
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
+import javax.swing.ImageIcon
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
@@ -21,7 +32,7 @@ import javax.swing.JScrollPane
 import scala.util.Sorting
 
 class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
-        extends PlayView(tracker) {
+        extends PlayView(tracker) with SDragSource {
     //TODO - add modes (display icons; include file info)
     //TODO - add thread that loads image icons
     //TODO - implement dragging to Printable view or other PlayViewList
@@ -37,6 +48,7 @@ class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
     private var fileNames:Array[String] = _
     private var fileCount:Int = _
     private var fileInfos:Array[FileInfo] = _
+    private var ourComponent:Component = _
     private var fileNameList:JList = _
     private var fileNameListModel:ArrayListModel = _
     private var currentSelection = -1
@@ -51,8 +63,12 @@ class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
         listScrollPane.setPreferredSize(new Dimension(250,400))
         p.setLayout(new BorderLayout())
         p.add(listScrollPane)
+        setupDrag(fileNameList,DnDConstants.ACTION_COPY)
+        ourComponent = p
         p
     }
+
+    def isShowing():Boolean = ourComponent.isShowing
 
     protected def playListInit(m:PlayListInit) {
         playList = m.list
@@ -174,7 +190,7 @@ class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
                     list, value, index, isSelected, cellHasFocus).
                         asInstanceOf[JLabel]
             val fileInfo:FileInfo = getFileInfo(index)
-            val fileInfoText = fileInfo.html;
+            val fileInfoText = fileInfo.html
             val labelText =
                 if (fileInfoText==null) {
                     fileInfo.name
@@ -236,6 +252,43 @@ class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
         }
         viewer ! SViewerRequestFocus(playList)
     }
+
+    //The SDragSource trait
+    class PlayViewListDragGestureListener extends DragGestureListener {
+        def dragGestureRecognized(ev:DragGestureEvent) {
+            val index = fileNameList.getSelectedIndex()
+            if (index == -1)
+                return         //no item selected for dragging
+            val fileInfo = getFileInfo(index)
+            //String path = new File(targetDirectory,fileNames[index]).toString();
+            val path = fileInfo.getPath()
+            val icon:ImageIcon = fileInfo.icon
+            //If the platform does not support image dragging, don't do it
+            val iconImage:Image = if (icon==null) null else icon.getImage()
+            val (image:Image, offset:Point) =
+            if (DragSource.isDragImageSupported()) {
+                val im = (new ImageUtil()).createTransparentIconImage(
+                        iconImage,path)
+                val width = im.getWidth(null)
+                val height = im.getHeight(null)
+                val p = new Point(-width/2, -height/2)
+                (im, p)
+            } else {
+                (null, null)   //image dragging not supported
+            }
+            startImageDrag(ev,image,offset,path)
+        }
+    }
+    protected def getMyDragGestureListener():DragGestureListener =
+        new PlayViewListDragGestureListener()
+
+    protected def getMyDragSourceListener():DragSourceListener = {
+        new DragSourceAdapter() {
+            override def dragDropEnd(ev:DragSourceDropEvent) =
+                viewer ! SViewerRequestFocus(playList)
+        }
+    }
+    //end SDragSource trait
 }
 
 sealed abstract class PlayViewListRequest

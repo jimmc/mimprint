@@ -10,7 +10,7 @@ import javax.swing.JScrollPane
 import javax.swing.JTextArea
 
 trait EditTextDialog {
-    protected val dialogParent:Component
+    protected def dialogParent:Component
 
     def editTextDialog(title:String, text:String):String = {
         val tx = new JTextArea(text)
