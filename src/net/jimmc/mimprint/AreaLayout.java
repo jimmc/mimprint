@@ -533,10 +533,10 @@ public abstract class AreaLayout {
     }
 
     //Add all of our areas to the specified PlayList as items
-    protected PlayList addToPlayList(PlayList playList) {
+    protected PlayList retrieveIntoPlayList(PlayList playList) {
         if (areas!=null) {
             for (int i=0; i<areas.length; i++) {
-                playList = areas[i].addToPlayList(playList);
+                playList = areas[i].retrieveIntoPlayList(playList);
                     //TODO - could make this more efficient
             }
         }

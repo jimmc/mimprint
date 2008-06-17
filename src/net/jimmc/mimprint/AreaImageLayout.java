@@ -100,7 +100,7 @@ public class AreaImageLayout extends AreaLayout {
     }
 
     //Add our area info to the specified PlayList
-    protected PlayList addToPlayList(PlayList playList) {
+    protected PlayList retrieveIntoPlayList(PlayList playList) {
         String path = getImagePath();
         if (path==null) {
             //Create an empty item

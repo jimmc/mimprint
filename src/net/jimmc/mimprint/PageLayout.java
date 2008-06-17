@@ -151,8 +151,8 @@ public class PageLayout {
     }
 
     /** Build a playlist. */
-    protected PlayList addToPlayList(PlayList playList) {
-        return areaLayout.addToPlayList(playList);
+    protected PlayList retrieveIntoPlayList(PlayList playList) {
+        return areaLayout.retrieveIntoPlayList(playList);
     }
 
     /** Write the current layout template. */

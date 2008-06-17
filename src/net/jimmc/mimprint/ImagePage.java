@@ -180,7 +180,7 @@ public class ImagePage extends JComponent
     /** Get a PlayList with the images from our printable page. */
     public PlayList getPlayList() {
         PlayList playList = App.getApp().getFactory().newPlayList();
-        return pageLayout.addToPlayList(playList);
+        return pageLayout.retrieveIntoPlayList(playList);
     }
 
     public void savePlayList(String fileName) {
