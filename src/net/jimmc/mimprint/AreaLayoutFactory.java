@@ -10,7 +10,7 @@ public class AreaLayoutFactory {
     /** Create an empty AreaLayout of the specifed type. */
     public static AreaLayout newAreaLayout(String type) {
         if (type.equals("imageLayout"))
-            return new ImagePageArea();
+            return new AreaImageLayout();
         else if (type.equals("gridLayout"))
             return new AreaGridLayout();
         else if (type.equals("splitLayout"))

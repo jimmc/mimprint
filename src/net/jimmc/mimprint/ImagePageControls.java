@@ -450,7 +450,7 @@ public class ImagePageControls extends JPanel {
             return AREA_PAGE;
         AreaLayout a = allAreas[index-1];
         //TODO - make an AreaLayout method to get type int
-        if (a instanceof ImagePageArea)
+        if (a instanceof AreaImageLayout)
             return AREA_IMAGE;
         if (a instanceof AreaGridLayout)
             return AREA_GRID;
@@ -490,7 +490,7 @@ public class ImagePageControls extends JPanel {
         AreaLayout newArea;
         switch (newAreaType) {
         case AREA_IMAGE:
-            newArea = new ImagePageArea(0,0,0,0);
+            newArea = new AreaImageLayout(0,0,0,0);
             break;
         case AREA_GRID:
             AreaGridLayout newGridArea = new AreaGridLayout();
@@ -515,7 +515,7 @@ public class ImagePageControls extends JPanel {
         Dimension newAreaSpacing = newArea.getSpacing();
         boolean zeroSpacing = (newAreaSpacing==null ||
                 (newAreaSpacing.width==0 && newAreaSpacing.height==0));
-        if (zeroSpacing && area instanceof ImagePageArea) {
+        if (zeroSpacing && area instanceof AreaImageLayout) {
             if (parentArea==null)
                 newArea.setSpacing(10*area.getBorderThickness());
             else

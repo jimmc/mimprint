@@ -101,7 +101,7 @@ public class AreaGridLayout extends AreaLayout {
             for (int col=0; col<columnCount; col++) {
                 int ax = b.x+col*(w+spacing.width);
                 int ay = b.y+row*(h+spacing.height);
-                ImagePageArea area = new ImagePageArea(ax,ay,w,h);
+                AreaImageLayout area = new AreaImageLayout(ax,ay,w,h);
                 area.setBorderThickness(getBorderThickness());
                 aa[areaIndex(row,col)] = area;
             }

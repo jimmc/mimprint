@@ -1,4 +1,4 @@
-/* ImageFileNameComparator.java
+/* ImageNameComp.java
  *
  * Jim McBeath, September 19, 2001
  */
@@ -10,10 +10,10 @@ import java.util.Comparator;
 
 /** Compare two image file names to see how they should be ordered.
  */
-public class ImageFileNameComparator implements Comparator {
+public class ImageNameComp implements Comparator {
     private File dir;    //the directory in which we are comparing
 
-    public ImageFileNameComparator(File dir) {
+    public ImageNameComp(File dir) {
         this.dir = dir;
     }
 

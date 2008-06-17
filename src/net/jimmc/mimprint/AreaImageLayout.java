@@ -1,4 +1,4 @@
-/* ImagePageArea.java
+/* AreaImageLayout.java
  *
  * Jim McBeath, October 7, 2005
  */
@@ -14,19 +14,19 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.PrintWriter;
 
-public class ImagePageArea extends AreaLayout {
+public class AreaImageLayout extends AreaLayout {
     private ImageBundle imageBundle;
 
     //We do not use the areas array in our parent class
 
     /** Create an image area. */
-    public ImagePageArea(int x, int y, int width, int height) {
+    public AreaImageLayout(int x, int y, int width, int height) {
         super();
         setBounds(x,y,width,height);
     }
 
     /** Create an image area with no size info. */
-    public ImagePageArea() {
+    public AreaImageLayout() {
         this(0,0,0,0);
     }
 

@@ -474,7 +474,7 @@ public class ImageLister extends JPanel {
         fileNames = getListableFileNames(targetDirectory);
         dirCount = FileInfo.countDirectories(targetDirectory,fileNames);
         fileCount = fileNames.length - dirCount;
-        Arrays.sort(fileNames,new ImageFileNameComparator(targetDirectory));
+        Arrays.sort(fileNames,new ImageNameComp(targetDirectory));
             //Do the sort before we create the FileInfo objects so that the
             //index number in their description is correct.
             //Directories sort to the beginning.
@@ -991,7 +991,7 @@ public class ImageLister extends JPanel {
             }
         };
         String[] list = dir.list(filter);
-        Arrays.sort(list,new ImageFileNameComparator(dir));
+        Arrays.sort(list,new ImageNameComp(dir));
         if (list==null)
             list = new String[0];
         String[] listPlus = new String[list.length+2];

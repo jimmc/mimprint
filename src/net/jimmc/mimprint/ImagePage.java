@@ -62,9 +62,9 @@ public class ImagePage extends JComponent
 
     private PageLayout pageLayout;      //our layout
 
-    private ImagePageArea currentArea;  //the active area
+    private AreaImageLayout currentArea;  //the active area
     private AreaLayout highlightedArea;   //the highlight area for drop
-    private ImagePageArea dragArea;          //source area for drag
+    private AreaImageLayout dragArea;          //source area for drag
 
     private Color pageColor;    //color of the "paper"
     private boolean knownKeyPress;
@@ -214,7 +214,7 @@ public class ImagePage extends JComponent
   //The DragGestureListener interface
     public void dragGestureRecognized(DragGestureEvent ev) {
         Point p = ev.getDragOrigin();
-        ImagePageArea a = windowToImageArea(p);
+        AreaImageLayout a = windowToImageArea(p);
         dragArea = a;
         if (a==null)
             return;     //not in an area, can't start a drag here
@@ -309,7 +309,7 @@ public class ImagePage extends JComponent
     class DTListener implements DropTargetListener {
         private void checkDrop(DropTargetDragEvent ev) {
             //printFlavors(ev);       //for debug
-            ImagePageArea a = getDropArea(ev);
+            AreaImageLayout a = getDropArea(ev);
             if (a==null || a==dragArea) {
                 //No drop in source area or outside any area
                 setHighlightedArea(null);
@@ -357,7 +357,7 @@ public class ImagePage extends JComponent
                 return;       //no actions available
             }
 
-            ImagePageArea dropArea = windowToImageArea(ev.getLocation());
+            AreaImageLayout dropArea = windowToImageArea(ev.getLocation());
             if (dropArea==null) {
                 ev.dropComplete(false); //bad area
                 return;       //no actions available
@@ -421,7 +421,7 @@ public class ImagePage extends JComponent
      * @param s The full path to the image file.
      * @return True if the file exists, false if not.
      */
-    private boolean dropFileName(String s, ImagePageArea dropArea) {
+    private boolean dropFileName(String s, AreaImageLayout dropArea) {
 //System.out.println("Got drop data: "+s);
 	if (s.startsWith("file://"))
 	    s = s.substring("file://".length()); //convert URL to file path
@@ -455,7 +455,7 @@ public class ImagePage extends JComponent
         return flavors;
     }
 
-    private ImagePageArea getDropArea(DropTargetDragEvent ev) {
+    private AreaImageLayout getDropArea(DropTargetDragEvent ev) {
         DataFlavor[] flavors = getDropFlavors();
         DataFlavor chosenFlavor = null;
         for (int i=0; i<flavors.length; i++) {
@@ -476,7 +476,7 @@ public class ImagePage extends JComponent
         }
 
         Point p = ev.getLocation();
-        ImagePageArea a = windowToImageArea(p);
+        AreaImageLayout a = windowToImageArea(p);
         //System.out.println("area "+a);
         return a;               //null if no area
     }
@@ -552,7 +552,7 @@ public class ImagePage extends JComponent
     public void selectArea(Point windowPoint) {
         if (controls!=null)
             controls.selectArea(windowToUser(windowPoint));
-        ImagePageArea a = windowToImageArea(windowPoint);
+        AreaImageLayout a = windowToImageArea(windowPoint);
         if (a==null)
             return;     //not in an area
         currentArea = a;
@@ -560,7 +560,7 @@ public class ImagePage extends JComponent
     }
 
     /** Return the area containing the window point, or null if not in an area. */
-    public ImagePageArea windowToImageArea(Point windowPoint) {
+    public AreaImageLayout windowToImageArea(Point windowPoint) {
         Point userPoint = windowToUser(windowPoint);
         AreaLayout aa = getAreaLayout();
         while (true) {  //exit loop via break
@@ -570,8 +570,8 @@ public class ImagePage extends JComponent
                 break;
             aa = bb;
         }
-        if (aa instanceof ImagePageArea)
-            return (ImagePageArea)aa;
+        if (aa instanceof AreaImageLayout)
+            return (AreaImageLayout)aa;
         return null;    //no an image area at that point
     }
 

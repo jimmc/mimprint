@@ -58,7 +58,7 @@ public class PageLayout {
         int columnCount = 2;
 
         //areaLayout = new AreaGridLayout();
-        areaLayout = new ImagePageArea(0,0,0,0);
+        areaLayout = new AreaImageLayout(0,0,0,0);
 
         areaLayout.setMargins(margin);
         areaLayout.setSpacing(spacing);
