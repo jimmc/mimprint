@@ -41,6 +41,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
     private val mainTracker = new PlayListTracker(this)
+    private val printableTracker = new PlayListTracker(this)
     private val toolBar = createToolBar()
 
     private var mainList:PlayViewList = _
@@ -48,14 +49,18 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var fullSingle:PlayViewSingle = _
     private var altSingle:PlayViewSingle = _
     private var dualSingle:PlayViewSingle = _
+    private var printableMulti:PlayViewMulti = _
     private var currentMainFile:File = _
     private var playList:PlayListS = _  //current main play list
     private var playListIndex:Int = -1  //currently selected item in main list
     private var screenMode = SViewer.SCREEN_MODE_DEFAULT
     private var previousScreenMode = screenMode
+    private var imagePane:JPanel = _
+    private var mainSingleComp:Component = _
     private var fullWindow:SFrame = _
     private var altWindow:JWindow = _
     private var dualWindow:SFrame = _
+    private var printableComp:Component = _
 
     setJMenuBar(createMenuBar())
     initForm()
@@ -220,31 +225,24 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         tb
     }
 
-    private def createModeDualButton():SButton = {
-        new SButton(this,"button.ModeDual")({
-            infoDialog("ModeDual button was pushed")
-            throw new UserException("intentional UserException")
-        })
-    }
-
     //Create the body of our form
     private def initForm() {
 
-        mainList = new PlayViewList(this,mainTracker)
+        mainList = new PlayViewList("mainList",this,mainTracker)
         val imageLister = mainList.getComponent()
         mainList.start()
 
         mainSingle = new PlayViewSingle("main",this,mainTracker)
-        val imageArea = mainSingle.getComponent()
+        mainSingleComp = mainSingle.getComponent()
         mainSingle.start()
 
-        val imagePane = new JPanel(new BorderLayout())
+        imagePane = new JPanel(new BorderLayout())
         imagePane.setMinimumSize(new Dimension(100,100))
-        imagePane.add(imageArea,BorderLayout.CENTER)
+        imagePane.add(mainSingleComp,BorderLayout.CENTER)
 
         val mainBody = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 imageLister, imagePane)
-        mainBody.setBackground(imageArea.getBackground())
+        mainBody.setBackground(mainSingleComp.getBackground())
 
         val statusLine = new JTextField()
             //TODO - add showStatus method
@@ -302,6 +300,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 fullSingle ! PlayViewSingleRequestFocus()
             else if (mainSingle.isShowing)
                 mainSingle ! PlayViewSingleRequestFocus()
+            else if (printableComp!=null && printableComp.isShowing)
+                printableMulti ! PlayViewMultiRequestFocus()
             else
                 println("Neither mainSingle nor fullSingle is visible")
         case m:SViewerRequestScreenMode =>
@@ -370,11 +370,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             this.show()
 
         mode match {
-        case SViewer.SCREEN_ALT => setScreenModeAlt()
-        case SViewer.SCREEN_DUAL_WINDOW => setScreenModeDual()
-        case SViewer.SCREEN_FULL => setScreenModeFull()
-        case SViewer.SCREEN_SLIDESHOW => //TODO
-        case n => println("Screen mode "+n+" NYI")      //TODO
+            case SViewer.SCREEN_ALT => setScreenModeAlt()
+            case SViewer.SCREEN_DUAL_WINDOW => setScreenModeDual()
+            case SViewer.SCREEN_FULL => setScreenModeFull()
+            case SViewer.SCREEN_PRINT => setScreenModePrint()
+            case SViewer.SCREEN_SLIDESHOW => setScreenModeSlideShow()
         }
 
         if (altWindow!=null) {
@@ -440,7 +440,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             dualSingle = new PlayViewSingle("dual",this,mainTracker)
             val wSize = new Dimension(300,200)
                 //make it small, let user move it to other screen and resize
-            dualWindow = initializeSingle(dualSingle,wSize)
+            dualWindow = initializePlayView(dualSingle,wSize)
         }
         dualWindow.show()
         //leave main window showing as well
@@ -451,13 +451,33 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             //Create the fullSingle window the first time
             fullSingle = new PlayViewSingle("full",this,mainTracker)
             val screenSize = getToolkit().getScreenSize()
-            fullWindow = initializeSingle(fullSingle,screenSize)
+            fullWindow = initializePlayView(fullSingle,screenSize)
         }
         fullWindow.show()
         this.hide()
     }
 
-    private def initializeSingle(single:PlayViewSingle,
+    private def setScreenModePrint() {
+        if (printableMulti == null) {
+            //Create the printableMulti window the first time
+            printableMulti = new PlayViewMulti(
+                    "printable",this,printableTracker)
+            printableComp = printableMulti.getComponent()
+            printableMulti.start()
+        }
+        //Put the printable component in place of the main image window
+        imagePane.remove(mainSingleComp)
+        imagePane.add(printableComp,BorderLayout.CENTER)
+    }
+
+    private def setScreenModeSlideShow() {
+        if (printableComp!=null && printableComp.getParent==imagePane)
+            imagePane.remove(printableComp)
+        if (mainSingleComp.getParent != imagePane)
+            imagePane.add(mainSingleComp,BorderLayout.CENTER)
+    }
+
+    private def initializePlayView(single:PlayViewSingle,
             windowSize:Dimension):SFrame = {
         val imageArea = single.getComponent()
         single.start()

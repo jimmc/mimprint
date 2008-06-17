@@ -5,6 +5,8 @@
 
 package net.jimmc.mimprint;
 
+import net.jimmc.util.ResourceSource;
+
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.io.File;
@@ -24,7 +26,7 @@ import org.xml.sax.SAXException;
 public class PageLayout {
     private static final int BORDER_THICKNESS = 20;
 
-    private App app;
+    private ResourceSource app;
 
     private String description; //description of this layout
 
@@ -43,7 +45,7 @@ public class PageLayout {
     private AreaLayout currentArea;     //when loading an XML file
 
     /** Create a PageLayout. */
-    public PageLayout(App app) {
+    public PageLayout(ResourceSource app) {
         this.app = app;
     }
 
@@ -134,7 +136,7 @@ public class PageLayout {
         return pageHeight;
     }
 
-    protected void setAreaLayout(AreaLayout areaLayout) {
+    public void setAreaLayout(AreaLayout areaLayout) {
         this.areaLayout = areaLayout;
         setAreaLayoutBounds();
         areaLayout.setBorderThickness(BORDER_THICKNESS);
@@ -146,7 +148,7 @@ public class PageLayout {
         areaLayout.setSubTreeDepths();
     }
 
-    protected AreaLayout getAreaLayout() {
+    public AreaLayout getAreaLayout() {
         return areaLayout;
     }
 

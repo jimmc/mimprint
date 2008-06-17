@@ -23,8 +23,8 @@ import javax.swing.ImageIcon
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class PlayViewSingle(val name:String, viewer:SViewer, tracker:PlayListTracker)
-        extends PlayView(tracker) {
+class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
+        extends PlayViewComp(name, viewer, tracker) {
     private var imageComponent:JLabel = _
     private var mediaTracker:MediaTracker = _
     private var playList:PlayListS = _

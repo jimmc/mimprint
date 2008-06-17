@@ -31,8 +31,8 @@ import javax.swing.JScrollPane
 
 import scala.util.Sorting
 
-class PlayViewList(viewer:SViewer,tracker:PlayListTracker)
-        extends PlayView(tracker) with SDragSource {
+class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
+        extends PlayViewComp(name,viewer,tracker) with SDragSource {
     //TODO - add modes (display icons; include file info)
     //TODO - add thread that loads image icons
     //TODO - implement dragging to Printable view or other PlayViewList
