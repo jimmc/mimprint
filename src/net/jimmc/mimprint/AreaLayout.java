@@ -68,7 +68,7 @@ public abstract class AreaLayout {
     /** Get our parent layout.
      * @return parent Our parent layout, or null if we are the top level layout.
      */
-    protected AreaLayout getParent() {
+    public AreaLayout getParent() {
         return parent;
     }
 
@@ -157,7 +157,7 @@ public abstract class AreaLayout {
     /** Get a list of our sub areas, recursively.
      * Add to the specified Vector.
      */
-    protected void getAreaList(Vector v) {
+    public void getAreaList(Vector v) {
         if (areas==null)
             return;
         for (int i=0; i<areas.length; i++) {

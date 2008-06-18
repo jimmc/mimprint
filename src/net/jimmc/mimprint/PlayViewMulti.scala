@@ -9,6 +9,7 @@ import javax.swing.JPanel
 class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
         extends PlayViewComp(name, viewer, tracker) {
 
+    private var areaPage:AreaPage = _
     private var playList:PlayListS = _
     private var currentIndex:Int = _
 
@@ -31,14 +32,14 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
     private def createAreaPanel() = {
         val p = new JPanel()
         p.setLayout(new BorderLayout())
-        p.add(new JLabel("This is the Area Panel"),BorderLayout.NORTH)    //TODO
-        p.add(new AreaPage(viewer),BorderLayout.CENTER)
+        areaPage = new AreaPage(viewer)
+        p.add(areaPage,BorderLayout.CENTER)
         p
     }
 
     private def createControlPanel() = {
         val p = new JPanel()
-        p.add(new JLabel("This is the Control Panel")) //TODO
+        p.add(new AreaPageControls(viewer,areaPage))
         p
     }
 

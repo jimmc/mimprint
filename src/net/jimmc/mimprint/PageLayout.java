@@ -200,7 +200,7 @@ public class PageLayout {
     }
     private static NumberFormat pageValueFormat;
 
-    protected static String formatPageValue(int n) {
+    public static String formatPageValue(int n) {
         initPageValueFormat();
         double d = ((double)n)/UNIT_MULTIPLIER;
         return pageValueFormat.format(new Double(d));

@@ -257,7 +257,8 @@ public class ImagePageControls extends JPanel {
         public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent ev) {}
     }
 
-    /** Here the the page layout changes, to update our list of all areas. */
+    /** Here when the the page layout changes,
+     * to update our list of all areas. */
     public void updateAllAreasList() {
         AreaLayout a = imagePage.getAreaLayout();
         Vector v = new Vector();
