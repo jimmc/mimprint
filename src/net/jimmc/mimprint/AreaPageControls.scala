@@ -200,6 +200,7 @@ class AreaPageControls(val frame:SFrame, val areaPage:AreaPage)
                 areaPage.highlightedArea = null
             else
                 areaPage.highlightedArea = allAreas(index-1)
+            areaPage.repaint()
         }
     }
 
@@ -363,6 +364,7 @@ class AreaPageControls(val frame:SFrame, val areaPage:AreaPage)
             }
         }
         updatingSelected = false
+        areaPage.repaint()
     }
 
     //Given a page dimension, format it for display to the user
@@ -471,7 +473,7 @@ class AreaPageControls(val frame:SFrame, val areaPage:AreaPage)
         updateAreaChoiceField(newArea)    //fix area choice list
         areaSelected(areaChoiceField.getSelectedIndex())
                 //fix area property fields
-        areaPage.repaint();
+        areaPage.repaint()
     }
 
     private def layoutIndexToAreaType(index:Int):Int = {

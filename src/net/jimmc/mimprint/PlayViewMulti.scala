@@ -10,6 +10,7 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
         extends PlayViewComp(name, viewer, tracker) {
 
     private var areaPage:AreaPage = _
+    private var areaPageControls:AreaPageControls = _
     private var playList:PlayListS = _
     private var currentIndex:Int = _
 
@@ -22,6 +23,7 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
         panel.setLayout(new BorderLayout())
         areaPanel = createAreaPanel()
         controlPanel = createControlPanel()
+        areaPage.controls = areaPageControls
         panel.add(areaPanel,BorderLayout.CENTER)
         panel.add(controlPanel,BorderLayout.NORTH)
         panel
@@ -39,7 +41,8 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
 
     private def createControlPanel() = {
         val p = new JPanel()
-        p.add(new AreaPageControls(viewer,areaPage))
+        areaPageControls = new AreaPageControls(viewer,areaPage)
+        p.add(areaPageControls)
         p
     }
 
@@ -73,7 +76,7 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
     }
 
     override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
-        case m:PlayViewMultiRequestFocus => areaPanel.requestFocus()
+        case m:PlayViewMultiRequestFocus => areaPage.requestFocus()
         case m:Any => println("Unrecognized message to PlayViewMulti")
     }
 }

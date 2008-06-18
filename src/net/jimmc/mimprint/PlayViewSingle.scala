@@ -270,7 +270,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         }
         private val ControlR = 'R' - 0100
         def requestScreenMode(mode:Int) =
-                viewer ! SViewerRequestScreenMode(mode)
+            viewer ! SViewerRequestScreenMode(mode)
     }
 
     private def showHelpDialog() {

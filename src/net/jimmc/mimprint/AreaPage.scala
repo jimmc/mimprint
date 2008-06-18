@@ -1,3 +1,8 @@
+/* AreaPage.scala
+ *
+ * Jim McBeath, June 17, 2008
+ */
+
 package net.jimmc.mimprint
 
 import net.jimmc.util.SResources
@@ -17,7 +22,8 @@ import java.awt.Graphics2D
 import java.awt.Point
 import javax.swing.JComponent
 
-class AreaPage(res:SResources) extends JComponent {
+class AreaPage(viewer:SViewer) extends JComponent {
+    protected[mimprint] var controls:AreaPageControls = null
 
     //Until we get PageLayout switched over to scala, use this class
     //as a converter.
@@ -28,7 +34,7 @@ class AreaPage(res:SResources) extends JComponent {
         def getResourceFormatted(key:String, arg:Object) =
             res.getResourceFormatted(key, arg.asInstanceOf[Object])
     }
-    private val resCvt = new ResConverter(res)
+    private val resCvt = new ResConverter(viewer)
 
     private val pageLayout = new PageLayout(resCvt)
     pageLayout.setDefaultLayout()
@@ -36,6 +42,9 @@ class AreaPage(res:SResources) extends JComponent {
     private var showOutlines:Boolean = true
     private var currentArea:AreaImageLayout = _
     var highlightedArea:AreaLayout = _
+
+    private var playList:PlayListS = PlayListS(viewer)
+    private var currentIndex:Int = -1
 
     private var busyCursor:Cursor = _
     private var invisibleCursor:Cursor = _
@@ -77,6 +86,52 @@ class AreaPage(res:SResources) extends JComponent {
     override def paint(g:Graphics) = paint(g,getWidth,getHeight,showOutlines)
 
     def formatPageValue(n:Int) = PageLayout.formatPageValue(n)
+
+    /** Select the image area at the specified location. */
+    def selectArea(windowPoint:Point) {
+        if (controls!=null)
+            controls.selectArea(windowToUser(windowPoint))
+        val a:AreaImageLayout = windowToImageArea(windowPoint)
+        if (a!=null)
+            currentArea = a
+        repaint()
+    }
+
+    /** Return the area containing the window point,
+     * or null if not in an area. */
+    def windowToImageArea(windowPoint:Point):AreaImageLayout = {
+        val userPoint:Point = windowToUser(windowPoint)
+        var aa:AreaLayout = areaLayout
+        var bb:AreaLayout = null
+        do {
+            //Follow the tree down as far as we can
+            bb = aa.getArea(userPoint)
+            if (bb!=null)
+                aa = bb
+        } while (bb!=null)
+        aa match {
+            case aaa:AreaImageLayout => aaa
+            case _ => null
+        }
+    }
+
+    /** Transform a point in window coordinates to a point in user space. */
+    private def windowToUser(p:Point):Point = {
+        class DPoint(var x:Double, var y:Double)
+        val userP = new DPoint(p.x, p.y)
+        val xscale = getWidth.asInstanceOf[Double] /
+                     pageWidth.asInstanceOf[Double]
+        val yscale = getHeight.asInstanceOf[Double] /
+                     pageHeight.asInstanceOf[Double]
+        val scale = if (xscale<yscale) xscale else yscale
+        if (xscale<yscale)
+            userP.y = userP.y - (yscale-xscale)*pageHeight/2.0
+        else
+            userP.x = userP.x - (xscale-yscale)*pageWidth/2.0
+        userP.x = userP.x * (1.0/scale)
+        userP.y = userP.y * (1.0/scale)
+        new Point(userP.x.asInstanceOf[Int], userP.y.asInstanceOf[Int])
+    }
 
     private def paint(g:Graphics, devWidth:Int, devHeight:Int,
             drawOutlines:Boolean) {
@@ -123,7 +178,7 @@ class AreaPage(res:SResources) extends JComponent {
      * If busy-cursor has been set, cursor is always visible.
      */
     def setCursorVisible(visible:Boolean) {
-        cursorVisible = visible;
+        cursorVisible = visible
         if (cursorBusy)
             return		//busy takes priority over invisible
         if (visible)
@@ -139,123 +194,102 @@ class AreaPage(res:SResources) extends JComponent {
             setCursorVisible(false)	//turn off cursor on any key
             val keyCode = ev.getKeyCode()
             knownKeyPress = true	//assume we know it
-/* TODO
             keyCode match {
+/* TODO
             case KeyEvent.VK_LEFT =>
-                setCursorVisible(true)
-                viewer.moveLeft()
-                setCursorVisible(false)
+                tracker ! PlayListRequestLeft(playList)
             case KeyEvent.VK_RIGHT =>
-                setCursorVisible(true)
-                viewer.moveRight()
-                setCursorVisible(false)
+                tracker ! PlayListRequestRight(playList)
             case KeyEvent.VK_DOWN =>
-                setCursorVisible(true)
-                viewer.moveDown()
-                setCursorVisible(false)
+                tracker ! PlayListRequestDown(playList)
             case KeyEvent.VK_UP =>
-                setCursorVisible(true)
-                viewer.moveUp()
-                setCursorVisible(false)
+                tracker ! PlayListRequestUp(playList)
+*/
             case KeyEvent.VK_ESCAPE =>
-                viewer.restorePreviousScreenMode()
+                requestScreenMode(SViewer.SCREEN_PREVIOUS)
             case KeyEvent.VK_ENTER =>
-                viewer.activateSelection()
+                viewer ! SViewerRequestActivate(playList)
             case _ =>
                 knownKeyPress = false
             }
-*/
         }
         def keyReleased(ev:KeyEvent) {
             //val keyCode = ev.getKeyCode()
         }
         def keyTyped(ev:KeyEvent) {
+            val ControlL = 'L' - 0100
+            val ControlR = 'R' - 0100
+            ev.getKeyChar() match {
+            case ' ' =>   //activate selection
+                viewer ! SViewerRequestActivate(playList)
+            case 'a' =>    //alternate-screen
+                requestScreenMode(Viewer.SCREEN_ALT)
+            case 'f' =>    //full-screen
+                requestScreenMode(Viewer.SCREEN_FULL)
+            case ControlL =>    //control-L, refresh
+                //showCurrentImage()               //TODO
+            case 'e' =>
+                viewer ! SViewerRequestEditDialog(playList,currentIndex)
+            case 'i' =>
+                viewer ! SViewerRequestInfoDialog(playList,currentIndex)
+            case 'o' =>    //file-open dialog
+                viewer ! SViewerRequestFileOpen()
+            case 'p' =>   //add current image to active or printable playlist
+                viewer ! SViewerRequestAddToActive(playList,currentIndex)
+            case 'P' =>    //the print screen
+                requestScreenMode(Viewer.SCREEN_PRINT)
 /* TODO
-            char ch = ev.getKeyChar();
-            switch (ch) {
-            case ' ':   //activate selection
-                viewer.activateSelection();
-                break;
-            case 'a':    //alternate-screen
-                viewer.setScreenMode(Viewer.SCREEN_ALT);
-                break;
-            case 'f':    //full-screen
-                viewer.setScreenMode(Viewer.SCREEN_FULL);
-                break;
-            case 'L'-0100:    //control-L, refresh
-                //showCurrentImage();               //TODO
-                break;
-            case 'e':
-                setCursorVisible(true);    //turn on cursor
-                viewer.showImageEditDialog();
-                setCursorVisible(false);    //turn cursor back off
-                break;
-            case 'i':
-                setCursorVisible(true);    //turn on cursor
-                if (imageInfoText==null) {
-                    imageInfoText = getResourceString("query.Info.NoDescription");
-                }
-                viewer.infoDialog(imageInfoText);
-                setCursorVisible(false);    //turn cursor back off
-                break;
-            case 'o':    //file-open dialog
-                setCursorVisible(true);    //turn on cursor
-                viewer.processFileOpen();
-                setCursorVisible(false);    //turn cursor back off
-                break;
-            case 'p':   //add current image to active or printable playlist
-                viewer.addCurrentImageToPlayList();
-                break;
-            case 'P':    //the print screen
-                viewer.setScreenMode(Viewer.SCREEN_PRINT);
-                break;
-            case 'r':    //rotate CCW
+            case 'r' =>    //rotate CCW
                 viewer.rotateCurrentImage(1);
-                break;
-            case 's':    //the slideshow screen
-                viewer.setScreenMode(Viewer.SCREEN_SLIDESHOW);
-                break;
-            case 'R':    //rotate CW
+            case 'R' =>    //rotate CW
                 viewer.rotateCurrentImage(-1);
-                break;
-            case 'R'-0100:    //control-R, rotate 180
+            case ControlR =>    //control-R, rotate 180
                 viewer.rotateCurrentImage(2);
-                break;
-            case 'x':    //exit
-                setCursorVisible(true);    //turn on cursor
-                viewer.processClose();
-                setCursorVisible(false);    //turn cursor back off
-                break;
-            case '?':
-                setCursorVisible(true);    //turn on cursor
-                viewer.showHelpDialog();
-                setCursorVisible(false);    //turn cursor back off
-                break;
-            case 0177:                  //delete
-            case 8:                     //backspace
-                if (currentArea!=null) {
-                    //clear image from current area
-                    currentArea.setImage(null);
-                    repaintCurrentImage();
-                }
-                break;
-            default:        //unknown key
-                if (!knownKeyPress) {
-                    System.out.println("Unknown key "+ch+" ("+((int)ch)+")");
-                    getToolkit().beep();
-                }
-                break;
-            }
 */
+            case 's' =>    //the slideshow screen
+                requestScreenMode(Viewer.SCREEN_SLIDESHOW)
+            case 'x' =>    //exit
+                viewer ! SViewerRequestClose()
+            case '?' =>
+                showHelpDialog()
+            case 0177 =>                  //delete
+                clearCurrentArea
+            case 8 =>                     //backspace
+                clearCurrentArea
+            case ch:Char =>        //unknown key
+                if (!knownKeyPress) {
+                    System.out.println("Unknown key "+ch+" ("+
+                        ch.asInstanceOf[Int]+")")
+                    getToolkit().beep()
+                }
+            }
         }
         //End KeyListener interface
+
+        def requestScreenMode(mode:Int) =
+            viewer ! SViewerRequestScreenMode(mode)
+
+        private def clearCurrentArea = {
+            if (currentArea!=null) {
+                //clear image from current area
+                currentArea.setImage(null)
+                //repaintCurrentImage() //TODO
+            }
+        }
+
+        private def showHelpDialog() {
+            val helpText = viewer.getResourceString("info.ImageHelp")
+            viewer.invokeUi {
+                viewer.infoDialog(helpText)
+            }
+        }
+
     }
 
     class AreaPageMouseListener extends MouseAdapter {
         override def mousePressed(ev:MouseEvent) {
             requestFocus()
-            //selectArea(new Point(ev.getX(),ev.getY()))
-                //TODO - implement selectArea()
+            selectArea(new Point(ev.getX(),ev.getY()))
         }
     }
 
@@ -275,8 +309,8 @@ class AreaPage(res:SResources) extends JComponent {
         def componentHidden(ev:ComponentEvent){}
         def componentMoved(ev:ComponentEvent){}
         def componentResized(ev:ComponentEvent){
-            //app.debugMsg("componentResized");
-            //repaint();
+            //app.debugMsg("componentResized")
+            //repaint()
         }
         def componentShown(ev:ComponentEvent){}
         //End ComponentListener interface
