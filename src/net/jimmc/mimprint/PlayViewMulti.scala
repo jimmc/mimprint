@@ -12,7 +12,7 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
     private var areaPage:AreaPage = _
     private var areaPageControls:AreaPageControls = _
     private var playList:PlayListS = _
-    private var currentIndex:Int = _
+    private var playListIndex:Int = _
 
     private var panel:JPanel = _
     private var areaPanel:JPanel = _
@@ -41,45 +41,63 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
 
     private def createControlPanel() = {
         val p = new JPanel()
-        areaPageControls = new AreaPageControls(viewer,areaPage)
+        areaPageControls = new AreaPageControls(viewer,this,areaPage)
         p.add(areaPageControls)
         p
     }
 
+    protected[mimprint] def refreshAreas() {
+        areaPage.displayPlayList(playList)
+        areaPage.repaint()
+    }
+
     protected def playListInit(m:PlayListInit) {
         playList = m.list
-        currentIndex = -1
+        playListIndex = -1
+        refreshAreas()
     }
 
     protected def playListAddItem(m:PlayListAddItem) {
-        println("PlayViewSingle.playListAddItem NYI")           //TODO
+        playList = m.newList
+        if (playListIndex >= 0 && playListIndex >= m.index)
+            playListIndex = playListIndex + 1
+        refreshAreas()
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
-        println("PlayViewSingle.playListRemoveItem NYI")        //TODO
+        playList = m.newList
+        if (playListIndex >= 0) {
+            if (playListIndex == m.index) {
+                playListIndex = -1
+            } else if (playListIndex > m.index)
+                playListIndex = playListIndex - 1
+        }
+        refreshAreas()
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {
         playList = m.newList
-        //TODO
+        refreshAreas()
     }
 
     protected def playListSelectItem(m:PlayListSelectItem) {
-        currentIndex = m.index
-        //TODO
+        playListIndex = m.index
+        refreshAreas()
     }
 
     protected def playListChangeList(m:PlayListChangeList) {
         playList = m.newList
-        currentIndex = -1
-        //TODO
+        playListIndex = -1
+        refreshAreas()
     }
 
     override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
         case m:PlayViewMultiRequestFocus => areaPage.requestFocus()
+        case m:PlayViewMultiRequestPrint => areaPage.print()
         case m:Any => println("Unrecognized message to PlayViewMulti")
     }
 }
 
 sealed abstract class PlayViewMultiRequest
 case class PlayViewMultiRequestFocus
+case class PlayViewMultiRequestPrint

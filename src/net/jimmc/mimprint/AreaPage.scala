@@ -20,9 +20,14 @@ import java.awt.event.MouseMotionListener
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
+import java.awt.print.PageFormat
+import java.awt.print.Paper
+import java.awt.print.Printable
+import java.awt.print.PrinterException
+import java.awt.print.PrinterJob
 import javax.swing.JComponent
 
-class AreaPage(viewer:SViewer) extends JComponent {
+class AreaPage(viewer:SViewer) extends JComponent with Printable {
     protected[mimprint] var controls:AreaPageControls = null
 
     //Until we get PageLayout switched over to scala, use this class
@@ -86,6 +91,58 @@ class AreaPage(viewer:SViewer) extends JComponent {
     override def paint(g:Graphics) = paint(g,getWidth,getHeight,showOutlines)
 
     def formatPageValue(n:Int) = PageLayout.formatPageValue(n)
+
+    def displayPlayList(playList:PlayListS) {
+        /*val n =*/ displayPlayList(areaLayout,playList,0)
+        //n is the number of items from the list which are displayed
+    }
+
+    //TODO - clean this up once everthing is converted to scala.
+    //This method should be in the areaLayout class, and perhaps
+    //after I convert that class over to scala I will put it there.
+    //listIndex tells where in the list to start for this layout;
+    //we return the number of images consumed (i.e. the number of
+    //image locations in this layout, if less than the remaining
+    //number of images in the list).
+    private def displayPlayList(aLayout:AreaLayout, list:PlayListS,
+            listIndex:Int):Int = {
+        var idx = listIndex
+        val subAreaCount = aLayout.getAreaCount
+        for (n <- 0 until subAreaCount) {
+            aLayout.getArea(n) match {
+            case img:AreaImageLayout =>
+                //Found a leaf, process only if we have more images
+                if (idx < list.size) {
+                    val item = list.getItem(idx)
+                    val bundle = new ImageBundle(null,
+                            new AreaPageImageWindow(img),
+                            new java.io.File(item.baseDir,item.fileName),0)
+                    img.setImage(bundle)
+                    idx = idx + 1
+                } else {
+                    img.setImage(null)  //clear the image from this area
+                }
+            case subArea =>
+                val dAreaCount = displayPlayList(subArea, list, idx)
+                idx = idx + dAreaCount
+            }
+        }
+        idx - listIndex //number of items we used
+    }
+    //A helper class during the java-to-scala conversion.
+    //Once we no longer use ImageBundle, we won't need this class.
+    class AreaPageImageWindow(img:AreaImageLayout) extends ImageWindow {
+        def createImage(width:Int, height:Int):java.awt.Image =
+            AreaPage.this.createImage(width,height)
+        def getComponent():java.awt.Component = AreaPage.this
+        def getWidth():Int = img.getBounds.width
+        def getHeight():Int = img.getBounds.height
+        def getToolkit():java.awt.Toolkit = AreaPage.this.getToolkit()
+        def requestFocus() {}
+        def showText(text:String) {}
+        def showImage(imageBundle:ImageBundle, imageInfo:String) {}
+        def setCursorBusy(busy:Boolean) {}
+    }
 
     /** Select the image area at the specified location. */
     def selectArea(windowPoint:Point) {
@@ -187,6 +244,108 @@ class AreaPage(viewer:SViewer) extends JComponent {
             setCursor(invisibleCursor)
     }
 
+    /** Print this page of images. */
+    def print() {
+	val pJob:PrinterJob = PrinterJob.getPrinterJob()
+	val pageFormat:PageFormat = pJob.defaultPage()
+	//pageFormat = pJob.validatePage(pageFormat)
+	val oldPaper:Paper = pageFormat.getPaper()
+        //Check the size of the printer paper to see if it matches the
+        //size of the image page.
+        val paperScale:Double =      //dimensions of Paper object are in points
+            if (pageUnit==PageLayout.UNIT_INCH)
+                72.0          //points per inch
+            else
+                72.0/2.54     //points per cm
+        var paperWidth:Double = oldPaper.getWidth()
+        var paperHeight:Double = oldPaper.getHeight()
+        var paperPageWidth:Double =
+                paperWidth*PageLayout.UNIT_MULTIPLIER/paperScale
+        var paperPageHeight:Double =
+                paperHeight*PageLayout.UNIT_MULTIPLIER/paperScale
+        val widthDiff:Double = Math.abs(pageWidth - paperPageWidth)
+        val heightDiff:Double = Math.abs(pageHeight - paperPageHeight)
+        if (widthDiff>0.5/PageLayout.UNIT_MULTIPLIER ||
+                heightDiff>0.5/PageLayout.UNIT_MULTIPLIER) {
+            //Ask user if he wants to continue, and whether he wants to
+            //scale the output to fill the paper, or print at the same scale
+            //as if the right paper was there.
+            val introStr =
+                    viewer.getResourceString("prompt.Print.PageSizeMismatch")
+            val pageSizeArgs = Array(
+                pageWidth.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER,
+                pageHeight.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER
+            ) ++ Array(
+                if (pageUnit==PageLayout.UNIT_INCH) "in" else "cm"
+            )
+                //The scala compiler complains about the above three data when
+                //we try to put then into one array, so we split it into
+                //two and concatenate them.
+            val pageSizeStr = viewer.getResourceFormatted(
+                    "prompt.Print.PageSizeMismatch.PageSize",pageSizeArgs)
+            val paperSizeArgs = Array(
+                paperPageWidth.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER,
+                paperPageHeight.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER
+            ) ++ Array(
+                if (pageUnit==PageLayout.UNIT_INCH) "in" else "cm"
+            )
+            val paperSizeStr = viewer.getResourceFormatted(
+                    "prompt.Print.PageSizeMismatch.PaperSize",paperSizeArgs)
+            val prompt = introStr+"\n"+pageSizeStr+"\n"+paperSizeStr
+            //TODO i18n these remaining strings in the print dialog
+            val yesString = "Scale images to fiil paper"
+            val noString = "Print at specified page size"
+            val cancelString = "Cancel"
+            val response =
+                    viewer.yncDialog(prompt,yesString,noString,cancelString)
+            response match {
+            case 0 =>     //yes, scale to fill paper
+                          //leave paper size alone
+            case 1 =>     //no, use original specified size
+                paperWidth = paperWidth * (pageWidth/paperPageWidth)
+                paperHeight = paperHeight * (pageHeight/paperPageHeight)
+            case 2 =>     //cancel, do nothing
+                return
+            case _ =>    //cancel, do nothing
+                return
+            }
+            try {
+                Thread.sleep(10)
+                //Curious bug on MacOSX: after going through the above
+                //dialog the first time and selecting cancel, the next
+                //time through when selecting Yes or No, the following
+                //print dialog just blinks up on the screen momentarily
+                //and self-cancels.  Adding this brief sleep seems to
+                //cure the problem.
+            } catch {
+                case ex:InterruptedException => //ignore
+            }
+        }
+	val newPaper:Paper = new PaperNoMargin()
+	newPaper.setSize(paperWidth,paperHeight)
+	pageFormat.setPaper(newPaper)
+	pJob.setPrintable(this,pageFormat)
+	if (!pJob.printDialog())
+	    return		//cancelled
+	try {
+	    pJob.print()
+	} catch {
+            case ex:PrinterException => throw new RuntimeException(ex)
+	}
+    }
+
+  //The Printable interface
+    def print(graphics:Graphics, pageFormat:PageFormat, pageIndex:Int):Int = {
+	if (pageIndex!=0)
+	    return Printable.NO_SUCH_PAGE
+        val paper:Paper = pageFormat.getPaper()
+        val paperWidth = paper.getWidth.asInstanceOf[Int]
+        val paperHeight = paper.getHeight.asInstanceOf[Int]
+	paint(graphics,paperWidth,paperHeight,false)
+	Printable.PAGE_EXISTS
+    }
+  //End Printable interface
+
     class AreaPageKeyListener extends KeyListener {
         var knownKeyPress = false
         //The KeyListener interface
@@ -223,9 +382,9 @@ class AreaPage(viewer:SViewer) extends JComponent {
             case ' ' =>   //activate selection
                 viewer ! SViewerRequestActivate(playList)
             case 'a' =>    //alternate-screen
-                requestScreenMode(Viewer.SCREEN_ALT)
+                requestScreenMode(SViewer.SCREEN_ALT)
             case 'f' =>    //full-screen
-                requestScreenMode(Viewer.SCREEN_FULL)
+                requestScreenMode(SViewer.SCREEN_FULL)
             case ControlL =>    //control-L, refresh
                 //showCurrentImage()               //TODO
             case 'e' =>
@@ -237,7 +396,7 @@ class AreaPage(viewer:SViewer) extends JComponent {
             case 'p' =>   //add current image to active or printable playlist
                 viewer ! SViewerRequestAddToActive(playList,currentIndex)
             case 'P' =>    //the print screen
-                requestScreenMode(Viewer.SCREEN_PRINT)
+                requestScreenMode(SViewer.SCREEN_PRINT)
 /* TODO
             case 'r' =>    //rotate CCW
                 viewer.rotateCurrentImage(1);
@@ -247,7 +406,7 @@ class AreaPage(viewer:SViewer) extends JComponent {
                 viewer.rotateCurrentImage(2);
 */
             case 's' =>    //the slideshow screen
-                requestScreenMode(Viewer.SCREEN_SLIDESHOW)
+                requestScreenMode(SViewer.SCREEN_SLIDESHOW)
             case 'x' =>    //exit
                 viewer ! SViewerRequestClose()
             case '?' =>
@@ -314,5 +473,13 @@ class AreaPage(viewer:SViewer) extends JComponent {
         }
         def componentShown(ev:ComponentEvent){}
         //End ComponentListener interface
+    }
+
+    class PaperNoMargin extends Paper {
+        //Force our paper's imageable area to the full size
+        override def getImageableHeight():Double = getHeight()
+        override def getImageableWidth():Double = getWidth()
+        override def getImageableX():Double = 0.0
+        override def getImageableY():Double = 0.0
     }
 }

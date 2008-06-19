@@ -41,7 +41,13 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
     private val mainTracker = new PlayListTracker(this)
+    private var playList:PlayListS = _  //current main play list
+    private var playListIndex:Int = -1  //currently selected item in main list
+
     private val printableTracker = new PlayListTracker(this)
+    private var printablePlayList:PlayListS = _
+    private var printablePlayListIndex:Int = -1
+
     private val toolBar = createToolBar()
 
     private var mainList:PlayViewList = _
@@ -51,8 +57,6 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var dualSingle:PlayViewSingle = _
     private var printableMulti:PlayViewMulti = _
     private var currentMainFile:File = _
-    private var playList:PlayListS = _  //current main play list
-    private var playListIndex:Int = -1  //currently selected item in main list
     private var screenMode = SViewer.SCREEN_MODE_DEFAULT
     private var previousScreenMode = screenMode
     private var imagePane:JPanel = _
@@ -94,7 +98,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
         m.add(new SMenuItem(this,"menu.File.Open")(processFileOpen))
         m.add(new SMenuItem(this,"menu.File.Exit")(processFileExit))
-        //TODO - add Print menu item
+        m.add(new SMenuItem(this,"menu.File.Print")(processFilePrint))
 
         m
     }
@@ -123,7 +127,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         mr.add(new SMenuItem(this,"menu.Image.RotateMenu.R270")(
                 requestRotate(-1)))
         
-        //TODO - add AddCurrentToActive command
+        m.add(new SMenuItem(this,"menu.Image.AddToActive")(
+                addToActive(playList,playListIndex)))
 
         m.add(new SMenuItem(this,"menu.Image.ShowEditDialog")(
                 showImageEditDialog(playList,playListIndex)))
@@ -195,6 +200,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
     //Don't ask about exiting, just do it
     override def confirmExit():Boolean = true
+
+    def processFilePrint() {
+        if (screenMode == SViewer.SCREEN_PRINT)
+            printableMulti ! PlayViewMultiRequestPrint()
+    }
 
     private def createToolBar():JToolBar = {
         val tb = new JToolBar()
@@ -285,12 +295,19 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     def act() {
         mainTracker ! Subscribe(this)
         mainTracker ! PlayListRequestInit(this)
+        printableTracker ! Subscribe(this)
+        printableTracker ! PlayListRequestInit(this)
         this ! SViewerRequestFocus(null)
         loop { react (handleMessage) }
     }
 
     val handleMessage : PartialFunction[Any,Unit] = {
-        case m:PlayListMessage => processPlayListMessage(m)
+        case m:PlayListMessage if (m.tracker==mainTracker) =>
+            processMainPlayListMessage(m)
+        case m:PlayListMessage if (m.tracker==printableTracker) =>
+            processPrintablePlayListMessage(m)
+        case m:PlayListMessage =>
+            println("Unknown sender of PlayListMessage")
         case m:SViewerRequestClose => processClose
         case m:SViewerRequestFileOpen => processFileOpen
         case m:SViewerRequestActivate =>
@@ -311,10 +328,10 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         case m:SViewerRequestEditDialog =>
                 showImageEditDialog(m.list,m.index)
         case m:SViewerRequestAddToActive =>
-                println("RequestAddToActive NYI")        //TODO
+                addToActive(m.list,m.index)
     }
 
-    private def processPlayListMessage(msg:PlayListMessage) {
+    private def processMainPlayListMessage(msg:PlayListMessage) {
         msg match {
             case m:PlayListInit =>
                 playList = m.list
@@ -334,9 +351,16 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                         playListIndex = playListIndex - 1
                 }
             case m:PlayListSelectItem =>
+                playList = m.list
                 playListIndex = m.index
-                val fn = playList.getItem(playListIndex).getFileName
-                setTitleToFileName(fn)
+                //We sometimes get an index out of bounds exception on startup
+                //with an index value of zero.  Hmmm.
+                if (playListIndex>=0 && playListIndex<playList.size) {
+                    val fn = playList.getItem(playListIndex).getFileName
+                    setTitleToFileName(fn)
+                } else {
+                    setTitleToFileName("")
+                }
             case m:PlayListChangeItem =>
                 playList = m.newList
                 val fn = playList.getItem(playListIndex).getFileName
@@ -345,6 +369,38 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 playList = m.newList
                 playListIndex = -1
                 setTitleToFileName("")
+        }
+    }
+
+    private def processPrintablePlayListMessage(msg:PlayListMessage) {
+        msg match {
+            case m:PlayListInit =>
+                printablePlayList = m.list
+                printablePlayListIndex = -1
+            case m:PlayListAddItem =>
+                printablePlayList = m.newList
+                if (printablePlayListIndex >= 0 &&
+                        printablePlayListIndex >= m.index)
+                    printablePlayListIndex = printablePlayListIndex + 1
+            case m:PlayListRemoveItem =>
+                printablePlayList = m.newList
+                if (printablePlayListIndex >= 0) {
+                    if (printablePlayListIndex == m.index) {
+                        printablePlayListIndex = -1
+                    } else if (printablePlayListIndex > m.index)
+                        printablePlayListIndex = printablePlayListIndex - 1
+                }
+            case m:PlayListSelectItem =>
+                printablePlayListIndex = m.index
+                /* val fn = printablePlayList.getItem(
+                        printablePlayListIndex).getFileName */
+            case m:PlayListChangeItem =>
+                printablePlayList = m.newList
+                /* val fn = printablePlayList.getItem(
+                        printablePlayListIndex).getFileName */
+            case m:PlayListChangeList =>
+                printablePlayList = m.newList
+                printablePlayListIndex = -1
         }
     }
 
@@ -517,6 +573,16 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         if (configs.size < n+1)
             return null         //no such config
         configs(n)      //a GraphicsConfiguration
+    }
+
+    private def addToActive(list:PlayListS, index:Int) {
+        //Add the specified item to the currently active
+        //target playlist, typically the Printable playlist.
+        if (index<0)
+            return      //ignore it when nothing selected
+        val item = list.getItem(index)
+        //TODO - allow selecting other lists as the active list
+        printableTracker ! PlayListRequestAdd(printablePlayList,item)
     }
 
     private def showImageInfoDialog(pl:PlayListS, idx:Int) {

@@ -58,6 +58,15 @@ public abstract class AreaLayout {
         setMargins(0);
     }
 
+    public AreaLayout getArea(int n) {
+        if (areas==null || n<0 || n>=areas.length)
+            return null;        //no such area
+        return areas[n];
+    }
+    public int getAreaCount() {
+        return (areas==null)?0:areas.length;
+    }
+
     /** Set our parent layout.
      * @param parent Our parent layout, or null if we are the top level layout.
      */

@@ -146,27 +146,30 @@ public class ImageBundle {
         if (transformedImage!=null)
             return;        //already loaded
 
-        app.debugMsg("Bundle loadTransformedImage A image="+image);
+        //app.debugMsg("Bundle loadTransformedImage A image="+image);
         Image si = createScaledImage(image);
         loadCompleteImage(si);
-        app.debugMsg("Bundle loadTransformedImage B scaledImage="+si);
+        //app.debugMsg("Bundle loadTransformedImage B scaledImage="+si);
         Image ri = createRotatedImage(si);
         si.flush();
-        app.debugMsg("Bundle loadTransformedImage C txImage="+ri);
+        //app.debugMsg("Bundle loadTransformedImage C txImage="+ri);
         transformedImage = ri;
         loadCompleteImage(transformedImage);
     }
 
     /** Load an image, wait for it to be loaded. */
     protected void loadCompleteImage(Image image) {
-        app.getImageUtil().loadCompleteImage(image);
+        if (app!=null)
+            app.getImageUtil().loadCompleteImage(image);
+        else
+            (new ImageUtil(null,imageWindow.getComponent())).loadCompleteImage(image);
     }
 
     /** Get a scaled version of the given image which fits into
      * the display area.
      */
     protected Image createScaledImage(Image sourceImage) {
-        app.debugMsg("createScaledIimage");
+        //app.debugMsg("createScaledIimage");
         return ImageUtil.createScaledImage(sourceImage,rotation,
                 displayWidth,displayHeight,path);
     }
@@ -187,7 +190,7 @@ public class ImageBundle {
      *        The image may not yet be fully generated.
      */
     protected Image createRotatedImage(Image srcImage, int rotation) {
-        app.debugMsg("getRotatedImage");
+        //app.debugMsg("getRotatedImage");
         if (rotation==0)
             return srcImage;
         int w = srcImage.getWidth(null);

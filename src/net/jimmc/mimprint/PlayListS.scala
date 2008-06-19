@@ -102,7 +102,7 @@ class PlayListS(
 
 object PlayListS {
     def apply(ui:BasicUi):PlayListS = {
-        new PlayListS(ui,null,null,null)    //TODO - avoid nulls?
+        new PlayListS(ui,new File("."),new Array[PlayItemS](0),Nil)
     }
 
     /** Create a playlist from the given set of filenames. */

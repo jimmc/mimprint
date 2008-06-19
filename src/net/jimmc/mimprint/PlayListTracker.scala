@@ -29,7 +29,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     }
     private val handleOther : PartialFunction[Any,Unit] = {
         case m:PlayListRequestInit =>
-            m.sub ! PlayListInit(playList)
+            m.sub ! PlayListInit(this,playList)
         case m:PlayListRequestAdd =>
             if (listMatches(m.list))
                 addItem(m.item)
@@ -71,27 +71,27 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     private def addItem(item:PlayItem) {
         val newPlayList = playList.addItem(item).asInstanceOf[PlayListS]
         val newIndex = playList.size - 1
-        publish(PlayListAddItem(playList,newPlayList,newIndex))
+        publish(PlayListAddItem(this,playList,newPlayList,newIndex))
         playList = newPlayList
     }
 
     private def changeItem(itemIndex:Int, item:PlayItem) {
         val newPlayList = playList.replaceItem(itemIndex,item).
                 asInstanceOf[PlayListS]
-        publish(PlayListChangeItem(playList,newPlayList,itemIndex))
+        publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
     }
 
     private def rotateItem(itemIndex:Int, rot:Int) {
         val newPlayList = playList.rotateItem(itemIndex, rot).
                 asInstanceOf[PlayListS]
-        publish(PlayListChangeItem(playList,newPlayList,itemIndex))
+        publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
     }
 
     private def selectItem(itemIndex:Int) {
         //no change to the playlist, we just publish a message
-        publish(PlayListSelectItem(playList,itemIndex))
+        publish(PlayListSelectItem(this,playList,itemIndex))
         currentIndex = itemIndex
     }
 
@@ -166,7 +166,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
 
     def load(fileName:String, selectLast:Boolean) {
         val newPlayList = PlayListS.load(ui,fileName).asInstanceOf[PlayListS]
-        publish(PlayListChangeList(playList,newPlayList))
+        publish(PlayListChangeList(this,playList,newPlayList))
         if (newPlayList.size>0)
             selectItem(if (selectLast) newPlayList.size - 1 else 0)
         playList = newPlayList

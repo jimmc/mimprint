@@ -24,7 +24,8 @@ import javax.swing.JPanel
 import javax.swing.plaf.basic.ComboPopup
 import javax.swing.SpinnerNumberModel
 
-class AreaPageControls(val frame:SFrame, val areaPage:AreaPage)
+class AreaPageControls(val frame:SFrame,
+        val multi:PlayViewMulti, val areaPage:AreaPage)
         extends JPanel {
     import AreaPageControls.AREA_PAGE
     import AreaPageControls.AREA_IMAGE
@@ -473,7 +474,7 @@ class AreaPageControls(val frame:SFrame, val areaPage:AreaPage)
         updateAreaChoiceField(newArea)    //fix area choice list
         areaSelected(areaChoiceField.getSelectedIndex())
                 //fix area property fields
-        areaPage.repaint()
+        multi.refreshAreas()
     }
 
     private def layoutIndexToAreaType(index:Int):Int = {

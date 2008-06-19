@@ -90,7 +90,9 @@ menu.Help.label=Help
 menu.Help.About.label=About Mimprint
 
 menu.Image.label=Image
+menu.Image.AddToActive.label=Add Image to Active PlayList
 menu.Image.AddCurrentToPlayList.label=Add Image to Active PlayList
+#AddCurrentToPlayList is used by the old interface
 menu.Image.NextDirectory.label=Next Directory
 menu.Image.NextImage.label=Next Image
 menu.Image.PreviousDirectory.label=Previous Directory
