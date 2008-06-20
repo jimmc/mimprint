@@ -1,3 +1,8 @@
+/* SDragSource.scala
+ *
+ * Jim McBeath, June 16, 2008
+ */
+
 package net.jimmc.swing
 
 import java.awt.Component

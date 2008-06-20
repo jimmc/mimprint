@@ -1,3 +1,8 @@
+/* PlayListS.scala
+ *
+ * Jim McBeath, May 23, 2008
+ */
+
 package net.jimmc.mimprint
 
 import net.jimmc.util.BasicUi

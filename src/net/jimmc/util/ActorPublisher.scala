@@ -1,3 +1,8 @@
+/* ActorPublisher.scala
+ *
+ * Jim McBeath, June 5, 2008
+ */
+
 package net.jimmc.util
 
 import scala.actors.Actor

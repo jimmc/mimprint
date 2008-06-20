@@ -1,3 +1,8 @@
+/* SResources.scala
+ *
+ * Jim McBeath, June 10, 2008
+ */
+
 package net.jimmc.util
 
 trait SResources {

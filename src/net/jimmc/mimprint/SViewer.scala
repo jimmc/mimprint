@@ -1,3 +1,8 @@
+/* SViewer.scala
+ *
+ * Jim McBeath, June 10, 2008
+ */
+
 package net.jimmc.mimprint
 
 import net.jimmc.swing.AboutWindow

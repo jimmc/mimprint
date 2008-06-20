@@ -1,3 +1,8 @@
+/* EditTextDialog.scala
+ *
+ * Jim McBeath, June 14, 2008
+ */
+
 package net.jimmc.swing
 
 import java.awt.Component

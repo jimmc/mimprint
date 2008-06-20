@@ -1,3 +1,8 @@
+/* BasicMessages.scala
+ *
+ * Jim McBeath, June 13, 2008
+ */
+
 package net.jimmc.util
 
 /** Functions for basic message output.

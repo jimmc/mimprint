@@ -1,3 +1,8 @@
+/* PlayView.scala
+ *
+ * Jim McBeath, June 12, 2008
+ */
+
 package net.jimmc.mimprint
 
 import net.jimmc.util.ActorPublisher

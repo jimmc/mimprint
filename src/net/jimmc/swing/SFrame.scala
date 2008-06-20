@@ -1,3 +1,8 @@
+/* SFrame.scala
+ *
+ * Jim McBeath, June 10, 2008
+ */
+
 package net.jimmc.swing
 
 import net.jimmc.util.SResources

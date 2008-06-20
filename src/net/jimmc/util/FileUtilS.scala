@@ -1,3 +1,8 @@
+/* FileUtilS.scala
+ *
+ * Jim McBeath, May 27, 2008
+ */
+
 package net.jimmc.util
 
 import java.io.File

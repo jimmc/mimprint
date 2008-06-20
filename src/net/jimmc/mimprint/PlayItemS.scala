@@ -1,3 +1,8 @@
+/* PlayItemS.scala
+ *
+ * Jim McBeath, May 22, 2008
+ */
+
 package net.jimmc.mimprint
 
 import net.jimmc.util.FileUtilS

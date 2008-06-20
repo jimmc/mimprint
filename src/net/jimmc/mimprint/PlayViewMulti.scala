@@ -1,3 +1,8 @@
+/* PlayViewMulti.scala
+ *
+ * Jim McBeath, June 17, 2008
+ */
+
 package net.jimmc.mimprint
 
 import java.awt.BorderLayout

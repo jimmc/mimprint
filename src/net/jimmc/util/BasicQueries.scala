@@ -1,3 +1,8 @@
+/* BasicQueries.scala
+ *
+ * Jim McBeath, June 13, 2008
+ */
+
 package net.jimmc.util
 
 /** A set of query methods to be implemented by an application.

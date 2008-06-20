@@ -1,3 +1,8 @@
+/* AsyncUi.scala
+ *
+ * Jim McBeath, June 13, 2008
+ */
+
 package net.jimmc.util
 
 trait AsyncUi extends BasicUi {

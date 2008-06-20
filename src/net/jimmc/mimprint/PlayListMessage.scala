@@ -1,3 +1,8 @@
+/* PlayListMessage.scala
+ *
+ * Jim McBeath, June 10, 2008
+ */
+
 package net.jimmc.mimprint
 
 /** Subscribers interested in receiving messages about changes to

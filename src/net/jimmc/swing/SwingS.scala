@@ -1,3 +1,8 @@
+/* SwingS.scala
+ *
+ * Jim McBeath, June 12, 2008
+ */
+
 package net.jimmc.swing
 
 import javax.swing.SwingUtilities
