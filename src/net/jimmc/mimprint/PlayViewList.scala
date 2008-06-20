@@ -1,3 +1,8 @@
+/* PlayViewList.scala
+ *
+ * Jim McBeath, June 12, 2008
+ */
+
 package net.jimmc.mimprint
 
 import net.jimmc.swing.SwingS
@@ -56,6 +61,10 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     def getComponent():Component = {
         val p = new JPanel()
         fileNameList = new JList()
+        fileNameList.setAutoscrolls(false)
+            //Autoscroll and drag-and-drop interfere with each other
+            //(see <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4449146>)
+            //so turn off autoscroll.
         fileNameList.setCellRenderer(new PlayViewListCellRenderer())
         fileNameList.addListSelectionListener(
                 new PlayViewListSelectionListener())
