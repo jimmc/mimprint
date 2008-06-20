@@ -267,8 +267,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             val iconImage:Image = if (icon==null) null else icon.getImage()
             val (image:Image, offset:Point) =
             if (DragSource.isDragImageSupported()) {
-                val im = (new ImageUtil()).createTransparentIconImage(
-                        iconImage,path)
+                val im = SImageUtil.createTransparentIconImage(
+                        ourComponent,iconImage,path)
                 val width = im.getWidth(null)
                 val height = im.getHeight(null)
                 val p = new Point(-width/2, -height/2)

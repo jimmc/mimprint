@@ -34,6 +34,10 @@ public class AreaImageLayout extends AreaLayout {
         return "imageLayout";
     }
 
+    public int getAreaCount() {
+        return 1;       //image areas always have one area
+    }
+
     /** We are always valid. */
     public void revalidate() {
         //do nothing
@@ -90,6 +94,16 @@ public class AreaImageLayout extends AreaLayout {
         g2.translate(b.x,b.y);
         ImagePage.scaleAndTranslate(g2,image.getWidth(null),image.getHeight(null),b.width,b.height);
         g2.drawImage(image,transform,null);
+    }
+
+    private int imageIndex = -1;
+    protected int setImageIndexes(int start) {
+        imageIndex = start;
+        return 1;
+    }
+
+    public int getImageIndex() {
+        return imageIndex;
     }
 
     protected boolean addImageBundle(ImageBundle b) {

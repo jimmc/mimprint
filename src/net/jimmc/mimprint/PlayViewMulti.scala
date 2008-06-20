@@ -34,7 +34,7 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
     private def createAreaPanel() = {
         val p = new JPanel()
         p.setLayout(new BorderLayout())
-        areaPage = new AreaPage(viewer)
+        areaPage = new AreaPage(viewer, tracker)
         p.add(areaPage,BorderLayout.CENTER)
         p
     }

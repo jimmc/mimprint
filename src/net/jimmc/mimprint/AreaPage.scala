@@ -5,11 +5,27 @@
 
 package net.jimmc.mimprint
 
+import net.jimmc.swing.SDragSource
 import net.jimmc.util.SResources
 
 import java.awt.Color
 import java.awt.Cursor
+import java.awt.datatransfer.DataFlavor
 import java.awt.Dimension
+import java.awt.dnd.DnDConstants
+import java.awt.dnd.DragGestureEvent
+import java.awt.dnd.DragGestureListener
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceContext
+import java.awt.dnd.DragSourceDragEvent
+import java.awt.dnd.DragSourceDropEvent
+import java.awt.dnd.DragSourceEvent
+import java.awt.dnd.DragSourceListener
+import java.awt.dnd.DropTarget
+import java.awt.dnd.DropTargetDragEvent
+import java.awt.dnd.DropTargetDropEvent
+import java.awt.dnd.DropTargetEvent
+import java.awt.dnd.DropTargetListener
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.KeyEvent
@@ -19,15 +35,20 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.Point
 import java.awt.print.PageFormat
 import java.awt.print.Paper
 import java.awt.print.Printable
 import java.awt.print.PrinterException
 import java.awt.print.PrinterJob
+import java.io.File
+import java.io.StringReader
 import javax.swing.JComponent
 
-class AreaPage(viewer:SViewer) extends JComponent with Printable {
+class AreaPage(viewer:SViewer, tracker:PlayListTracker)
+        extends JComponent with Printable
+        with SDragSource {
     protected[mimprint] var controls:AreaPageControls = null
 
     //Until we get PageLayout switched over to scala, use this class
@@ -50,6 +71,15 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
 
     private var playList:PlayListS = PlayListS(viewer)
     private var currentIndex:Int = -1
+        //index of the currentArea
+
+    private var dragArea:AreaImageLayout = _
+
+    private val dropActions:Int = DnDConstants.ACTION_COPY_OR_MOVE
+    private val dropTargetListener:DropTargetListener =
+        new AreaPageDropTargetListener()
+    private val myDropTarget:DropTarget = null
+        new DropTarget(this, dropActions, dropTargetListener, true)
 
     private var busyCursor:Cursor = _
     private var invisibleCursor:Cursor = _
@@ -62,7 +92,7 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
 
     initListeners()
     initCursors()
-    //TODO - set up drag and drop
+    setupDrag(this,DnDConstants.ACTION_COPY_OR_MOVE)
 
     def areaLayout = pageLayout.getAreaLayout()
     def areaLayout_=(a:AreaLayout) = pageLayout.setAreaLayout(a)
@@ -72,6 +102,8 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
     def pageWidth_=(n:Int) = pageLayout.setPageWidth(n)
     def pageUnit = pageLayout.getPageUnit()
     def pageUnit_=(n:Int) = pageLayout.setPageUnit(n)
+
+    def fixImageIndexes() = pageLayout.fixImageIndexes
 
     private def initListeners() {
         addKeyListener(new AreaPageKeyListener())
@@ -88,13 +120,12 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
         busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
     }
 
-    override def paint(g:Graphics) = paint(g,getWidth,getHeight,showOutlines)
-
     def formatPageValue(n:Int) = PageLayout.formatPageValue(n)
 
     def displayPlayList(playList:PlayListS) {
         /*val n =*/ displayPlayList(areaLayout,playList,0)
         //n is the number of items from the list which are displayed
+        this.playList = playList
     }
 
     //TODO - clean this up once everthing is converted to scala.
@@ -107,25 +138,32 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
     private def displayPlayList(aLayout:AreaLayout, list:PlayListS,
             listIndex:Int):Int = {
         var idx = listIndex
-        val subAreaCount = aLayout.getAreaCount
-        for (n <- 0 until subAreaCount) {
-            aLayout.getArea(n) match {
+        //Check for a top-level AreaImageLayout
+        aLayout match {
             case img:AreaImageLayout =>
-                //Found a leaf, process only if we have more images
                 if (idx < list.size) {
                     val item = list.getItem(idx)
-                    val bundle = new ImageBundle(null,
-                            new AreaPageImageWindow(img),
-                            new java.io.File(item.baseDir,item.fileName),0)
-                    img.setImage(bundle)
-                    idx = idx + 1
+                    if (item.fileName==null || item.fileName=="") {
+                        //Found an empty item
+                        img.setImage(null)
+                    } else {
+                        val bundle = new ImageBundle(null,
+                                new AreaPageImageWindow(img),
+                                new File(item.baseDir,item.fileName),-1)
+                        img.setImage(bundle)
+                    }
+                    return 1
                 } else {
                     img.setImage(null)  //clear the image from this area
+                    return 0
                 }
-            case subArea =>
-                val dAreaCount = displayPlayList(subArea, list, idx)
-                idx = idx + dAreaCount
-            }
+            case _ =>   //fall through and process below
+        }
+        val subAreaCount = aLayout.getAreaCount
+        for (n <- 0 until subAreaCount) {
+            val subArea = aLayout.getArea(n)
+            val dAreaCount = displayPlayList(subArea, list, idx)
+            idx = idx + dAreaCount
         }
         idx - listIndex //number of items we used
     }
@@ -149,8 +187,31 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
         if (controls!=null)
             controls.selectArea(windowToUser(windowPoint))
         val a:AreaImageLayout = windowToImageArea(windowPoint)
-        if (a!=null)
+        if (a!=null) {
             currentArea = a
+            currentIndex = a.getImageIndex
+            val msg = "ImageIndex="+currentIndex
+                //TODO better message; add image path
+            viewer.showStatus(msg)
+        } else {
+            viewer.showStatus("")
+        }
+        repaint()
+    }
+
+    private def repaintCurrentImage() {
+        if (currentArea!=null) {
+            //TODO - should scale and translate the area to get the part
+            //of the page that needs to be refreshed.
+            repaint()   //for now, just do the whole thing
+        }
+    }
+
+    //Set the currently highlighted area (the drop target)
+    protected def setHighlightedArea(a:AreaLayout) {
+        if (a==highlightedArea)
+            return             //already set
+        highlightedArea = a
         repaint()
     }
 
@@ -189,6 +250,14 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
         userP.y = userP.y * (1.0/scale)
         new Point(userP.x.asInstanceOf[Int], userP.y.asInstanceOf[Int])
     }
+
+    protected def getMyDragGestureListener():DragGestureListener =
+        new AreaPageDragGestureListener()
+
+    protected def getMyDragSourceListener():DragSourceListener =
+        new AreaPageDragSourceListener()
+
+    override def paint(g:Graphics) = paint(g,getWidth,getHeight,showOutlines)
 
     private def paint(g:Graphics, devWidth:Int, devHeight:Int,
             drawOutlines:Boolean) {
@@ -354,7 +423,7 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
             val keyCode = ev.getKeyCode()
             knownKeyPress = true	//assume we know it
             keyCode match {
-/* TODO
+/* TODO - we want these to work on the main play list, I think
             case KeyEvent.VK_LEFT =>
                 tracker ! PlayListRequestLeft(playList)
             case KeyEvent.VK_RIGHT =>
@@ -366,8 +435,10 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
 */
             case KeyEvent.VK_ESCAPE =>
                 requestScreenMode(SViewer.SCREEN_PREVIOUS)
+/*
             case KeyEvent.VK_ENTER =>
                 viewer ! SViewerRequestActivate(playList)
+*/
             case _ =>
                 knownKeyPress = false
             }
@@ -386,7 +457,9 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
             case 'f' =>    //full-screen
                 requestScreenMode(SViewer.SCREEN_FULL)
             case ControlL =>    //control-L, refresh
-                //showCurrentImage()               //TODO
+                //refresh from our playlist and repaint the screen
+                displayPlayList(playList)
+                repaint()
             case 'e' =>
                 viewer ! SViewerRequestEditDialog(playList,currentIndex)
             case 'i' =>
@@ -397,14 +470,12 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
                 viewer ! SViewerRequestAddToActive(playList,currentIndex)
             case 'P' =>    //the print screen
                 requestScreenMode(SViewer.SCREEN_PRINT)
-/* TODO
             case 'r' =>    //rotate CCW
-                viewer.rotateCurrentImage(1);
+                rotateCurrentImage(1);
             case 'R' =>    //rotate CW
-                viewer.rotateCurrentImage(-1);
+                rotateCurrentImage(-1);
             case ControlR =>    //control-R, rotate 180
-                viewer.rotateCurrentImage(2);
-*/
+                rotateCurrentImage(2);
             case 's' =>    //the slideshow screen
                 requestScreenMode(SViewer.SCREEN_SLIDESHOW)
             case 'x' =>    //exit
@@ -428,11 +499,18 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
         def requestScreenMode(mode:Int) =
             viewer ! SViewerRequestScreenMode(mode)
 
+        def rotateCurrentImage(rot:Int) {
+            if (currentArea!=null) {
+                currentArea.rotate(rot)
+            }
+        }
+
         private def clearCurrentArea = {
             if (currentArea!=null) {
                 //clear image from current area
                 currentArea.setImage(null)
-                //repaintCurrentImage() //TODO
+                //TODO - clear this location in our playList also
+                repaintCurrentImage()
             }
         }
 
@@ -482,4 +560,289 @@ class AreaPage(viewer:SViewer) extends JComponent with Printable {
         override def getImageableX():Double = 0.0
         override def getImageableY():Double = 0.0
     }
+
+  //Drag-and-drop stuff
+
+    class AreaPageDragGestureListener extends DragGestureListener {
+      //The DragGestureListener interface
+        def dragGestureRecognized(ev:DragGestureEvent) {
+            val p:Point = ev.getDragOrigin()
+            val a:AreaImageLayout = windowToImageArea(p)
+            dragArea = a
+            if (a==null)
+                return     //not in an area, can't start a drag here
+            val path = a.getImagePath()
+            if (path==null)
+                return     //no image in this area, can't start a drag
+            val fullImage:Image =
+                if (DragSource.isDragImageSupported())
+                    a.getImage()
+                else
+                    null   //image dragging not supported
+            var image:Image = null     //image to drag
+            var offset:Point = null
+            if (fullImage!=null) {
+                image = SImageUtil.createTransparentIconImage(
+                        AreaPage.this,fullImage,path)
+                SImageUtil.loadCompleteImage(AreaPage.this,image)
+                val width = image.getWidth(null)
+                val height = image.getHeight(null)
+                offset = new Point(-width/2, -height/2)
+            }
+            startImageDrag(ev, image, offset, path)
+        }
+      //End DragGestureListener interface
+    }
+
+    class AreaPageDragSourceListener extends DragSourceListener {
+      //The DragSourceListener interface
+        def dragEnter(ev:DragSourceDragEvent) {
+            //println("AreaSource dragEnter")
+            setDragCursor(ev)
+        }
+        def dragOver(ev:DragSourceDragEvent) {
+            //println("AreaSource dragOver")
+            setDragCursor(ev)
+        }
+        def dragExit(ev:DragSourceEvent) {
+            //println("AreaSource DragSourceListener dragExit")
+        }
+        def dragDropEnd(ev:DragSourceDropEvent) {
+            dragArea = null
+            setHighlightedArea(null)
+            if (!ev.getDropSuccess()) {
+                println("AreaSource DragSource DragDropEnd drop failed")
+                return
+            }
+            val dropAction:Int = ev.getDropAction()
+            if (dropAction==DnDConstants.ACTION_COPY)
+                println("AreaPage DragSource DragDropEnd Copy")
+            else if (dropAction==DnDConstants.ACTION_MOVE)
+                println("AreaPage DragSource DragDropEnd Move")
+            else
+                println("DragDropEnd no action")
+            //TODO - need to do anything here to handle the drag end?
+        }
+        def dropActionChanged(ev:DragSourceDragEvent) { }
+      //End DragSourceListener interface
+    }
+
+    private def setDragCursor(ev:DragSourceDragEvent) {
+        val ctx:DragSourceContext = ev.getDragSourceContext()
+        val action:Int = ev.getDropAction()
+        ctx.setCursor(null)
+        if ((action & DnDConstants.ACTION_COPY)!=0) {
+            //println("cursor Copy")
+            ctx.setCursor(DragSource.DefaultCopyDrop)
+            //TODO - we are getting here, but the cursor does not change.
+        } else if ((action & DnDConstants.ACTION_MOVE)!=0) {
+            //println("cursor Move")
+            ctx.setCursor(DragSource.DefaultMoveDrop)
+        } else {
+            //System.out.println("cursor NoCopy")
+            ctx.setCursor(DragSource.DefaultCopyNoDrop)
+            //TODO - or MoveNoDrop?
+        }
+    }
+
+    class AreaPageDropTargetListener extends DropTargetListener {
+        private def checkDrop(ev:DropTargetDragEvent) {
+            //printFlavors(ev)       //for debug
+            val a:AreaImageLayout = getDropArea(ev)
+            if (a==null || a==dragArea) {
+                //No drop in source area or outside any area
+                setHighlightedArea(null)
+                //println("reject drag")
+                ev.rejectDrag()
+                return
+            }
+            setHighlightedArea(a)
+            //println("accept drag")
+            ev.acceptDrag(AreaPage.this.dropActions)
+        }
+      //The DropTargetListener interface
+        def dragEnter(ev:DropTargetDragEvent) {
+            checkDrop(ev)
+        }
+        def dragOver(ev:DropTargetDragEvent) {
+            checkDrop(ev)
+        }
+        def dropActionChanged(ev:DropTargetDragEvent) {
+            checkDrop(ev)
+        }
+        def dragExit(ev:DropTargetEvent) {
+            setHighlightedArea(null)
+            //println("DropTargetListener dragExit")
+        }
+
+        def drop(ev:DropTargetDropEvent) {
+            //println("dropped")
+            val flavors:Array[DataFlavor] = getDropFlavors()
+            var chosenFlavor:DataFlavor = null
+            for (i <- 0 until flavors.length) {
+                //TODO - replace this loop with a find or findIndexOf?
+                if (ev.isDataFlavorSupported(flavors(i))) {
+                    chosenFlavor = flavors(i)
+                    //break
+                }
+            }
+            if (chosenFlavor==null) {
+                ev.dropComplete(false)
+                return       //no support for any flavors
+            }
+
+            val sourceActions:Int = ev.getSourceActions()
+            if ((sourceActions & AreaPage.this.dropActions)==0) {
+                ev.dropComplete(false)
+                return       //no actions available
+            }
+
+            val dropArea:AreaImageLayout = windowToImageArea(ev.getLocation())
+            if (dropArea==null) {
+                ev.dropComplete(false) //bad area
+                return       //no actions available
+            }
+
+            var data:Object = null
+            try {
+                ev.acceptDrop(AreaPage.this.dropActions)
+                data = ev.getTransferable().getTransferData(chosenFlavor)
+                if (data==null) {
+                    throw new IllegalArgumentException("No drop data")
+                }
+            } catch {
+                case ex:Exception =>
+                    println("Exception accepting drop: "+ex)
+                    ev.dropComplete(false)
+                    return
+            }
+
+            data match {
+            case s:String =>
+                if (dropFileName(s,dropArea)) {
+                    ev.dropComplete(true)
+                    return     //success
+                }
+            case rd:StringReader =>
+                val cbuf = new Array[Char](2000)
+                val n = rd.read(cbuf, 0, cbuf.length)
+                val s = new String(cbuf,0,n)
+                if (dropFileName(s,dropArea)) {
+                    ev.dropComplete(true)
+                    return     //success
+                }
+            case fList:java.util.List[Object] =>
+                if (fList.size()>=1) {
+                    val list0:Object = fList.get(0)
+                    list0 match {
+                    case ls:String =>
+                        if (dropFileName(ls,dropArea)) {
+                            ev.dropComplete(true)
+                            return
+                        }
+                    case f:File =>
+                        if (dropFileName(f.toString(),dropArea)) {
+                            ev.dropComplete(true)
+                            return
+                        }
+                    case _ =>
+                        println("List item 0 is not a string")
+                        println("List item 0 class is "+list0.getClass().getName())
+                        println("List item 0 data is "+list0.toString())
+                    }
+                } else {
+                    println("List is empty")
+                }
+            case _ =>
+                //can't deal with this yet
+                println("drop data class is "+data.getClass().getName())
+                println("drop data is "+data.toString())
+            }
+            //not processed
+            println("Rejecting drop")
+            ev.dropComplete(false)
+        }
+      //End DropTargetListener interface
+    }
+
+    /** Drop a file into the currently selected area.
+     * @param s The full path to the image file.
+     * @return True if the file exists, false if not.
+     */
+    private def dropFileName(s0:String, dropArea:AreaImageLayout):Boolean = {
+//println("Got drop data: "+s)
+        var s = s0
+	if (s.startsWith("file://"))
+	    s = s.substring("file://".length()) //convert URL to file path
+	while ((s.endsWith("\n"))||s.endsWith("\r"))
+	    s = s.substring(0,s.length()-1) //drop trailing newline
+        val f = new File(s)
+        if (!f.exists()) {
+            println("No such file '"+s+"'")
+            return false
+        }
+        if (f.isDirectory()) {
+            println(s+" is a directory")
+            return false
+        }
+        currentArea = dropArea
+        currentIndex = currentArea.getImageIndex
+        /*
+        val bundle = new ImageBundle(null,
+                new AreaPageImageWindow(dropArea),f,-1)
+        dropArea.setImage(bundle)
+        */
+        val item = new PlayItemS(Nil,f.getParentFile,f.getName,0)
+        tracker ! PlayListRequestSetItem(playList,dropArea.getImageIndex,item)
+        repaintCurrentImage()
+//println("Accepted drop of file "+f)
+        //TODO - add call to viewer.setStatus, but need to figure out when
+        //to clear the status first
+        true
+    }
+
+    /** Get the flavors we support for drop. */
+    private def getDropFlavors():Array[DataFlavor] = {
+        Array(
+            DataFlavor.stringFlavor,
+            DataFlavor.plainTextFlavor,
+            DataFlavor.javaFileListFlavor
+        )
+    }
+
+    private def getDropArea(ev:DropTargetDragEvent):AreaImageLayout = {
+        val flavors = getDropFlavors()
+        var chosenFlavor:DataFlavor = null
+        for (i <- 0 until flavors.length) {
+            if (ev.isDataFlavorSupported(flavors(i))) {
+                chosenFlavor = flavors(i)
+                //break
+            }
+        }
+        if (chosenFlavor==null) {
+            println("No supported flavor")
+            return null       //no support for any flavors
+        }
+
+        val sourceActions = ev.getSourceActions()
+        if ((sourceActions & AreaPage.this.dropActions)==0) {
+            println("Action not supported "+sourceActions)
+            return null       //no actions available
+        }
+
+        val p = ev.getLocation()
+        val a = windowToImageArea(p)
+        //println("area "+a)
+        a               //null if no area
+    }
+
+    private def printFlavors(ev:DropTargetDragEvent) {
+        val flavors = ev.getCurrentDataFlavors()
+        flavors.foreach { flavor =>
+            println("drop flavor "+flavor)
+        }
+    }
+
+  //End Drag-and-drop stuff
+
 }

@@ -50,6 +50,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
     private val toolBar = createToolBar()
 
+    private var statusLine:JTextField = _
     private var mainList:PlayViewList = _
     private var mainSingle:PlayViewSingle = _
     private var fullSingle:PlayViewSingle = _
@@ -254,8 +255,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 imageLister, imagePane)
         mainBody.setBackground(mainSingleComp.getBackground())
 
-        val statusLine = new JTextField()
-            //TODO - add showStatus method
+        statusLine = new JTextField()
         statusLine.setEditable(false)
         statusLine.setBackground(Color.lightGray)
 
@@ -281,6 +281,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
     def invokeUi(code: =>Unit) {
         SwingS.invokeLater(code)
+    }
+
+    def showStatus(msg:String) {
+        statusLine.setText(msg)
+        //TODO - add a status history mechanism
     }
 
     def warningMessage(msg:String) {

@@ -25,6 +25,12 @@ case class PlayListRequestAdd(list:PlayListS, item:PlayItemS)
 case class PlayListRequestChange(list:PlayListS, index:Int, item:PlayItemS)
         extends PlayListRequest
 
+/** Request to replace an existing item with a new item,
+ * or to expand the PlayList as required to add the item at the
+ * specified index. */
+case class PlayListRequestSetItem(list:PlayListS, index:Int, item:PlayItemS)
+        extends PlayListRequest
+
 /** Request to rotate an item. */
 case class PlayListRequestRotate(list:PlayListS, index:Int, rot:Int)
         extends PlayListRequest

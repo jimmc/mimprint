@@ -189,6 +189,11 @@ object PlayItemS {
         new PlayItemS(comments.toList,baseDir,fileName,rotFlag)
     }
 
+    /** Create an empty item. */
+    def emptyItem():PlayItemS = {
+        new PlayItemS(Nil,new File("."),null,0)
+    }
+
     /** True if this line is a comment line.
      * Comment lines start with a pound sign (octothorp, #).
      */

@@ -136,6 +136,7 @@ public class PageLayout {
         return pageHeight;
     }
 
+    //Set our top-level AreaLayout
     public void setAreaLayout(AreaLayout areaLayout) {
         this.areaLayout = areaLayout;
         setAreaLayoutBounds();
@@ -146,6 +147,11 @@ public class PageLayout {
         areaLayout.setSubTreeLocations();
         areaLayout.setTreeDepth(0);
         areaLayout.setSubTreeDepths();
+        fixImageIndexes();
+    }
+
+    public void fixImageIndexes() {
+        areaLayout.setImageIndexes(0);
     }
 
     public AreaLayout getAreaLayout() {

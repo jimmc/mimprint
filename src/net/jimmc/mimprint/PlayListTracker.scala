@@ -36,6 +36,9 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         case m:PlayListRequestChange =>
             if (listMatches(m.list))
                 changeItem(m.index,m.item)
+        case m:PlayListRequestSetItem =>
+            if (listMatches(m.list))
+                setItem(m.index,m.item)
         case m:PlayListRequestRotate =>
             if (listMatches(m.list))
                 rotateItem(m.index, m.rot)
@@ -77,6 +80,14 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
 
     private def changeItem(itemIndex:Int, item:PlayItem) {
         val newPlayList = playList.replaceItem(itemIndex,item).
+                asInstanceOf[PlayListS]
+        publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
+        playList = newPlayList
+    }
+
+    private def setItem(itemIndex:Int, item:PlayItem) {
+        val biggerPlayList = playList.ensureSize(itemIndex+1)
+        val newPlayList = biggerPlayList.replaceItem(itemIndex,item).
                 asInstanceOf[PlayListS]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList

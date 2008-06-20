@@ -142,6 +142,16 @@ public abstract class AreaLayout {
         return "."+Integer.toString(index+1);
     }
 
+    //Set the image indexes of all of our images.
+    //Return the number of image slots we have.
+    protected int setImageIndexes(int start) {
+        int origStart = start;
+        for (int i=0; i<areas.length; i++) {
+            start += areas[i].setImageIndexes(start);
+        }
+        return (start - origStart);
+    }
+
     /** Allocate our array of areas.
      * @param n The number of areas to allocated.
      */
@@ -328,6 +338,8 @@ public abstract class AreaLayout {
      *         false if we did not find the old area.
      */
     public boolean replaceArea(AreaLayout oldArea, AreaLayout newArea) {
+        //TODO - note that the image indexes of other areas will not
+        //be correct after this, so they have to be updated separately.
         for (int i=0; i<areas.length; i++) {
             if (areas[i]==oldArea) {
                 areas[i] = newArea;

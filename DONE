@@ -107,3 +107,4 @@
   except for screen modes, dragging, and stuff related to Printable. [080614]
 - Implement screen modes (except Printable) in scala. [080616]
 - Add drag-source stuff to PlayViewList.scala. [080616]
+- Implement initial drag-and-drop stuff in scala. [080619]

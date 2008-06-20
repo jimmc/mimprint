@@ -59,6 +59,19 @@ class PlayListS(
         new PlayListS(ui,baseDir,newItems,comments)
     }
 
+    //Ensure that we have at least the specified number of items in our list.
+    //If so, return the current list; if not, create a new one of the
+    //specified size and fill in all the new entries with empty PlayItems.
+    def ensureSize(newSize:Int):PlayListS = {
+        if (size >= newSize)
+            return this         //already big enough
+        val newItems:Array[PlayItemS] = Array.make(newSize,null)
+        Array.copy(items,0,newItems,0,items.length)
+        for (i <- items.length until newItems.length)
+            newItems(i) = PlayItemS.emptyItem()
+        new PlayListS(ui,baseDir,newItems,comments)
+    }
+
     /** Return the number of items in the playlist. */
     def size() = if (items==null) 0 else items.length
 

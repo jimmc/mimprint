@@ -230,6 +230,7 @@ class AreaPageControls(val frame:SFrame,
         a.getAreaList(v)     //put all children into the list
         allAreas = new Array[AreaLayout](v.size())
         v.copyInto(allAreas.asInstanceOf[Array[Object]])
+        areaPage.fixImageIndexes()
     }
 
     /** Here when the user clicks in the AreaPage window to select an area.

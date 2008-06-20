@@ -157,7 +157,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     
     private def createScaledImage(sourceImage:Image,rot:Int,path:String):
             Image = {
-        ImageUtil.createScaledImage(sourceImage,rot,
+        SImageUtil.createScaledImage(sourceImage,rot,
             imageComponent.getWidth,imageComponent.getHeight,path)
     }
 
