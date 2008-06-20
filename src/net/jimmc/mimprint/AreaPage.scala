@@ -150,6 +150,21 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                         val bundle = new ImageBundle(null,
                                 new AreaPageImageWindow(img),
                                 new File(item.baseDir,item.fileName),-1)
+                        val bImage = bundle.getImage
+                        //We look at the aspect ratio of the image and
+                        //auto-rotate it to match the aspect ratio of
+                        //the image display area.
+                        val imgBounds = img.getBounds
+                        val needsRotate =
+                            (bImage.getWidth(null)>bImage.getHeight(null)) ^
+                            (imgBounds.width<imgBounds.height)
+                        //We only allow playlist rotation in increments of
+                        //180 degrees.  The user can not rotate an image by
+                        //90 degrees in the printable area, if he wants that
+                        //he must tweak that area's size to change the
+                        //aspect ratio.
+                        val r = (item.rotFlag & ~1)+(if (needsRotate) 1 else 0)
+                        bundle.rotate(r)
                         img.setImage(bundle)
                     }
                     return 1
@@ -463,12 +478,16 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 viewer.requestAddToActive
             case 'P' =>    //the print screen
                 requestScreenMode(SViewer.SCREEN_PRINT)
-            case 'r' =>    //rotate CCW
-                rotateCurrentImage(1);
+            case 'r' =>    //rotate 180
+                rotateCurrentImage(2);
+/*
+We ignore the low-order bit of the image rotation and only allow rotation
+in an image area by 180 degrees, so we just use the r key for that.
             case 'R' =>    //rotate CW
                 rotateCurrentImage(-1);
             case ControlR =>    //control-R, rotate 180
                 rotateCurrentImage(2);
+*/
             case 's' =>    //the slideshow screen
                 requestScreenMode(SViewer.SCREEN_SLIDESHOW)
             case 'x' =>    //exit
@@ -493,18 +512,20 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             viewer ! SViewerRequestScreenMode(mode)
 
         def rotateCurrentImage(rot:Int) {
-            if (currentArea!=null) {
-                currentArea.rotate(rot)
-                repaintCurrentImage()
+            if (currentArea!=null && currentArea.hasImage) {
+                //currentArea.rotate(rot)
+                //repaintCurrentImage()
+                tracker ! PlayListRequestRotate(playList, currentIndex, rot)
             }
         }
 
         private def clearCurrentArea = {
-            if (currentArea!=null) {
+            if (currentArea!=null && currentArea.hasImage) {
                 //clear image from current area
-                currentArea.setImage(null)
-                //TODO - clear this location in our playList also
-                repaintCurrentImage()
+                //currentArea.setImage(null)
+                //repaintCurrentImage()
+                val item = PlayItemS.emptyItem()
+                tracker ! PlayListRequestChange(playList, currentIndex, item)
             }
         }
 

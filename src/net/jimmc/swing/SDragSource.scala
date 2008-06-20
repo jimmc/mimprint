@@ -44,3 +44,6 @@ trait SDragSource {
         }
     }
 }
+/*
+vi:
+*/

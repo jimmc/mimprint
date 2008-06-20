@@ -62,6 +62,10 @@ public class AreaImageLayout extends AreaLayout {
         return imageBundle;
     }
 
+    public boolean hasImage() {
+        return (imageBundle!=null);
+    }
+
     /** Set the image to be displayed in this area. */
     public void setImage(ImageBundle image) {
         this.imageBundle = image;

@@ -259,6 +259,15 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             val index = fileNameList.getSelectedIndex()
             if (index == -1)
                 return         //no item selected for dragging
+
+            //Whether or not the drag succeeds, we have now selected this
+            //item in the list.  In order to keep things in sync, send
+            //out a select notification.
+            val selIndex = index - dirCount
+            //Send a select request to our PlayListTracker
+            if (selIndex >= 0)
+                tracker ! PlayListRequestSelect(playList,selIndex)
+
             val fileInfo = getFileInfo(index)
             //String path = new File(targetDirectory,fileNames[index]).toString();
             val path = fileInfo.getPath()
