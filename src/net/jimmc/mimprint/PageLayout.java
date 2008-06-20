@@ -164,7 +164,7 @@ public class PageLayout {
     }
 
     /** Write the current layout template. */
-    protected void writeLayoutTemplate(PrintWriter pw) {
+    public void writeLayoutTemplate(PrintWriter pw) {
         pw.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");  //XML header line
         //TODO - write out DTD line?
         String pageLineFmt = "<page width=\"{0}\" height=\"{1}\" unit=\"{2}\">";
@@ -181,7 +181,7 @@ public class PageLayout {
     }
 
     /** Read in the specified layout template. */
-    protected void loadLayoutTemplate(File f) {
+    public void loadLayoutTemplate(File f) {
         SAXParser parser;
         try {
             parser = SAXParserFactory.newInstance().newSAXParser();

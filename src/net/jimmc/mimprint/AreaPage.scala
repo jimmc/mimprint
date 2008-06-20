@@ -43,6 +43,7 @@ import java.awt.print.Printable
 import java.awt.print.PrinterException
 import java.awt.print.PrinterJob
 import java.io.File
+import java.io.PrintWriter
 import java.io.StringReader
 import javax.swing.JComponent
 
@@ -62,7 +63,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     }
     private val resCvt = new ResConverter(viewer)
 
-    private val pageLayout = new PageLayout(resCvt)
+    private var pageLayout = new PageLayout(resCvt)
     pageLayout.setDefaultLayout()
     private val pageColor = Color.white
     private var showOutlines:Boolean = true
@@ -860,5 +861,37 @@ in an image area by 180 degrees, so we just use the r key for that.
     }
 
   //End Drag-and-drop stuff
+   
+    private def setPageLayout(newPageLayout:PageLayout) {
+        pageLayout = newPageLayout
+        highlightedArea = null
+        currentArea = null
+        controls.updateAllAreasList()
+        controls.selectArea(new Point(0,0))
+        displayPlayList(playList)
+        repaint()
+    }
 
+    //Write our layout template out to a file
+    def writeLayoutTemplate(pw:PrintWriter) {
+        pageLayout.writeLayoutTemplate(pw)
+    }
+
+    //Read a layout from a template file and set it as our layout
+    def loadLayoutTemplate(f:File) {
+        val newPageLayout = new PageLayout(resCvt)
+        newPageLayout.loadLayoutTemplate(f)
+        setPageLayout(newPageLayout)
+    }
+
+    def editLayoutDescription() {
+        var text = pageLayout.getDescription
+        if (text==null)
+            text = ""
+        val title = viewer.getResourceString("query.EditLayout.title");
+        val newText = viewer.editTextDialog(title,text)
+        if (newText==null)
+            return        //cancelled
+        pageLayout.setDescription(newText)
+    }
 }

@@ -7,6 +7,8 @@ package net.jimmc.mimprint
 
 import java.awt.BorderLayout
 import java.awt.Component
+import java.io.File
+import java.io.PrintWriter
 import javax.swing.JLabel
 import javax.swing.JPanel
 
@@ -100,6 +102,21 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
         case m:PlayViewMultiRequestFocus => areaPage.requestFocus()
         case m:PlayViewMultiRequestPrint => areaPage.print()
         case m:Any => println("Unrecognized message to PlayViewMulti")
+    }
+
+    //Save our layout template to the specified output stream
+    def saveLayoutTemplate(pw:PrintWriter) {
+        areaPage.writeLayoutTemplate(pw)
+    }
+
+    //Load a layout template from the specified file
+    def loadLayoutTemplate(f:File) {
+        areaPage.loadLayoutTemplate(f)
+    }
+
+    //Edit the description of the current layout
+    def editLayoutDescription() {
+        areaPage.editLayoutDescription()
     }
 }
 

@@ -56,6 +56,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var printablePlayListIndex:Int = -1
 
     private val toolBar = createToolBar()
+    private var printMenuItem:SMenuItem = _
+    private var layoutMenu:JMenu = _
 
     private var statusLine:JTextField = _
     private var mainList:PlayViewList = _
@@ -73,6 +75,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var altWindow:JWindow = _
     private var dualWindow:SFrame = _
     private var printableComp:Component = _
+
+    private var lastSaveLayoutTemplateFile:File = null
+    private var lastLoadLayoutTemplateFile:File = null
 
     setJMenuBar(createMenuBar())
     initForm()
@@ -94,7 +99,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         mb.add(createFileMenu())
         mb.add(createImageMenu())
         //TODO - create PlayList menu
-        //TODO - create Layout menu
+        layoutMenu = createLayoutMenu()
+        mb.add(layoutMenu)
         mb.add(createViewMenu())
         mb.add(createHelpMenu())
         mb.add(createDebugMenu())
@@ -106,8 +112,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         val m = new JMenu(getResourceString("menu.File.label"))
 
         m.add(new SMenuItem(this,"menu.File.Open")(processFileOpen))
+        printMenuItem = new SMenuItem(this,"menu.File.Print")(processFilePrint)
+        m.add(printMenuItem)
         m.add(new SMenuItem(this,"menu.File.Exit")(processFileExit))
-        m.add(new SMenuItem(this,"menu.File.Print")(processFilePrint))
 
         m
     }
@@ -142,6 +149,19 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         m
     }
 
+    private def createLayoutMenu():JMenu = {
+        val m = new JMenu(getResourceString("menu.Layout.label"))
+
+        m.add(new SMenuItem(this,"menu.Layout.SaveTemplateAs")(
+                saveLayoutTemplateAs()))
+        m.add(new SMenuItem(this,"menu.Layout.LoadTemplate")(
+                loadLayoutTemplate()))
+        m.add(new SMenuItem(this,"menu.Layout.EditDescription")(
+                editLayoutDescription()))
+
+        m
+    }
+
     private def createViewMenu():JMenu = {
         val m = new JMenu(getResourceString("menu.View.label"))
 
@@ -165,6 +185,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             _._2.setVisible(hasAlternateScreen))
 
         //TODO - add separator, then more commands for other View options
+        //TODO - add "Show Info In List" for main list
+        //TODO - aadd "Show Image and Info In List"
+        //TODO - add "Include Folder Dates In List"
+        //TODO - add "Show Area Outlines", enabled only in mode=printable
+        //TODO - add "Show Help Dialog"
 
         m
     }
@@ -176,6 +201,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             val cb = info._2
             cb.setState(screenMode == modeVal)
         }
+        printMenuItem.setEnabled(screenMode == SViewer.SCREEN_PRINT)
+        layoutMenu.setEnabled(screenMode == SViewer.SCREEN_PRINT)
     }
 
     private def createHelpMenu():JMenu = {
@@ -662,6 +689,56 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         val textPath = FileInfo.getTextFileNameForImage(imagePath)
         val f = new File(textPath)
         FileUtil.writeFile(f,text)
+    }
+
+    /** Save the current layout to a named file. */
+    private def saveLayoutTemplateAs() {
+        val prompt = getResourceString("prompt.SaveLayoutTemplateAs")
+        val f:File = fileSaveDialog(prompt,lastSaveLayoutTemplateFile)
+        if (f==null)
+            return
+        lastSaveLayoutTemplateFile = f
+        val pw = getPrintWriterFor(f)
+        if (pw==null)
+            return         //cancelled
+        printableMulti.saveLayoutTemplate(pw)
+        pw.close()
+        val status = getResourceFormatted("status.SavedTemplateToFile",
+                f.toString())
+        showStatus(status)
+    }
+
+    /** Load a layout from a named file. */
+    private def loadLayoutTemplate() {
+        val prompt = getResourceString("prompt.LoadLayoutTemplate");
+        val f:File = fileOpenDialog(prompt,lastLoadLayoutTemplateFile);
+        if (f==null)
+            return
+        lastLoadLayoutTemplateFile = f
+        loadLayoutTemplate(f)
+    }
+
+    //Load the specified layout template
+    def loadLayoutTemplate(f:File) {
+        if (printableMulti==null) {
+            val msg = getResourceString("error.NoPrintablePage");
+            showStatus(msg)
+            return
+        }
+        printableMulti.loadLayoutTemplate(f);
+        val status = getResourceFormatted(
+                "status.LoadedTemplateFromFile",f.toString())
+        showStatus(status)
+    }
+
+    //Edit the description of the current page layout
+    private def editLayoutDescription() {
+        if (printableMulti==null) {
+            val msg = getResourceString("error.NoPrintablePage")
+            showStatus(msg)
+            return
+        }
+        printableMulti.editLayoutDescription
     }
 }
 
