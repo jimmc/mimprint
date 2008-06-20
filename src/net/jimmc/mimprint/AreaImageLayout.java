@@ -71,6 +71,34 @@ public class AreaImageLayout extends AreaLayout {
         this.imageBundle = image;
     }
 
+    private PlayItem lastPlayItem;
+    public void setImage(PlayItem item, ImageWindow imgWin) {
+        if (lastPlayItem!=null &&
+                item.toString().equals(lastPlayItem.toString())) {
+            //The image is the same image as before, so ignore the update.
+            return;
+        }
+        ImageBundle bundle = new ImageBundle(null, imgWin,
+                new File(item.getBaseDir(),item.getFileName()),-1);
+        Image bImage = bundle.getImage();
+        //We look at the aspect ratio of the image and
+        //auto-rotate it to match the aspect ratio of
+        //the image display area.
+        Rectangle imgBounds = getBounds();
+        boolean needsRotate =
+            (bImage.getWidth(null)>bImage.getHeight(null)) ^
+            (imgBounds.width<imgBounds.height);
+        //We only allow playlist rotation in increments of
+        //180 degrees.  The user can not rotate an image by
+        //90 degrees in the printable area, if he wants that
+        //he must tweak that area's size to change the
+        //aspect ratio.
+        int r = (item.getRotFlag() & ~1)+((needsRotate)?1:0);
+        bundle.rotate(r);
+        setImage(bundle);
+        lastPlayItem = item;
+    }
+
     /** Rotate our image.  Caller is responsible for refreshing the screen. */
     public void rotate(int quarters) {
         if (imageBundle==null)

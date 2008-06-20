@@ -148,25 +148,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                         //Found an empty item
                         img.setImage(null)
                     } else {
-                        val bundle = new ImageBundle(null,
-                                new AreaPageImageWindow(img),
-                                new File(item.baseDir,item.fileName),-1)
-                        val bImage = bundle.getImage
-                        //We look at the aspect ratio of the image and
-                        //auto-rotate it to match the aspect ratio of
-                        //the image display area.
-                        val imgBounds = img.getBounds
-                        val needsRotate =
-                            (bImage.getWidth(null)>bImage.getHeight(null)) ^
-                            (imgBounds.width<imgBounds.height)
-                        //We only allow playlist rotation in increments of
-                        //180 degrees.  The user can not rotate an image by
-                        //90 degrees in the printable area, if he wants that
-                        //he must tweak that area's size to change the
-                        //aspect ratio.
-                        val r = (item.rotFlag & ~1)+(if (needsRotate) 1 else 0)
-                        bundle.rotate(r)
-                        img.setImage(bundle)
+                        showItem(img,item)
                     }
                     return 1
                 } else {
@@ -182,6 +164,9 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             idx = idx + dAreaCount
         }
         idx - listIndex //number of items we used
+    }
+    private def showItem(img:AreaImageLayout, item:PlayItemS) {
+        img.setImage(item,new AreaPageImageWindow(img))
     }
     //A helper class during the java-to-scala conversion.
     //Once we no longer use ImageBundle, we won't need this class.

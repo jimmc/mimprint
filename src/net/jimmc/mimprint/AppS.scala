@@ -24,6 +24,11 @@ class AppS extends SResourcesBundle {
         //TODO - do a better job of parsing the command line args
         for (i <- 0 until args.length) {
             args(i) match {
+                case "-help" =>
+                    //Print out the help text and exit
+                    val help = viewer.getResourceString("info.CommandHelp")
+                    println(help)
+                    System.exit(0)
                 case "-new" =>  //ignore
                 case fn =>       //assume filename
                     viewer.mainOpen(fn)
@@ -41,9 +46,9 @@ object AppStart {
         App.setApp(app);
         app.setFactory(AppFactoryS)
 
-        if (args.length>0 && args(0)=="-new")
-            appS.doMain(args)
-        else
+        if (args.length>0 && args(0)=="-old")
             app.doMain(args)
+        else
+            appS.doMain(args)
     }
 }

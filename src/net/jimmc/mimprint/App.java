@@ -103,6 +103,9 @@ public class App implements ResourceSource {
             else if (args[i].equalsIgnoreCase("-noLookAhead")) {
                 lookAheadP = false;
             }
+            else if (args[i].equalsIgnoreCase("-old")) {
+                //ignore this arg
+            }
             else if (args[i].startsWith("-")) {
                 Object[] eArgs = { args[i] };
                 String msg = getResourceFormatted(
