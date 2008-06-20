@@ -423,24 +423,15 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             val keyCode = ev.getKeyCode()
             knownKeyPress = true	//assume we know it
             keyCode match {
-/* TODO - we want these to work on the main play list, I think
-            case KeyEvent.VK_LEFT =>
-                tracker ! PlayListRequestLeft(playList)
-            case KeyEvent.VK_RIGHT =>
-                tracker ! PlayListRequestRight(playList)
-            case KeyEvent.VK_DOWN =>
-                tracker ! PlayListRequestDown(playList)
-            case KeyEvent.VK_UP =>
-                tracker ! PlayListRequestUp(playList)
-*/
-            case KeyEvent.VK_ESCAPE =>
-                requestScreenMode(SViewer.SCREEN_PREVIOUS)
-/*
-            case KeyEvent.VK_ENTER =>
-                viewer ! SViewerRequestActivate(playList)
-*/
-            case _ =>
-                knownKeyPress = false
+                case KeyEvent.VK_LEFT => viewer.requestLeft
+                case KeyEvent.VK_RIGHT => viewer.requestRight
+                case KeyEvent.VK_DOWN => viewer.requestDown
+                case KeyEvent.VK_UP => viewer.requestUp
+                case KeyEvent.VK_ESCAPE =>
+                    requestScreenMode(SViewer.SCREEN_PREVIOUS)
+                //case KeyEvent.VK_ENTER => viewer.requestAddToActive
+                case _ =>
+                    knownKeyPress = false
             }
         }
         def keyReleased(ev:KeyEvent) {
@@ -450,8 +441,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             val ControlL = 'L' - 0100
             val ControlR = 'R' - 0100
             ev.getKeyChar() match {
-            case ' ' =>   //activate selection
-                viewer ! SViewerRequestActivate(playList)
+            //case ' ' =>   //activate selection
+                //viewer ! SViewerRequestActivate(playList)
             case 'a' =>    //alternate-screen
                 requestScreenMode(SViewer.SCREEN_ALT)
             case 'f' =>    //full-screen
@@ -460,14 +451,16 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 //refresh from our playlist and repaint the screen
                 displayPlayList(playList)
                 repaint()
+            /*
             case 'e' =>
                 viewer ! SViewerRequestEditDialog(playList,currentIndex)
             case 'i' =>
                 viewer ! SViewerRequestInfoDialog(playList,currentIndex)
             case 'o' =>    //file-open dialog
                 viewer ! SViewerRequestFileOpen()
+            */
             case 'p' =>   //add current image to active or printable playlist
-                viewer ! SViewerRequestAddToActive(playList,currentIndex)
+                viewer.requestAddToActive
             case 'P' =>    //the print screen
                 requestScreenMode(SViewer.SCREEN_PRINT)
             case 'r' =>    //rotate CCW
@@ -502,6 +495,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         def rotateCurrentImage(rot:Int) {
             if (currentArea!=null) {
                 currentArea.rotate(rot)
+                repaintCurrentImage()
             }
         }
 
@@ -770,7 +764,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
      * @return True if the file exists, false if not.
      */
     private def dropFileName(s0:String, dropArea:AreaImageLayout):Boolean = {
-//println("Got drop data: "+s)
+//println("Got drop fileName: "+s0)
         var s = s0
 	if (s.startsWith("file://"))
 	    s = s.substring("file://".length()) //convert URL to file path
@@ -794,7 +788,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         */
         val item = new PlayItemS(Nil,f.getParentFile,f.getName,0)
         tracker ! PlayListRequestSetItem(playList,dropArea.getImageIndex,item)
-        repaintCurrentImage()
+        //repaintCurrentImage()
+            //replaint later when the message comes back to us
 //println("Accepted drop of file "+f)
         //TODO - add call to viewer.setStatus, but need to figure out when
         //to clear the status first

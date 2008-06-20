@@ -31,9 +31,12 @@ object FileUtilS {
         val p1:Array[String] = path.split(File.separator)
         val parts:ArrayBuffer[String] = new ArrayBuffer
         p1.copyToBuffer(parts);
-        var i = 1
+        var i = 0
         while (i < parts.length) {
-            if (i > 0 && parts(i)==".." && parts(i-1)!="..") {
+            if (parts(i)==".")
+                parts.remove(i)
+            else if (i > 0 && parts(i)==".." &&
+                    parts(i-1)!=".." && parts(i-1)!="") {
                 parts.remove(i)
                 parts.remove(i-1)
                 i = i -1
@@ -49,16 +52,23 @@ object FileUtilS {
         val pathFile = new File(path)
         val useAbs = (pathFile.isAbsolute || base.isAbsolute)
         val pathParts =
-            (if (useAbs) pathFile.getAbsolutePath
-            else pathFile.getPath).split(File.separator)
+            (if (useAbs)
+                pathFile.getCanonicalPath
+            else
+                pathFile.getPath).
+            split(File.separator)
         val baseParts =
-            (if (useAbs) base.getAbsolutePath
-            else base.getPath).split(File.separator)
+            (if (useAbs)
+                base.getCanonicalPath
+            else
+                base.getPath).
+            split(File.separator)
         val equalParts = countSameElements(pathParts,baseParts)
             //count the number of leading parts that are the same
         val differentPathParts = pathParts.drop(equalParts)
         val differentBaseParts = baseParts.drop(equalParts)
-        val prefix = differentBaseParts.map((x:String)=>"..").
+        val prefix = differentBaseParts.filter(_ != ".").
+                map((x:String)=>"..").
                 mkString(File.separator)
         val suffix = differentPathParts.mkString(File.separator)
         val sep =

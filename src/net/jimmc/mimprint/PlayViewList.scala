@@ -150,7 +150,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var appIsUpdatingModel = false
 
     private def getDirNames(dir:File):Array[String] = {
-        if (dir==null)
+        if (dir==null || !dir.isDirectory)
             return Array()
         //Get the list of all subdirectories except current and parent
         val subdirs = FileUtilS.listDir(dir,(

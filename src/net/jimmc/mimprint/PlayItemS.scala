@@ -85,6 +85,8 @@ class PlayItemS(
     def usingBase(newBase:File) : PlayItemS = {
         if (pathFor(newBase)==pathFor(baseDir))
             this
+        else if (fileName==null)
+            new PlayItemS(comments,newBase,null,rotFlag)
         else {
             val path = FileUtilS.collapseRelative(
                     (new File(baseDir,fileName)).getPath())
@@ -191,7 +193,7 @@ object PlayItemS {
 
     /** Create an empty item. */
     def emptyItem():PlayItemS = {
-        new PlayItemS(Nil,new File("."),null,0)
+        new PlayItemS(Nil,new File(""),null,0)
     }
 
     /** True if this line is a comment line.

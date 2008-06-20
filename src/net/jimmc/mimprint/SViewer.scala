@@ -22,6 +22,8 @@ import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
@@ -90,6 +92,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         //TODO - create Layout menu
         mb.add(createViewMenu())
         mb.add(createHelpMenu())
+        mb.add(createDebugMenu())
 
         mb
     }
@@ -107,14 +110,10 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private def createImageMenu():JMenu = {
         val m = new JMenu(getResourceString("menu.Image.label"))
 
-        m.add(new SMenuItem(this,"menu.Image.PreviousImage")(
-                mainTracker ! PlayListRequestUp(playList)))
-        m.add(new SMenuItem(this,"menu.Image.NextImage")(
-                mainTracker ! PlayListRequestDown(playList)))
-        m.add(new SMenuItem(this,"menu.Image.PreviousDirectory")(
-                mainTracker ! PlayListRequestLeft(playList)))
-        m.add(new SMenuItem(this,"menu.Image.NextDirectory")(
-                mainTracker ! PlayListRequestRight(playList)))
+        m.add(new SMenuItem(this,"menu.Image.PreviousImage")(requestUp))
+        m.add(new SMenuItem(this,"menu.Image.NextImage")(requestDown))
+        m.add(new SMenuItem(this,"menu.Image.PreviousDirectory")(requestLeft))
+        m.add(new SMenuItem(this,"menu.Image.NextDirectory")(requestRight))
 
         m.add(new JSeparator())
 
@@ -128,8 +127,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         mr.add(new SMenuItem(this,"menu.Image.RotateMenu.R270")(
                 requestRotate(-1)))
         
-        m.add(new SMenuItem(this,"menu.Image.AddToActive")(
-                addToActive(playList,playListIndex)))
+        m.add(new SMenuItem(this,"menu.Image.AddToActive")(requestAddToActive))
 
         m.add(new SMenuItem(this,"menu.Image.ShowEditDialog")(
                 showImageEditDialog(playList,playListIndex)))
@@ -182,6 +180,23 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         m
     }
 
+    private def createDebugMenu():JMenu = {
+        val m = new JMenu("Debug")
+        m.add(new SMenuItem(this,"menu.Debug.ShowPrintablePlayList")(
+                showPrintablePlayList(".")))
+        m.add(new SMenuItem(this,"menu.Debug.ShowPrintablePlayListRoot")(
+                showPrintablePlayList("/")))
+        m
+    }
+
+    private def showPrintablePlayList(rootDir:String) {
+        val sw = new StringWriter()
+        val pw = new PrintWriter(sw)
+        printablePlayList.save(pw,new File(rootDir))
+        val s = sw.toString
+        infoDialog("Printable PlayList:\n"+s)
+    }
+
     private def requestRotate(rot:Int) {
         mainTracker ! PlayListRequestRotate(playList, playListIndex, rot)
     }
@@ -217,20 +232,14 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 setScreenMode(SViewer.SCREEN_FULL)))
 
         tb.addSeparator()
-        tb.add(new SButton(this,"button.PreviousFolder")(
-                mainTracker ! PlayListRequestLeft(playList)))
-        tb.add(new SButton(this,"button.PreviousImage")(
-                mainTracker ! PlayListRequestUp(playList)))
-        tb.add(new SButton(this,"button.NextImage")(
-                mainTracker ! PlayListRequestDown(playList)))
-        tb.add(new SButton(this,"button.NextFolder")(
-                mainTracker ! PlayListRequestRight(playList)))
+        tb.add(new SButton(this,"button.PreviousFolder")(requestLeft))
+        tb.add(new SButton(this,"button.PreviousImage")(requestUp))
+        tb.add(new SButton(this,"button.NextImage")(requestDown))
+        tb.add(new SButton(this,"button.NextFolder")(requestRight))
 
         tb.addSeparator()
-        tb.add(new SButton(this,"button.RotateCcw")(
-                requestRotate(1)))
-        tb.add(new SButton(this,"button.RotateCw")(
-                requestRotate(-1)))
+        tb.add(new SButton(this,"button.RotateCcw")(requestRotate(1)))
+        tb.add(new SButton(this,"button.RotateCw")(requestRotate(-1)))
         //We don't put in a rotate-180 button, let user push the other twice
 
         tb
@@ -408,6 +417,12 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 printablePlayListIndex = -1
         }
     }
+
+    def requestUp() = mainTracker ! PlayListRequestUp(playList)
+    def requestDown() = mainTracker ! PlayListRequestDown(playList)
+    def requestLeft() = mainTracker ! PlayListRequestLeft(playList)
+    def requestRight() = mainTracker ! PlayListRequestRight(playList)
+    def requestAddToActive() = addToActive(playList,playListIndex)
 
     /** Set the title on our main app window to the path of the
      * currently displayed file.
