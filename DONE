@@ -110,3 +110,5 @@
 - Implement initial drag-and-drop stuff in scala. [080619]
 - Switch from using "-new" to get the new scala main window to using "-old"
   to get the old main window; the scala main is now the default. [080620]
+- v0.2.1. [080620]
+- Start removing java files. [080621]

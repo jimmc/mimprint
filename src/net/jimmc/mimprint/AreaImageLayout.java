@@ -124,8 +124,23 @@ public class AreaImageLayout extends AreaLayout {
         Image image = imageBundle.getTransformedImage();
         AffineTransform transform = new AffineTransform();
         g2.translate(b.x,b.y);
-        ImagePage.scaleAndTranslate(g2,image.getWidth(null),image.getHeight(null),b.width,b.height);
+        scaleAndTranslate(g2,image.getWidth(null),image.getHeight(null),b.width,b.height);
         g2.drawImage(image,transform,null);
+    }
+    /** Given an area of specified size in user space, scale it to fit into
+     * the given window space, and translate it to center it top/bottom or
+     * left/right for whichever dimension is smaller.
+     */
+    private void scaleAndTranslate(Graphics2D g2, int userWidth, int userHeight,
+                int windowWidth, int windowHeight) {
+        double xscale = ((double)windowWidth)/((double)userWidth);
+        double yscale = ((double)windowHeight)/((double)userHeight);
+        double scale = (xscale<yscale)?xscale:yscale;
+        if (xscale<yscale)
+            g2.translate(0,(yscale-xscale)*userHeight/2);
+        else
+            g2.translate((xscale-yscale)*userWidth/2,0);
+        g2.scale(scale,scale);
     }
 
     private int imageIndex = -1;

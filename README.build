@@ -1,4 +1,4 @@
-Mimprint                                        February 22, 2006
+Mimprint                                        June 20, 2008
 
 Building a new version
 ----------------------
@@ -21,7 +21,7 @@ Building a new version
         ant reljar              Build a self-extracting jar file
                                     from the release kit
         ant arch                Copy the jar and README files to archive dir
-        ant cvstag              Run "cvs tag" for this version
+        ant gittag              Run "git tag" for this version
 
     To clean up, execute this command:
 

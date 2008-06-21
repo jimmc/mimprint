@@ -1,3 +1,27 @@
+mimprint v0.2.1  June 20, 2008  The Scala-based main window is now the default
+
+  Enhancements:
+
+  * The new main screens now support displaying in two windows at once.
+    In particular, when using Alternate Screen mode or Dual Window mode,
+    the main display window is still functional.
+  * When images are added to the printable list (either by drag-and-drop
+    or by using the 'p' key command or Add To Active PlayList menu command),
+    the image is automatically rotated by 90 degrees counter-clockwise
+    if necessary to match the aspect ratio of the image most closely to
+    the aspect ratio of its display area.  Pressing the 'r' key will
+    rotate the image by 180 degrees.  If you really want to rotate the
+    image by 90 degrees, you should select that area and adjust the
+    margins to force a change in the aspect ratio of the area.
+
+  Other Changes:
+
+  * The "-old" command line option brings up the old Java-based main
+    window; without that option, the new Scala-based main window opens.
+    The Java-based main window will not be available in the next version.
+  * The new Scala-based main window does not offer all of the View options
+    that were available in the old Java-based main window.
+
 mimprint v0.2.0  June 4, 2008  Scala/Java mix
 
   Enhancements:
@@ -42,17 +66,17 @@ mimprint v0.2.0  June 4, 2008  Scala/Java mix
 
   + The file is line oriented, each line is processed alone.
   + Lines starting with a pound sign (#) are treated as comments.
-  + Consectuvie lines starting with a double-pound sign (##) at the
+  + Consecutive lines starting with a double-pound sign (##) at the
     beginning of a file are treated as comments associated with the file.
     Other comment lines are associated with the following filename.
     Comments after the last filename are ignore and will most likely
-    be dropped when the playlis is saved back to a file.
+    be dropped when the playlist is saved back to a file.
   + Blank lines are treated as comments.
   + Leading and trailing whitespace on a line are ignored.
   + Image filename lines consist of a filename, optionally followed
     by option values separated by a semicolon.
-  + The option "-r" says to rotate the image clockwise 90 degress.
-  + The option "+r" says to rotate the image counter-clockwise 90 degress.
+  + The option "-r" says to rotate the image clockwise 90 degrees.
+  + The option "+r" says to rotate the image counter-clockwise 90 degrees.
   + The option "++r" says to rotate the image by 180 degrees.
   + An item entry may contain the special line "-empty" instead of a filename.
     This represents an empty item in the playlist.

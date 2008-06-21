@@ -1,4 +1,4 @@
-<project name="mimprint" default="jar">
+<project name="mimprint" default="build">
 
     <target name="init">
         <property file="local.properties"/>
@@ -110,6 +110,8 @@
         <mkdir dir="${testobj.dir}"/>
     </target>
 
+    <target name="build" depends="jar"/>
+
     <target name="compile" depends="javac,scalac"/>
 
     <target name="javac" depends="init,mkdirs">
@@ -121,7 +123,7 @@
             source="1.4"
         >
             <include name="**/*.java"/>
-	    <exclude name="*/*.old/*.java"/>
+	    <exclude name="**/*.old/**/*.java"/>
         </javac>
     </target>
 
@@ -443,10 +445,12 @@
         <chmod dir="${arch.version.dir}" includes="*" perm="-w"/>
     </target>
 
-    <target name="cvstag" depends="init"
-    		description="Tag all files in CVS for the current release">
-	<echo message="Tagging files as ${version.name}-${version.numberU}"/>
-        <cvs command="tag ${version.name}-${version.numberU}"/>
+    <target name="gittag" depends="init"
+    		description="Tag all files in git for the current release">
+	<echo message="Tagging files as ${version.name}-${version.number}"/>
+        <exec executable="git" failonerror="true" >
+            <arg line="tag -a ${version.name}-${version.number}"/>
+        </exec>
     </target>
 
     <target name="rel" depends="relbin,relsrc,relapidoc"

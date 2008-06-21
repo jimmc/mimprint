@@ -20,7 +20,7 @@ public class App implements ResourceSource {
     private IAppFactory factory;
 
     /** Our viewer window. */
-    protected Viewer viewer;
+    //protected Viewer viewer;
 
     /** The target to view. */
     protected String target;
@@ -67,6 +67,7 @@ public class App implements ResourceSource {
 
     /** Run the main stuff. */
     public void doMain(String[] args) {
+/*
         startTime = System.currentTimeMillis();
         if (factory==null)
             throw new RuntimeException("No factory");
@@ -82,6 +83,7 @@ public class App implements ResourceSource {
         imageUtil = new ImageUtil(this,viewer);
         viewer.show();        //open the main window
         viewer.open(target);    //display the target
+*/
     }
 
     /** Parse our command line arguments. */

@@ -45,10 +45,6 @@ object AppStart {
         val appS = new AppS()
         App.setApp(app);
         app.setFactory(AppFactoryS)
-
-        if (args.length>0 && args(0)=="-old")
-            app.doMain(args)
-        else
-            appS.doMain(args)
+        appS.doMain(args)
     }
 }

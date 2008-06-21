@@ -77,9 +77,9 @@ public class ImageBundle {
     public void setImageWindow(ImageWindow imageWindow) {
         this.imageWindow = imageWindow;
         this.toolkit = imageWindow.getToolkit();
-        if (imageWindow instanceof ImageArea)
-            setDisplaySize(imageWindow.getWidth(),imageWindow.getHeight());
-        else
+        //if (imageWindow instanceof ImageArea)
+            //setDisplaySize(imageWindow.getWidth(),imageWindow.getHeight());
+        //else
             setDisplaySize(0,0);
                     //imageWindow is page size, we don't know our area size
     }
