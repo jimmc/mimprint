@@ -9,6 +9,7 @@ package net.jimmc.mimprint
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Component
+import java.awt.geom.AffineTransform
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.image.BufferedImage
@@ -89,7 +90,22 @@ object SImageUtil {
     }
     def loadCompleteImage(comp:Component, image:Image):Unit =
         loadCompleteImage(new MediaTracker(comp), image)
-    
+
+    def scaleAndRotate(srcImage:Image, rot:Int, path:String,
+            comp:Component):Image = {
+        val si = createScaledImage(srcImage,rot,comp,path)
+        loadCompleteImage(comp,si)
+        val ri = createRotatedImage(si,rot,comp)
+        loadCompleteImage(comp,ri)
+        ri
+    }
+
+    def createScaledImage(sourceImage:Image, rotation:Int,
+            comp:Component, path:String):Image = {
+        createScaledImage(sourceImage, rotation,
+                comp.getWidth, comp.getHeight, path)
+    }
+
     /** Create a scaled image from the given image. */
     def createScaledImage(sourceImage:Image, rotation:Int,
                 displayWidth:Int, displayHeight:Int, path:String):Image = {
@@ -99,6 +115,8 @@ object SImageUtil {
         if (displayWidth==0 || displayHeight==0)
             return sourceImage	//no scaling
 
+        val (srcWidth, srcHeight) = getImageSize(sourceImage)
+        /*
         var srcWidth = sourceImage.getWidth(null)
         var srcHeight = sourceImage.getHeight(null)
         var waitCount = 0
@@ -119,6 +137,7 @@ object SImageUtil {
             srcWidth = sourceImage.getWidth(null)
             srcHeight = sourceImage.getHeight(null)
         }
+        */
 
         val xy = (rotation==1 || rotation==3)
                 //True if rotated by 90 (or 270) degrees, so the
@@ -134,5 +153,40 @@ object SImageUtil {
         val scaledImage = sourceImage.getScaledInstance(
                     dstWidth,dstHeight,Image.SCALE_FAST)
         scaledImage
+    }
+
+    def createRotatedImage(sourceImage:Image,rot:Int,comp:Component):Image = {
+        if (((rot+4)%4)==0)
+            return sourceImage
+        val (w, h) = getImageSize(sourceImage)
+        val dstImage = comp.createImage(
+                if (rot%2==0) w else h,  if (rot%2==0) h else w)
+        val dstG2 = dstImage.getGraphics.asInstanceOf[Graphics2D]
+        var transform:AffineTransform = null
+        ((rot+4)%4) match {
+            case 1 => transform = new AffineTransform(
+                    0.0, -1.0, 1.0, 0.0, 0.0, w)
+            case 2 => transform = new AffineTransform(
+                    -1.0, 0.0, 0.0, -1.0, w, h)
+            case 3 => transform = new AffineTransform(
+                    0.0, 1.0, -1.0, 0.0, h, 0.0)
+            case 0 =>   //shouldn't happen, we checked for rot%4==0 above
+                return sourceImage
+        }
+        dstG2.drawImage(sourceImage,transform,null)
+        dstImage
+    }
+
+    def getImageSize(sourceImage:Image):(Int,Int) = {
+        var waitCount = 0
+        while (sourceImage.getWidth(null)<0 || sourceImage.getHeight(null)<0) {
+            //THe image has not yet started loading, so we don't
+            //know it's size.  Wait just a bit.
+            waitCount = waitCount + 1
+            if (waitCount > 100)
+                return (0, 0)   //TODO - throw exception?
+            try { Thread.sleep(100) } catch { case _ => } //ignore errors here
+        }
+        (sourceImage.getWidth(null), sourceImage.getHeight(null))
     }
 }

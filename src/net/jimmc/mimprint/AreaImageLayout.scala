@@ -7,6 +7,7 @@
 package net.jimmc.mimprint
 
 import java.awt.Color
+import java.awt.Component
 import java.awt.geom.AffineTransform
 import java.awt.Graphics2D
 import java.awt.Image
@@ -18,7 +19,12 @@ import java.io.PrintWriter
 class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     setBounds(x,y,width,height)
 
-    private var imageBundle:ImageBundle = _
+    private var item:PlayItemS = _       //the item we are displaying
+    private var path:String = _         //path from the item
+    private var image:Image = null      //the image we are displaying
+    private var rot:Int = 0             //the rotation at which we display it
+    private var transformedImage:Image = null
+            //our image after scale and rotation to page coordinates
 
     //We do not use the areas array in our parent class
 
@@ -35,61 +41,52 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     }
 
     /** Get the path to our image, or null if no image. */
-    def getImagePath():String = {
-        if (imageBundle==null)
-            null
-        else
-            imageBundle.getPath()
-    }
+    def getImagePath():String = path
 
     /** Get our image object.  May be null. */
-    def getImage():Image = {
-        if (imageBundle==null)
-            null
-        else
-            imageBundle.getImage()
-    }
+    def getImage():Image = image
 
-    /** Get the image displayed in this area. */
-    def getImageBundle() = imageBundle
+    def hasImage() = image!=null
 
-    def hasImage() = (imageBundle!=null)
-
-    /** Set the image to be displayed in this area. */
-    def setImage(image:ImageBundle) = this.imageBundle = image
-
-    private var lastPlayItem:PlayItem = _
-    def setImage(item:PlayItem, imgWin:ImageWindow) {
+    private var lastPlayItem:PlayItemS = _
+    def setImage(item:PlayItemS, comp:Component) {
         if (lastPlayItem!=null &&
                 item.toString().equals(lastPlayItem.toString())) {
             //The image is the same image as before, so ignore the update.
             return
         }
-        val bundle = new ImageBundle(null, imgWin,
-                new File(item.getBaseDir(),item.getFileName()),-1)
-        val bImage = bundle.getImage()
+        if (item==null) {
+            path = null
+            image = null
+            transformedImage = null
+            rot = 0
+            lastPlayItem = null
+            return
+        }
+        path = new File(item.baseDir,item.fileName).getPath
+        image = comp.getToolkit().createImage(path)
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
         //the image display area.
         val imgBounds:Rectangle = getBounds()
         val needsRotate =
-            (bImage.getWidth(null)>bImage.getHeight(null)) ^
+            (image.getWidth(null)>image.getHeight(null)) ^
             (imgBounds.width<imgBounds.height)
         //We only allow playlist rotation in increments of
         //180 degrees.  The user can not rotate an image by
         //90 degrees in the printable area, if he wants that
         //he must tweak that area's size to change the
         //aspect ratio.
-        val r = (item.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
-        bundle.rotate(r)
-        setImage(bundle)
+        rot = (item.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
+        transformedImage = SImageUtil.scaleAndRotate(image,rot,path,comp)
         lastPlayItem = item
     }
 
+    def unsetImage() = setImage(null,null)
+
     /** Rotate our image.  Caller is responsible for refreshing the screen. */
     def rotate(quarters:Int) {
-        if (imageBundle!=null)
-            imageBundle.rotate(quarters)
+        rot = ((rot + quarters +1 ) % 4) - 1
     }
 
     /** Paint our image on the page. */
@@ -104,14 +101,14 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     }
 
     private def paintImage(g2:Graphics2D) {
-        if (imageBundle==null)
+        if (transformedImage==null)
             return     //no image to paint
         val b:Rectangle = getBoundsInMargin()
-        val image:Image = imageBundle.getTransformedImage()
         val transform:AffineTransform = new AffineTransform()
         g2.translate(b.x,b.y)
-        scaleAndTranslate(g2,image.getWidth(null),image.getHeight(null),b.width,b.height)
-        g2.drawImage(image,transform,null)
+        scaleAndTranslate(g2,transformedImage.getWidth(null),
+            transformedImage.getHeight(null),b.width,b.height)
+        g2.drawImage(transformedImage,transform,null)
     }
 
     /** Given an area of specified size in user space, scale it to fit into
@@ -139,28 +136,4 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     }
 
     def getImageIndex() = imageIndex
-
-    override protected def addImageBundle(b:ImageBundle):Boolean = {
-        if (imageBundle!=null)
-            return false       //we already have an image
-        setImage(b)
-        true
-    }
-
-    //Add our area info to the specified PlayList
-    override def retrieveIntoPlayList(playList:PlayList):PlayList = {
-        val path = getImagePath()
-        if (path==null) {
-            //Create an empty item
-            val item:PlayItem = PlayItemS.emptyItem()
-            return playList.addItem(item)
-        } else {
-            val f:File = new File(path)
-            val baseDir:File = f.getParentFile()
-            val fileName:String = f.getName()
-            val rot:Int = imageBundle.getRotation()
-            val item:PlayItem = new PlayItemS(null,baseDir,fileName,rot)
-            return playList.addItem(item)
-        }
-    }
 }

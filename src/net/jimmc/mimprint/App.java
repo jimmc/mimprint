@@ -47,8 +47,6 @@ public class App implements ResourceSource {
     /** The time we started running. */
     protected long startTime;
 
-    private ImageUtil imageUtil;
-
     public static void setApp(App app0) {
         app = app0;
     }
@@ -63,27 +61,6 @@ public class App implements ResourceSource {
 
     public IAppFactory getFactory() {
         return factory;
-    }
-
-    /** Run the main stuff. */
-    public void doMain(String[] args) {
-/*
-        startTime = System.currentTimeMillis();
-        if (factory==null)
-            throw new RuntimeException("No factory");
-        initResources();
-        String aboutTitle = getResourceString("about.title");
-        String aboutInfo = getResourceString("about.info");
-        AboutWindow.setAboutTitle(aboutTitle);
-        AboutWindow.setAboutInfo(aboutInfo);
-        parseArgs(args);
-        if (target==null)
-            target = ".";    //default is to display current dir
-        viewer = new Viewer(this);
-        imageUtil = new ImageUtil(this,viewer);
-        viewer.show();        //open the main window
-        viewer.open(target);    //display the target
-*/
     }
 
     /** Parse our command line arguments. */
@@ -127,11 +104,6 @@ public class App implements ResourceSource {
             }
         }
     }
-
-        /** Get our ImageUtil object. */
-        public ImageUtil getImageUtil() {
-            return imageUtil;
-        }
 
     /** True if we should be using a big font. */
     public boolean useBigFont() {

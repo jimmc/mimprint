@@ -507,19 +507,6 @@ abstract class AreaLayout {
         }
     }
 
-    /** Add an ImageBundle to our first empty area.
-     * @return true if we had an empty area and we added them item there.
-     */
-    protected def addImageBundle(b:ImageBundle):Boolean = {
-        if (areas==null)
-            return false     //no subareas, nowhere to add
-        for (i <- 0 until areas.length) {
-            if (areas(i).addImageBundle(b))
-                return true
-        }
-        return false
-    }
-
     //Add all of our areas to the specified PlayList as items
     def retrieveIntoPlayList(playList:PlayList):PlayList = {
         var pl = playList

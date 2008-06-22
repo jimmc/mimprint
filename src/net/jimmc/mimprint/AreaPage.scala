@@ -148,13 +148,13 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                     val item = list.getItem(idx)
                     if (item.fileName==null || item.fileName=="") {
                         //Found an empty item
-                        img.setImage(null)
+                        img.unsetImage()
                     } else {
                         showItem(img,item)
                     }
                     return 1
                 } else {
-                    img.setImage(null)  //clear the image from this area
+                    img.unsetImage()  //clear the image from this area
                     return 0
                 }
             case _ =>   //fall through and process below
@@ -168,21 +168,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         idx - listIndex //number of items we used
     }
     private def showItem(img:AreaImageLayout, item:PlayItemS) {
-        img.setImage(item,new AreaPageImageWindow(img))
-    }
-    //A helper class during the java-to-scala conversion.
-    //Once we no longer use ImageBundle, we won't need this class.
-    class AreaPageImageWindow(img:AreaImageLayout) extends ImageWindow {
-        def createImage(width:Int, height:Int):java.awt.Image =
-            AreaPage.this.createImage(width,height)
-        def getComponent():java.awt.Component = AreaPage.this
-        def getWidth():Int = img.getBounds.width
-        def getHeight():Int = img.getBounds.height
-        def getToolkit():java.awt.Toolkit = AreaPage.this.getToolkit()
-        def requestFocus() {}
-        def showText(text:String) {}
-        def showImage(imageBundle:ImageBundle, imageInfo:String) {}
-        def setCursorBusy(busy:Boolean) {}
+        img.setImage(item,this)
     }
 
     /** Select the image area at the specified location. */
@@ -510,8 +496,6 @@ in an image area by 180 degrees, so we just use the r key for that.
         private def clearCurrentArea = {
             if (currentArea!=null && currentArea.hasImage) {
                 //clear image from current area
-                //currentArea.setImage(null)
-                //repaintCurrentImage()
                 val item = PlayItemS.emptyItem()
                 tracker ! PlayListRequestChange(playList, currentIndex, item)
             }
@@ -790,11 +774,6 @@ in an image area by 180 degrees, so we just use the r key for that.
         }
         currentArea = dropArea
         currentIndex = currentArea.getImageIndex
-        /*
-        val bundle = new ImageBundle(null,
-                new AreaPageImageWindow(dropArea),f,-1)
-        dropArea.setImage(bundle)
-        */
         val item = new PlayItemS(Nil,f.getParentFile,f.getName,0)
         tracker ! PlayListRequestSetItem(playList,dropArea.getImageIndex,item)
         //repaintCurrentImage()
