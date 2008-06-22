@@ -55,7 +55,7 @@ class PageLayout(app:SResources) {
         val margin = 500       //margin on outer edges
         val spacing = 250      //spacing between areas
 
-        areaLayout = AreaLayout.createDefaultTopLayout()
+        areaLayout = AreaLayoutFactory.createDefaultTopLayout()
 
         areaLayout.setMargins(margin)
         areaLayout.setSpacing(spacing)

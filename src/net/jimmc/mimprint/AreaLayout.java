@@ -21,10 +21,6 @@ import org.xml.sax.Attributes;
  */
 public abstract class AreaLayout {
    
-    public static AreaLayout createDefaultTopLayout() {
-        return new AreaImageLayout(0,0,0,0);
-    }
-
     //Our bounding box
     protected Rectangle bounds;
 
