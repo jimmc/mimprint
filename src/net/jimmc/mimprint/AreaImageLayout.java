@@ -144,7 +144,7 @@ public class AreaImageLayout extends AreaLayout {
     }
 
     private int imageIndex = -1;
-    protected int setImageIndexes(int start) {
+    public int setImageIndexes(int start) {
         imageIndex = start;
         return 1;
     }
@@ -161,7 +161,7 @@ public class AreaImageLayout extends AreaLayout {
     }
 
     //Add our area info to the specified PlayList
-    protected PlayList retrieveIntoPlayList(PlayList playList) {
+    public PlayList retrieveIntoPlayList(PlayList playList) {
         String path = getImagePath();
         if (path==null) {
             //Create an empty item

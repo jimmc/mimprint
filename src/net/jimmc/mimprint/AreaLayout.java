@@ -74,7 +74,7 @@ public abstract class AreaLayout {
     /** Set our parent layout.
      * @param parent Our parent layout, or null if we are the top level layout.
      */
-    protected void setParent(AreaLayout parent) {
+    public void setParent(AreaLayout parent) {
         this.parent = parent;
     }
 
@@ -86,7 +86,7 @@ public abstract class AreaLayout {
     }
 
     /** Set the tree depth of this area. */
-    protected void setTreeDepth(int n) {
+    public void setTreeDepth(int n) {
         this.treeDepth = n;
     }
 
@@ -110,7 +110,7 @@ public abstract class AreaLayout {
     }
 
     /** Set the tree location of this area. */
-    protected void setTreeLocation(String s) {
+    public void setTreeLocation(String s) {
         if (s==null)
             s = "";
         this.treeLocation = s;
@@ -148,7 +148,7 @@ public abstract class AreaLayout {
 
     //Set the image indexes of all of our images.
     //Return the number of image slots we have.
-    protected int setImageIndexes(int start) {
+    public int setImageIndexes(int start) {
         int origStart = start;
         for (int i=0; i<areas.length; i++) {
             start += areas[i].setImageIndexes(start);
@@ -167,7 +167,7 @@ public abstract class AreaLayout {
     /** Add an area to our list.
      * This is used when loading from an XML file.
      */
-    protected void addAreaLayout(AreaLayout area) {
+    public void addAreaLayout(AreaLayout area) {
         if (areas==null)
             throw new RuntimeException("areas not yet allocated");
         if (numAreas>=areas.length)
@@ -460,7 +460,7 @@ public abstract class AreaLayout {
             g2.setColor(oldColor); //restore previous color
     }
 
-    protected void writeTemplate(PrintWriter pw, int indent) {
+    public void writeTemplate(PrintWriter pw, int indent) {
         pw.print(getIndentString(indent));
         pw.print("<"+getTemplateElementName());
         writeTemplateElementAttributes(pw,indent);
@@ -558,7 +558,7 @@ public abstract class AreaLayout {
     }
 
     //Add all of our areas to the specified PlayList as items
-    protected PlayList retrieveIntoPlayList(PlayList playList) {
+    public PlayList retrieveIntoPlayList(PlayList playList) {
         if (areas!=null) {
             for (int i=0; i<areas.length; i++) {
                 playList = areas[i].retrieveIntoPlayList(playList);

@@ -52,6 +52,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         with SDragSource {
     protected[mimprint] var controls:AreaPageControls = null
 
+/*
     //Until we get PageLayout switched over to scala, use this class
     //as a converter.
     class ResConverter(res:SResources) extends net.jimmc.util.ResourceSource {
@@ -62,8 +63,9 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             res.getResourceFormatted(key, arg.asInstanceOf[Object])
     }
     private val resCvt = new ResConverter(viewer)
+*/
 
-    private var pageLayout = new PageLayout(resCvt)
+    private var pageLayout = new PageLayout(viewer)
     pageLayout.setDefaultLayout()
     private val pageColor = Color.white
     private var showOutlines:Boolean = true
@@ -121,7 +123,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
     }
 
-    def formatPageValue(n:Int) = PageLayout.formatPageValue(n)
+    def formatPageValue(n:Int) = PageValue.formatPageValue(n)
 
     def displayPlayList(playList:PlayListS) {
         /*val n =*/ displayPlayList(areaLayout,playList,0)
@@ -330,21 +332,21 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         var paperWidth:Double = oldPaper.getWidth()
         var paperHeight:Double = oldPaper.getHeight()
         var paperPageWidth:Double =
-                paperWidth*PageLayout.UNIT_MULTIPLIER/paperScale
+                paperWidth*PageValue.UNIT_MULTIPLIER/paperScale
         var paperPageHeight:Double =
-                paperHeight*PageLayout.UNIT_MULTIPLIER/paperScale
+                paperHeight*PageValue.UNIT_MULTIPLIER/paperScale
         val widthDiff:Double = Math.abs(pageWidth - paperPageWidth)
         val heightDiff:Double = Math.abs(pageHeight - paperPageHeight)
-        if (widthDiff>0.5/PageLayout.UNIT_MULTIPLIER ||
-                heightDiff>0.5/PageLayout.UNIT_MULTIPLIER) {
+        if (widthDiff>0.5/PageValue.UNIT_MULTIPLIER ||
+                heightDiff>0.5/PageValue.UNIT_MULTIPLIER) {
             //Ask user if he wants to continue, and whether he wants to
             //scale the output to fill the paper, or print at the same scale
             //as if the right paper was there.
             val introStr =
                     viewer.getResourceString("prompt.Print.PageSizeMismatch")
             val pageSizeArgs = Array(
-                pageWidth.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER,
-                pageHeight.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER
+                pageWidth.asInstanceOf[Double]/PageValue.UNIT_MULTIPLIER,
+                pageHeight.asInstanceOf[Double]/PageValue.UNIT_MULTIPLIER
             ) ++ Array(
                 if (pageUnit==PageLayout.UNIT_INCH) "in" else "cm"
             )
@@ -354,8 +356,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             val pageSizeStr = viewer.getResourceFormatted(
                     "prompt.Print.PageSizeMismatch.PageSize",pageSizeArgs)
             val paperSizeArgs = Array(
-                paperPageWidth.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER,
-                paperPageHeight.asInstanceOf[Double]/PageLayout.UNIT_MULTIPLIER
+                paperPageWidth.asInstanceOf[Double]/PageValue.UNIT_MULTIPLIER,
+                paperPageHeight.asInstanceOf[Double]/PageValue.UNIT_MULTIPLIER
             ) ++ Array(
                 if (pageUnit==PageLayout.UNIT_INCH) "in" else "cm"
             )
@@ -864,7 +866,7 @@ in an image area by 180 degrees, so we just use the r key for that.
 
     //Read a layout from a template file and set it as our layout
     def loadLayoutTemplate(f:File) {
-        val newPageLayout = new PageLayout(resCvt)
+        val newPageLayout = new PageLayout(viewer)
         newPageLayout.loadLayoutTemplate(f)
         setPageLayout(newPageLayout)
     }

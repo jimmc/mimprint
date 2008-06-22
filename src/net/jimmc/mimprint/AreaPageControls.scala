@@ -92,8 +92,8 @@ class AreaPageControls(val frame:SFrame,
         unitsField = new SComboBox(frame)(
                 unitsSelected(unitsField.getSelectedIndex()))
         val initialUnitsItems = Array("cm", "in")
-            //These match the values of PageLayout.UNIT_CM and
-            //PageLayout.UNIT_INCH in AreaPage.
+            //These match the values of PageValue.UNIT_CM and
+            //PageValue.UNIT_INCH in AreaPage.
         unitsField.setItems(initialUnitsItems.asInstanceOf[Array[Any]])
         add(unitsField)
 
@@ -502,7 +502,7 @@ class AreaPageControls(val frame:SFrame,
     private def setPageWidth(s:String) {
         assertPageSelected()
         val width = java.lang.Double.parseDouble(s)
-        val w = (width*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+        val w = (width*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
         areaPage.pageWidth = w
         areaPage.repaint()
     }
@@ -510,7 +510,7 @@ class AreaPageControls(val frame:SFrame,
     private def setPageHeight(s:String) {
         assertPageSelected()
         val height = java.lang.Double.parseDouble(s)
-        val h = (height*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+        val h = (height*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
         areaPage.pageHeight = h
         areaPage.repaint()
     }
@@ -519,23 +519,23 @@ class AreaPageControls(val frame:SFrame,
         val a = getSelectedArea()
         val marginStrs = marginStr.split(",")
         var d = java.lang.Double.parseDouble(marginStrs(0))
-        var m = (d*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+        var m = (d*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
         a.setMargins(m)
         if (marginStrs.length>1) {
             val margins0:Insets = a.getMargins()
             val margins = new Insets(margins0.top, margins0.left,
                     margins0.bottom, margins0.right);
             d = java.lang.Double.parseDouble(marginStrs(1));
-            m = (d*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+            m = (d*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
             margins.right = m
             if (marginStrs.length>2) {
                 d = java.lang.Double.parseDouble(marginStrs(2))
-                m = (d*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+                m = (d*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
             }
             margins.top = m
             if (marginStrs.length>3) {
                 d = java.lang.Double.parseDouble(marginStrs(3))
-                m = (d*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+                m = (d*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
             }
             margins.bottom = m
             a.setMargins(margins)
@@ -548,13 +548,13 @@ class AreaPageControls(val frame:SFrame,
         val a = getSelectedArea()
         val spacingStrs = spacingStr.split(",")
         var d = java.lang.Double.parseDouble(spacingStrs(0))
-        var m = (d*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+        var m = (d*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
         a.setSpacing(m)
         if (spacingStrs.length>1) {
             var spacing:Dimension = a.getSpacing()
             spacing = new Dimension(spacing)
             d = java.lang.Double.parseDouble(spacingStrs(1))
-            m = (d*PageLayout.UNIT_MULTIPLIER).asInstanceOf[Int]
+            m = (d*PageValue.UNIT_MULTIPLIER).asInstanceOf[Int]
             spacing.height = m
             a.setSpacing(spacing)
         }
