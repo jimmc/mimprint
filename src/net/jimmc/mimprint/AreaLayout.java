@@ -20,7 +20,11 @@ import org.xml.sax.Attributes;
  * Subclasses must provide a way to define the areas.
  */
 public abstract class AreaLayout {
-    
+   
+    public static AreaLayout createDefaultTopLayout() {
+        return new AreaImageLayout(0,0,0,0);
+    }
+
     //Our bounding box
     protected Rectangle bounds;
 
@@ -195,16 +199,16 @@ public abstract class AreaLayout {
         /* use <margin> element instead...
         marginStr = attrs.getValue("marginLeft");
         if (marginStr!=null)
-            margins.left = PageLayout.parsePageValue(marginStr);
+            margins.left = PageValue.parsePageValue(marginStr);
         marginStr = attrs.getValue("marginRight");
         if (marginStr!=null)
-            margins.right = PageLayout.parsePageValue(marginStr);
+            margins.right = PageValue.parsePageValue(marginStr);
         marginStr = attrs.getValue("marginTop");
         if (marginStr!=null)
-            margins.top = PageLayout.parsePageValue(marginStr);
+            margins.top = PageValue.parsePageValue(marginStr);
         marginStr = attrs.getValue("marginBottom");
         if (marginStr!=null)
-            margins.bottom = PageLayout.parsePageValue(marginStr);
+            margins.bottom = PageValue.parsePageValue(marginStr);
         */
 
         String spacingStr = attrs.getValue("spacing");
@@ -214,10 +218,10 @@ public abstract class AreaLayout {
         /* use <spacing> element instead ....
         spacingStr = attrs.getValue("spacingWidth");
         if (spacingStr!=null)
-            spacing.width = PageLayout.parsePageValue(spacingStr);
+            spacing.width = PageValue.parsePageValue(spacingStr);
         spacingStr = attrs.getValue("spacingHeight");
         if (spacingStr!=null)
-            spacing.height = PageLayout.parsePageValue(spacingStr);
+            spacing.height = PageValue.parsePageValue(spacingStr);
         */
     }
 
@@ -260,17 +264,17 @@ public abstract class AreaLayout {
      */
     public void setMargins(String marginsStr) {
         String[] marginStrs = marginsStr.split(",");
-        setMargins(PageLayout.parsePageValue(marginStrs[0]));
+        setMargins(PageValue.parsePageValue(marginStrs[0]));
         if (marginStrs.length>1) {
             //If 2 or 3 margin values specified, the last value
             //is repeated for the unspecified margins
-            int m = PageLayout.parsePageValue(marginStrs[1]);
+            int m = PageValue.parsePageValue(marginStrs[1]);
             margins.right = m;
             if (marginStrs.length>2)
-                m = PageLayout.parsePageValue(marginStrs[2]);
+                m = PageValue.parsePageValue(marginStrs[2]);
             margins.top = m;
             if (marginStrs.length>3)
-                m = PageLayout.parsePageValue(marginStrs[3]);
+                m = PageValue.parsePageValue(marginStrs[3]);
             margins.bottom = m;
         }
     }
@@ -299,9 +303,9 @@ public abstract class AreaLayout {
      */
     public void setSpacing(String spacingsStr) {
         String[] spacingStrs = spacingsStr.split(",");
-        setSpacing(PageLayout.parsePageValue(spacingStrs[0]));
+        setSpacing(PageValue.parsePageValue(spacingStrs[0]));
         if (spacingStrs.length>1) {
-            int m = PageLayout.parsePageValue(spacingStrs[1]);
+            int m = PageValue.parsePageValue(spacingStrs[1]);
             spacing.height = m;
         }
     }
@@ -470,10 +474,10 @@ public abstract class AreaLayout {
                 bodyStarted = true;
             }
             printlnIndented(pw,indent+1,"<margins"+
-                " left=\""+PageLayout.formatPageValue(margins.left)+"\""+
-                " right=\""+PageLayout.formatPageValue(margins.right)+"\""+
-                " top=\""+PageLayout.formatPageValue(margins.top)+"\""+
-                " bottom=\""+PageLayout.formatPageValue(margins.bottom)+"\""+
+                " left=\""+PageValue.formatPageValue(margins.left)+"\""+
+                " right=\""+PageValue.formatPageValue(margins.right)+"\""+
+                " top=\""+PageValue.formatPageValue(margins.top)+"\""+
+                " bottom=\""+PageValue.formatPageValue(margins.bottom)+"\""+
                 "/>");
         }
 
@@ -484,8 +488,8 @@ public abstract class AreaLayout {
                 bodyStarted = true;
             }
             printlnIndented(pw,indent+1,"<spacing"+
-                " width=\""+PageLayout.formatPageValue(spacing.width)+"\""+
-                " height=\""+PageLayout.formatPageValue(spacing.height)+"\""+
+                " width=\""+PageValue.formatPageValue(spacing.width)+"\""+
+                " height=\""+PageValue.formatPageValue(spacing.height)+"\""+
                 "/>");
         }
 
@@ -510,32 +514,32 @@ public abstract class AreaLayout {
                 margins.top==margins.bottom) {
             //All margins are the same
             pw.print(" margin=\""+
-                    PageLayout.formatPageValue(margins.left)+"\"");
+                    PageValue.formatPageValue(margins.left)+"\"");
         } else {
             //margins are not all the same, print them all
             /* print separate <margins> element later....
             pw.print(" marginLeft=\""+
-                    PageLayout.formatPageValue(margins.left)+"\"");
+                    PageValue.formatPageValue(margins.left)+"\"");
             pw.print(" marginRight=\""+
-                    PageLayout.formatPageValue(margins.right)+"\"");
+                    PageValue.formatPageValue(margins.right)+"\"");
             pw.print(" marginTop=\""+
-                    PageLayout.formatPageValue(margins.top)+"\"");
+                    PageValue.formatPageValue(margins.top)+"\"");
             pw.print(" marginBottom=\""+
-                    PageLayout.formatPageValue(margins.bottom)+"\"");
+                    PageValue.formatPageValue(margins.bottom)+"\"");
             */
         }
 
         if (spacing.width==spacing.height) {
             //Both spacings are the same
             pw.print(" spacing=\""+
-                    PageLayout.formatPageValue(spacing.width)+"\"");
+                    PageValue.formatPageValue(spacing.width)+"\"");
         } else {
             //Spacings are different, print both
             /* Print separate <spacing> element later....
             pw.print(" spacingWidth=\""+
-                    PageLayout.formatPageValue(spacing.width)+"\"");
+                    PageValue.formatPageValue(spacing.width)+"\"");
             pw.print(" spacingHeight=\""+
-                    PageLayout.formatPageValue(spacing.height)+"\"");
+                    PageValue.formatPageValue(spacing.height)+"\"");
             */
         }
     }

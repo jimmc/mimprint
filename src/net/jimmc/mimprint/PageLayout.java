@@ -12,7 +12,6 @@ import java.awt.Insets;
 import java.io.File;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
 import java.util.Stack;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -33,7 +32,6 @@ public class PageLayout {
     private int pageUnit;    //name of our units, e.g. "in", "cm"
         public final static int UNIT_CM = 0;    //metric
         public final static int UNIT_INCH = 1;  //english
-        public final static int UNIT_MULTIPLIER = 1000;
     //The actual values we store in our various dimension fields
     //are the units times the multiplier.  For example, we
     //would represent 8.5 inches as 8500.
@@ -169,8 +167,8 @@ public class PageLayout {
         //TODO - write out DTD line?
         String pageLineFmt = "<page width=\"{0}\" height=\"{1}\" unit=\"{2}\">";
         Object[] pageLineArgs = {
-            formatPageValue(getPageWidth()),
-            formatPageValue(getPageHeight()),
+            PageValue.formatPageValue(getPageWidth()),
+            PageValue.formatPageValue(getPageHeight()),
             (getPageUnit()==PageLayout.UNIT_CM)?"cm":"in"
         };
         pw.println(MessageFormat.format(pageLineFmt,pageLineArgs));
@@ -196,33 +194,6 @@ public class PageLayout {
         } catch (Exception ex) { //SAXException, IOException
             throw new RuntimeException("Error parsing xml",ex);
         }
-    }
-
-    private static void initPageValueFormat() {
-        if (pageValueFormat==null) {
-            pageValueFormat = NumberFormat.getNumberInstance();
-            pageValueFormat.setMaximumFractionDigits(3);
-        }
-    }
-    private static NumberFormat pageValueFormat;
-
-    public static String formatPageValue(int n) {
-        initPageValueFormat();
-        double d = ((double)n)/UNIT_MULTIPLIER;
-        return pageValueFormat.format(new Double(d));
-    }
-
-    protected static int parsePageValue(String s) {
-        if (s==null) {
-            //SAX eats our exceptions and doesn't print out the trace,
-            //so we print it out here before returning
-            NullPointerException ex = new NullPointerException(
-                    "No value for parsePageValue");
-            ex.printStackTrace();
-            throw ex;
-        }
-        double d = Double.parseDouble(s);
-        return (int)(d*UNIT_MULTIPLIER);
     }
 
     /** Get a string from our resources. */
@@ -275,10 +246,10 @@ public class PageLayout {
             String rightStr = attrs.getValue("right");
             String topStr = attrs.getValue("top");
             String bottomStr = attrs.getValue("bottom");
-            int left = (leftStr==null)?0:parsePageValue(leftStr);
-            int right = (rightStr==null)?0:parsePageValue(rightStr);
-            int top = (topStr==null)?0:parsePageValue(topStr);
-            int bottom = (bottomStr==null)?0:parsePageValue(bottomStr);
+            int left = (leftStr==null)?0:PageValue.parsePageValue(leftStr);
+            int right = (rightStr==null)?0:PageValue.parsePageValue(rightStr);
+            int top = (topStr==null)?0:PageValue.parsePageValue(topStr);
+            int bottom = (bottomStr==null)?0:PageValue.parsePageValue(bottomStr);
             if (currentArea!=null)
                 currentArea.setMargins(new Insets(top,left,bottom,right));
             else
@@ -289,8 +260,8 @@ public class PageLayout {
         private void loadSpacing(Attributes attrs) {
             String widthStr = attrs.getValue("width");
             String heightStr = attrs.getValue("height");
-            int width = (widthStr==null)?0:parsePageValue(widthStr);
-            int height = (heightStr==null)?0:parsePageValue(heightStr);
+            int width = (widthStr==null)?0:PageValue.parsePageValue(widthStr);
+            int height = (heightStr==null)?0:PageValue.parsePageValue(heightStr);
             if (currentArea!=null)
                 currentArea.setSpacing(new Dimension(width,height));
             else
@@ -306,8 +277,8 @@ public class PageLayout {
                 String msg = getResourceString("error.PageDimensionsRequired");
                 throw new IllegalArgumentException(msg);
             }
-            setPageWidth(parsePageValue(widthStr));
-            setPageHeight(parsePageValue(heightStr));
+            setPageWidth(PageValue.parsePageValue(widthStr));
+            setPageHeight(PageValue.parsePageValue(heightStr));
             String unitStr = attrs.getValue("unit");
             if ("cm".equalsIgnoreCase(unitStr))
                 setPageUnit(UNIT_CM);
