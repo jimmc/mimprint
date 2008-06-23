@@ -8,7 +8,6 @@ package net.jimmc.swing
 
 import net.jimmc.util.BasicQueries
 import net.jimmc.util.SResources
-import net.jimmc.util.MoreException
 import net.jimmc.util.UserException
 
 import java.awt.Component
@@ -208,7 +207,7 @@ trait FileDialogs { this: BasicQueries =>
         } catch {
             case ex:IOException =>
                 //TBD - handle this exception?
-                throw new MoreException(ex)
+                throw new RuntimeException(ex)
         }
     }
 

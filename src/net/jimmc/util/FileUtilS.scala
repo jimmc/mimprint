@@ -5,8 +5,11 @@
 
 package net.jimmc.util
 
+import java.io.BufferedReader
 import java.io.File
 import java.io.FilenameFilter
+import java.io.FileReader
+import java.io.FileWriter
 import java.util.Arrays
 
 import scala.collection.mutable.ArrayBuffer
@@ -35,7 +38,7 @@ object FileUtilS {
     def collapseRelative(path:String) : String = {
         val p1:Array[String] = path.split(File.separator)
         val parts:ArrayBuffer[String] = new ArrayBuffer
-        p1.copyToBuffer(parts);
+        p1.copyToBuffer(parts)
         var i = 0
         while (i < parts.length) {
             if (parts(i)==".")
@@ -109,7 +112,7 @@ object FileUtilS {
         if (parentDir==null)
             parentDir = new File(".")
         var siblings = parentDir.list()
-        var dirIndex=0;
+        var dirIndex=0
         if (siblings!=null) {
             Arrays.sort(siblings.asInstanceOf[Array[Object]])
             val dirName = dir.getName()
@@ -132,11 +135,36 @@ object FileUtilS {
             if (siblings!=null && siblings.length!=0) {
                 Arrays.sort(siblings.asInstanceOf[Array[Object]])
                 if (newDirIndex<0)    //backing up
-                    newDirIndex = siblings.length-1;
+                    newDirIndex = siblings.length-1
                 else
                     newDirIndex = 0
             }
         }
         new File(parentDir,siblings(newDirIndex))
+    }
+
+    /** Read in a text file, return the contents as a string. */
+    def readFile(f:File):String = {
+	    //throws FileNotFoundException, IOException
+	val fr = new FileReader(f)
+	val br = new BufferedReader(fr)
+	val sb = new StringBuffer()
+	var line = br.readLine()
+        while (line!=null) {
+	    sb.append(line)
+	    sb.append("\n")
+            line = br.readLine()
+	}
+	br.close()
+	sb.toString()
+    }
+
+    /** Write text out to a file.
+     */
+    def writeFile(f:File, contents:String) {
+	    //throws IOException
+	val writer = new FileWriter(f)
+	writer.write(contents)
+	writer.close()
     }
 }

@@ -12,7 +12,7 @@ import net.jimmc.swing.SFrame
 import net.jimmc.swing.SMenuItem
 import net.jimmc.swing.SwingS
 import net.jimmc.util.AsyncUi
-import net.jimmc.util.FileUtil
+import net.jimmc.util.FileUtilS
 import net.jimmc.util.Subscribe
 import net.jimmc.util.Subscriber
 import net.jimmc.util.UserException
@@ -688,7 +688,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         val textToWrite = if (text.endsWith("\n")) text else text+"\n"
         val textPath = FileInfo.getTextFileNameForImage(imagePath)
         val f = new File(textPath)
-        FileUtil.writeFile(f,text)
+        FileUtilS.writeFile(f,text)
     }
 
     /** Save the current layout to a named file. */

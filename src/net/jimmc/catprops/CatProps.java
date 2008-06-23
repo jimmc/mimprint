@@ -5,8 +5,6 @@
 
 package net.jimmc.catprops;
 
-import net.jimmc.util.StringUtil;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +39,7 @@ public class CatProps {
 	    }
 	    else if (args[n].equalsIgnoreCase("-sourcepath")) {
 		String sp = args[++n];	//list of source files as a path
-		String[] ff = StringUtil.toArray(sp,File.pathSeparatorChar);
+                String[] ff = sp.split(File.pathSeparator);
 		for (int i=0; i<ff.length; i++) {
 		    fileV.addElement(ff[i]);	//add all files to the list
 		}

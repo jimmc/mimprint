@@ -6,7 +6,7 @@
 
 package net.jimmc.mimprint
 
-import net.jimmc.util.FileUtil
+import net.jimmc.util.FileUtilS
 import net.jimmc.util.ZoneInfo
 
 import java.io.File
@@ -167,7 +167,7 @@ class FileInfo(
             if (textPath==null)
                 return null
             val f = new File(textPath)
-            val text = FileUtil.readFile(f)
+            val text = FileUtilS.readFile(f)
             text
         } catch {
             case ex:FileNotFoundException =>
