@@ -29,7 +29,8 @@ abstract class AreaLayout {
     protected var margins:Insets = _
 
     //Our internal spacing
-    protected var spacing:Dimension = _        //width is width of gap between areas
+    protected var spacing:Dimension = _        
+            //width is width of gap between areas
 
     //The thickness to draw our area borders
     protected var borderThickness:Int = _

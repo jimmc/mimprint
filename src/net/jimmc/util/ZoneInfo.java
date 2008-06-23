@@ -67,7 +67,7 @@ Boston, MA  02111-1307, USA.
  * tested with GregorianCalendar
  *
  */
-package net.jimmc.mimprint;
+package net.jimmc.util;
 
 import java.io.*;
 import java.util.TimeZone;
