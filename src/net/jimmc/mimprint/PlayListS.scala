@@ -27,6 +27,9 @@ class PlayListS(
             //Header comments for the whole file
         ) {
 
+    if (items==null)
+        throw new NullPointerException("PlayList items must not be null")
+
     override def equals(that:Any):Boolean = {
         that match {
         case other:PlayListS =>
@@ -78,7 +81,7 @@ class PlayListS(
     }
 
     /** Return the number of items in the playlist. */
-    def size() = if (items==null) 0 else items.length
+    def size() = items.length
 
     /** Count the number of non-empty items. */
     def countNonEmpty():Int =
@@ -86,15 +89,7 @@ class PlayListS(
 
     def getItem(n:Int) = items(n)
 
-    def getFileNames():Array[String] = {
-        val fileNames = new Array[String](size())
-        if (size>0) {
-            for (i <- 0 until items.length) {
-                fileNames(i) = items(i).getFileName()
-            }
-        }
-        fileNames
-    }
+    def getFileNames():Array[String] = items.map(_.getFileName())
 
     /** Save our playlist to a file. */
     def save(filename:String):Unit = save(new File(filename))
@@ -127,11 +122,9 @@ object PlayListS {
     def apply(ui:BasicUi,
             base:File, filenames:Array[String], start:Int, length:Int):
             PlayListS = {
-        val items = new ArrayBuffer[PlayItemS]
-        for (i <- 0 until length) {
-            items += new PlayItemS(null,base,filenames(i+start),0)
-        }
-        new PlayListS(ui,base,items.toArray,Nil)
+        val items = filenames.slice(start,start+length).map(
+                new PlayItemS(null,base,_,0)).toArray
+        new PlayListS(ui,base,items,Nil)
     }
 
     /** Load a playlist from a file. */

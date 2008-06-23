@@ -27,19 +27,6 @@ object StringUtil {
 
     /** Get the number of lines of text in the string. */
     def getLineCount(s:String):Int = {
-	if (s==null || s=="")
-	    return 0
-	var n = 0	//number of newlines found
-	var b = 0	//pointer to beginning of line
-        var brk = false
-	while (b<s.length()) {
-	    b = s.indexOf("\n",b)
-	    if (b<0)
-		brk = true
-            else
-                b = b+1
-                n = n+1
-	}
-	n+1
+        s.filter(_=='\n').length + 1
     }
 }

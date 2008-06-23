@@ -6,22 +6,19 @@
 
 package net.jimmc.mimprint
 
-import java.awt.Color
 import java.awt.Component
 import java.awt.geom.AffineTransform
 import java.awt.Graphics2D
 import java.awt.Image
-import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
-import java.io.PrintWriter
 
 class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     setBounds(x,y,width,height)
 
     private var item:PlayItemS = _       //the item we are displaying
-    private var path:String = _         //path from the item
-    private var image:Image = null      //the image we are displaying
+    var path:String = _         //path from the item
+    var image:Image = null      //the image we are displaying
     private var rot:Int = 0             //the rotation at which we display it
     private var transformedImage:Image = null
             //our image after scale and rotation to page coordinates
@@ -40,30 +37,27 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         //do nothing
     }
 
-    /** Get the path to our image, or null if no image. */
-    def getImagePath():String = path
-
-    /** Get our image object.  May be null. */
-    def getImage():Image = image
-
     def hasImage() = image!=null
 
-    private var lastPlayItem:PlayItemS = _
-    def setImage(item:PlayItemS, comp:Component) {
-        if (lastPlayItem!=null &&
-                item.toString().equals(lastPlayItem.toString())) {
+    def setImage(newItem:PlayItemS, comp:Component) {
+        if (newItem==item)
+            return      //Same image as before, ignore the update.
+        /*
+        if (item!=null &&
+                newItem.toString().equals(item.toString())) {
             //The image is the same image as before, so ignore the update.
             return
         }
-        if (item==null) {
+        */
+        if (newItem==null) {
             path = null
             image = null
             transformedImage = null
             rot = 0
-            lastPlayItem = null
+            item = null
             return
         }
-        path = new File(item.baseDir,item.fileName).getPath
+        path = new File(newItem.baseDir,newItem.fileName).getPath
         image = comp.getToolkit().createImage(path)
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
@@ -77,9 +71,9 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         //90 degrees in the printable area, if he wants that
         //he must tweak that area's size to change the
         //aspect ratio.
-        rot = (item.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
+        rot = (newItem.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
         transformedImage = SImageUtil.scaleAndRotate(image,rot,path,comp)
-        lastPlayItem = item
+        item = newItem
     }
 
     def unsetImage() = setImage(null,null)

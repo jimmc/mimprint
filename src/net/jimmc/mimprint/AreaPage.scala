@@ -137,7 +137,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                         //Found an empty item
                         img.unsetImage()
                     } else {
-                        showItem(img,item)
+                        img.setImage(item,this)
                     }
                     return 1
                 } else {
@@ -153,9 +153,6 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
             idx = idx + dAreaCount
         }
         idx - listIndex //number of items we used
-    }
-    private def showItem(img:AreaImageLayout, item:PlayItemS) {
-        img.setImage(item,this)
     }
 
     /** Select the image area at the specified location. */
@@ -545,12 +542,12 @@ in an image area by 180 degrees, so we just use the r key for that.
             dragArea = a
             if (a==null)
                 return     //not in an area, can't start a drag here
-            val path = a.getImagePath()
+            val path = a.path
             if (path==null)
                 return     //no image in this area, can't start a drag
             val fullImage:Image =
                 if (DragSource.isDragImageSupported())
-                    a.getImage()
+                    a.image
                 else
                     null   //image dragging not supported
             var image:Image = null     //image to drag
@@ -653,16 +650,11 @@ in an image area by 180 degrees, so we just use the r key for that.
             //println("dropped")
             val flavors:Array[DataFlavor] = getDropFlavors()
             var chosenFlavor:DataFlavor = null
-            for (i <- 0 until flavors.length) {
-                //TODO - replace this loop with a find or findIndexOf?
-                if (ev.isDataFlavorSupported(flavors(i))) {
-                    chosenFlavor = flavors(i)
-                    //break
-                }
-            }
-            if (chosenFlavor==null) {
-                ev.dropComplete(false)
-                return       //no support for any flavors
+            flavors.find(ev.isDataFlavorSupported(_)) match {
+                case Some(f) => chosenFlavor = f
+                case None =>
+                    ev.dropComplete(false)
+                    return       //no support for any flavors
             }
 
             val sourceActions:Int = ev.getSourceActions()
@@ -783,15 +775,11 @@ in an image area by 180 degrees, so we just use the r key for that.
     private def getDropArea(ev:DropTargetDragEvent):AreaImageLayout = {
         val flavors = getDropFlavors()
         var chosenFlavor:DataFlavor = null
-        for (i <- 0 until flavors.length) {
-            if (ev.isDataFlavorSupported(flavors(i))) {
-                chosenFlavor = flavors(i)
-                //break
-            }
-        }
-        if (chosenFlavor==null) {
-            println("No supported flavor")
-            return null       //no support for any flavors
+        flavors.find(ev.isDataFlavorSupported(_)) match {
+            case Some(f) => chosenFlavor = f
+            case None =>
+                println("No supported flavor")
+                return null       //no support for any flavors
         }
 
         val sourceActions = ev.getSourceActions()
@@ -821,6 +809,12 @@ in an image area by 180 degrees, so we just use the r key for that.
         currentArea = null
         controls.updateAllAreasList()
         controls.selectArea(new Point(0,0))
+        displayPlayList(playList)
+        repaint()
+    }
+
+    def refresh() {
+        fixImageIndexes()
         displayPlayList(playList)
         repaint()
     }

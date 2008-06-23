@@ -95,10 +95,7 @@ class AreaSplitLayout extends AreaLayout {
     def revalidate() {
         if (valid)
             return             //nothing required
-        val newAreas:Array[AreaLayout] = allocateAreas()
-        if (areas!=null)
-            transferImages(areas,newAreas)
-        areas = newAreas
+        areas = allocateAreas()
         revalidateChildren()
     }
 
@@ -124,18 +121,6 @@ class AreaSplitLayout extends AreaLayout {
                 aa(1).setBorderThickness(getBorderThickness())
         }
         aa
-    }
-
-    private def transferImages(fromAreas:Array[AreaLayout],
-            toAreas:Array[AreaLayout]) {
-        for (i <- 0 until 2) {
-            val fromArea:AreaLayout = fromAreas(i)
-            val toArea:AreaLayout = toAreas(i)
-            fromArea.setBounds(toArea.getBounds())
-                //change size of old to same as new
-            toAreas(i) = fromArea
-                //then use old as new
-        }
     }
 
     override protected def writeTemplateElementAttributes(

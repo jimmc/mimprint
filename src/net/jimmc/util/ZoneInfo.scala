@@ -491,7 +491,7 @@ class ZoneInfo(f:File) extends TimeZone /*throws IOException*/ {
     var offset = getTZ(ts).offset
     var y = leapSecs.length - 2
     var brk = false
-    while (y >= 0) {
+    while (y >= 0 && !brk) {
       val ls_trans = leapSecs(y)
       val ls_corr = leapSecs(y+1)
       if (ts >= ls_trans) {
@@ -557,7 +557,7 @@ class ZoneInfo(f:File) extends TimeZone /*throws IOException*/ {
     if (transTimes.length > 0 && clock >= transTimes(0)) {
       var i = 1
       var brk = false
-      while (i < transTimes.length) {
+      while (i < transTimes.length && !brk) {
         if (clock < transTimes(i)) brk=true
         else i = i + 1
       }
@@ -631,7 +631,7 @@ class ZoneInfo(f:File) extends TimeZone /*throws IOException*/ {
 
     var y = leapSecs.length - 2
     var brk = false
-    while (y >= 0) {
+    while (y >= 0 && !brk) {
       val ls_trans = leapSecs(y)
       val ls_corr = leapSecs(y+1)
       if (clock >= ls_trans) {

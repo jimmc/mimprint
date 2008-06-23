@@ -65,30 +65,14 @@ object FileInfo {
 
     /** Get an int from the string. */
     private def getLongFromString(s:String):Long = {
-        val len = s.length()
-        var i:Int = 0
-        var brk = false
-        while (i<len && !brk) {
-            var c = s.charAt(i)
-            if (Character.isDigit(c) && c!='0')
-                brk = true    //found a digit
-            i = i + 1
-        }
-        var n:Long = 0
-        brk = false
-        while (i<len && !brk) {
-            val c = s.charAt(i)
-            if (!Character.isDigit(c))
-                brk = true
-            else {
-                val n0:Long = Character.digit(c,10)
-                n *= 10
-                if (n0>=0)
-                    n += n0
-                i = i + 1
-            }
-        }
-        n
+        val firstDigit = s.findIndexOf(Character.isDigit(_))
+        if (firstDigit<0)
+            return 0    //no digits in this string
+        val sRem = s.substring(firstDigit)
+        val firstNonDigit = sRem.findIndexOf(!Character.isDigit(_))
+        val sDigits = if (firstNonDigit<0) sRem
+                      else sRem.substring(0,firstNonDigit)
+        java.lang.Long.parseLong(sDigits)
     }
 
     /** Get the name of the text file which contains the info

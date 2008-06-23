@@ -138,11 +138,10 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         dirCount = dirNames.length
         fileCount = playableFileNames.length
         fileNames = dirNames ++ playableFileNames
-        val newFileInfos = new Array[FileInfo](fileNames.length)
-        for (i <- 0 until fileNames.length) {
-            newFileInfos(i) =
+        val newFileInfos:Array[FileInfo] =
+            (0 until fileNames.length).map((i:Int) =>
                 new FileInfo(i,dirCount,fileCount,targetDirectory,fileNames(i))
-        }
+            ).toArray
         //Do the actual updating on the event thread to avoid race conditions
         SwingS.invokeLater {
             try {

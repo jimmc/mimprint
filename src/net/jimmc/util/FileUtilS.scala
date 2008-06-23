@@ -94,7 +94,7 @@ object FileUtilS {
         var a = a0
         var b = b0
         var n = 0
-        while (!a.isEmpty && !b.isEmpty && a.headOption.get==b.headOption.get) {
+        while (!a.isEmpty && !b.isEmpty && a(0)==b(0)) {
             n = n + 1
             a = a.drop(1)
             b = b.drop(1)

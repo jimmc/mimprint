@@ -131,9 +131,8 @@ object PlayItemS {
             val lineTrimmed = line.trim()
             val parts = lineTrimmed.split(";");
             fileName = parts(0)
-            for (i <- 1 until parts.length) {
-                setImageOption(parts(i))
-            }
+            parts.slice(1).foreach(setImageOption(_))
+                //everything after the first part is an option
         }
 
         //process one image option

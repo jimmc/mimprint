@@ -69,8 +69,7 @@ class PageLayout(app:SResources) {
     }
 
     /** Set the descriptive text for this layout. */
-    def setDescription(description:String) =
-        this.description = description
+    def setDescription(description:String) = this.description = description
 
     def getDescription():String = description
 
@@ -130,11 +129,6 @@ class PageLayout(app:SResources) {
     }
 
     def getAreaLayout():AreaLayout = areaLayout
-
-    /** Build a playlist. */
-    protected def retrieveIntoPlayList(playList:PlayListS):PlayListS = {
-        areaLayout.retrieveIntoPlayList(playList)
-    }
 
     /** Write the current layout template. */
     def writeLayoutTemplate(pw:PrintWriter) {

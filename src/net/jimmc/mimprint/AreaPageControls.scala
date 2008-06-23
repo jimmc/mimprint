@@ -15,7 +15,6 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Insets
 import java.awt.Point
-import java.util.Vector
 import javax.accessibility.Accessible
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -23,6 +22,8 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.plaf.basic.ComboPopup
 import javax.swing.SpinnerNumberModel
+
+import scala.collection.mutable.ArrayBuffer
 
 class AreaPageControls(val frame:SFrame,
         val multi:PlayViewMulti, val areaPage:AreaPage)
@@ -102,14 +103,14 @@ class AreaPageControls(val frame:SFrame,
         add(rowCountLabel)
         val rowCountModel = new SpinnerNumberModel(1,1,99,1)
         rowCountField = new SSpinner(frame,prefix+".rowCount",rowCountModel)(
-                setRowColumnCount())
+                setRowOrColumnCount())
         add(rowCountField)
 
         columnCountLabel = makeLabel("Columns")
         add(columnCountLabel)
         val columnCountModel = new SpinnerNumberModel(1,1,99,1)
         columnCountField = new SSpinner(frame,prefix+".columnCount",
-                columnCountModel)(setRowColumnCount())
+                columnCountModel)(setRowOrColumnCount())
         add(columnCountField)
 
         //Set up the Split fields
@@ -225,11 +226,10 @@ class AreaPageControls(val frame:SFrame,
      * to update our list of all areas. */
     def updateAllAreasList() {
         val a = areaPage.areaLayout
-        val v = new Vector[AreaLayout]()
-        v.addElement(a)       //put the top item into the list
-        a.getAreaList(v)     //put all children into the list
-        allAreas = new Array[AreaLayout](v.size())
-        v.copyInto(allAreas.asInstanceOf[Array[Object]])
+        val aa = new ArrayBuffer[AreaLayout]()
+        aa += a       //put the top item into the list
+        a.retrieveAreaList(aa)     //put all children into the list
+        allAreas = aa.toArray
         areaPage.fixImageIndexes()
     }
 
@@ -273,14 +273,12 @@ class AreaPageControls(val frame:SFrame,
         if (selectedArea==null)
             areaChoiceField.setSelectedIndex(0)  //select the page
         else {
-            for (i <- 0 until allAreas.length) {
-                if (allAreas(i)==selectedArea) {
-                    areaChoiceField.setSelectedIndex(i+1)
-                        //select the specified item,
-                        //this also calls the action method which
-                        //calls areaSelected(int).
-                    //break;
-                }
+            val idx = allAreas.findIndexOf(_ == selectedArea)
+            if (idx>=0) {
+                areaChoiceField.setSelectedIndex(idx+1)
+                    //select the specified item,
+                    //this also calls the action method which
+                    //calls areaSelected(int).
             }
         }
     }
@@ -346,23 +344,18 @@ class AreaPageControls(val frame:SFrame,
             areaPage.highlightedArea = area
             marginsField.setText(formatPageValue(area.getMargins()))
             spacingField.setText(formatPageValue(area.getSpacing()))
-            areaType match {
-            case AREA_IMAGE =>
+            area match {
+            case imageArea:AreaImageLayout =>
                 layoutField.setSelectedIndex(0)        //TODO define constant
-            case AREA_GRID =>
-                val gridArea = area.asInstanceOf[AreaGridLayout]
+            case gridArea:AreaGridLayout =>
                 layoutField.setSelectedIndex(1)        //TODO define constant
-                rowCountField.setValue(
-                        new java.lang.Integer(gridArea.getRowCount()))
-                columnCountField.setValue(
-                        new java.lang.Integer(gridArea.getColumnCount()))
-            case AREA_SPLIT =>
-                val splitArea = area.asInstanceOf[AreaSplitLayout]
+                rowCountField.setValue(gridArea.rowCount)
+                columnCountField.setValue(gridArea.columnCount)
+            case splitArea:AreaSplitLayout =>
                 layoutField.setSelectedIndex(2)        //TODO define constant
                 splitOrientationField.setSelectedIndex(
                         splitArea.getOrientation())
-                splitPercentField.setValue(
-                        new java.lang.Integer(splitArea.getSplitPercentage()))
+                splitPercentField.setValue(splitArea.getSplitPercentage())
             }
         }
         updatingSelected = false
@@ -564,7 +557,7 @@ class AreaPageControls(val frame:SFrame,
 
     /** Read the row and column values from the text fields
      * and set those numbers on the grid layout. */
-    private def setRowColumnCount() {
+    private def setRowOrColumnCount() {
         if (updatingSelected)
             return
         val rowCount = rowCountField.getValue().asInstanceOf[Int]
@@ -573,7 +566,7 @@ class AreaPageControls(val frame:SFrame,
         case a:AreaGridLayout =>
             a.setRowColumnCounts(rowCount,columnCount)
             a.revalidate()
-            areaPage.repaint()
+            areaPage.refresh()
             //When number of rows or columns changes, that changes our
             //list of areas.
             updateAllAreasList()
@@ -586,7 +579,7 @@ class AreaPageControls(val frame:SFrame,
         case a:AreaSplitLayout =>
             a.setOrientation(index)
             a.revalidate()
-            areaPage.repaint()
+            areaPage.refresh()
         }
     }
 

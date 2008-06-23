@@ -13,7 +13,8 @@ import java.awt.Insets
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.PrintWriter
-import java.util.Vector
+
+import scala.collection.mutable.ArrayBuffer
 
 import org.xml.sax.Attributes
 
@@ -85,10 +86,10 @@ abstract class AreaLayout {
     def setSubTreeDepths() {
         if (areas==null)
             return     //no subareas
-        for (i <- 0 until areas.length) {
-            areas(i).setParent(this)
-            areas(i).setTreeDepth(this.treeDepth+1)
-            areas(i).setSubTreeDepths()
+        areas.foreach { area =>
+            area.setParent(this)
+            area.setTreeDepth(this.treeDepth+1)
+            area.setSubTreeDepths()
         }
     }
 
@@ -157,14 +158,14 @@ abstract class AreaLayout {
     }
 
     /** Get a list of our sub areas, recursively.
-     * Add to the specified Vector.
+     * Add to the specified ArrayBuffer.
      */
-    def getAreaList(v:Vector[AreaLayout]) {
-        if (areas==null)
-            return
-        for (i <- 0 until areas.length) {
-            v.addElement(areas(i))
-            areas(i).getAreaList(v)
+    def retrieveAreaList(aa:ArrayBuffer[AreaLayout]) {
+        if (areas!=null) {
+            areas.foreach { area =>
+                aa += area
+                area.retrieveAreaList(aa)
+            }
         }
     }
 
@@ -508,18 +509,6 @@ abstract class AreaLayout {
         }
     }
 
-    //Add all of our areas to the specified PlayList as items
-    def retrieveIntoPlayList(playList:PlayListS):PlayListS = {
-        var pl = playList
-        if (areas!=null) {
-            for (i<- 0 until areas.length) {
-                pl = areas(i).retrieveIntoPlayList(pl)
-                    //TODO - could make this more efficient
-            }
-        }
-        return pl
-    }
-
     protected def printlnIndented(pw:PrintWriter, indent:Int, s:String) {
         pw.print(getIndentString(indent))
         pw.println(s)
@@ -527,8 +516,7 @@ abstract class AreaLayout {
 
     protected def getIndentString(indent:Int):String = {
         val sb = new StringBuffer()
-        for (i <- 0 until indent)
-            sb.append("    ")
+        (0 until indent).foreach((x:Int) => sb.append("    "))
         return sb.toString()
     }
 }

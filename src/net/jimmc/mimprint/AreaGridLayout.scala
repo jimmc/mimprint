@@ -18,12 +18,8 @@ class AreaGridLayout extends AreaLayout {
 
     //We store our areas in row-major order,
     //i.e. areas(row*columnCount+column)
-    private var columnCount:Int = _
-    private var rowCount:Int = _
-
-    //These track the values for the currently allocated areas array
-    private var areasColumnCount:Int = _
-    private var areasRowCount:Int = _
+    var columnCount:Int = _
+    var rowCount:Int = _
 
     def getTemplateElementName() = "gridLayout"
 
@@ -42,8 +38,6 @@ class AreaGridLayout extends AreaLayout {
         super.setXmlAttributes(attrs)
 
         allocateAreas(rowCount*columnCount)
-        areasColumnCount = columnCount
-        areasRowCount = rowCount
     }
 
     /** Set the number of areas in each dimension.
@@ -55,25 +49,16 @@ class AreaGridLayout extends AreaLayout {
         this.columnCount = columnCount
     }
 
-    def getRowCount() = rowCount
-
-    def getColumnCount() = columnCount
-
     private def areaIndex(row:Int, column:Int) = row*columnCount + column
 
     //Set up or modify our areas array
     def revalidate() {
         if (columnCount==0 || rowCount==0) {
             areas = null
-            areasRowCount = 0
-            areasColumnCount = 0
             return
         }
-        val newAreas:Array[AreaLayout] = allocateAreas()
-        areas = newAreas
+        areas = allocateAreas()
         revalidateChildren()
-        areasRowCount = rowCount
-        areasColumnCount = columnCount
     }
 
     //Allocate array of areas to match columnCount and rowCount
