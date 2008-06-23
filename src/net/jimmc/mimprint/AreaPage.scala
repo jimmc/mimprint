@@ -52,19 +52,6 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         with SDragSource {
     protected[mimprint] var controls:AreaPageControls = null
 
-/*
-    //Until we get PageLayout switched over to scala, use this class
-    //as a converter.
-    class ResConverter(res:SResources) extends net.jimmc.util.ResourceSource {
-        def getResourceString(key:String) = res.getResourceString(key)
-        def getResourceFormatted(key:String, args:Array[Object]) =
-            res.getResourceFormatted(key, args.asInstanceOf[Array[Object]])
-        def getResourceFormatted(key:String, arg:Object) =
-            res.getResourceFormatted(key, arg.asInstanceOf[Object])
-    }
-    private val resCvt = new ResConverter(viewer)
-*/
-
     private var pageLayout = new PageLayout(viewer)
     pageLayout.setDefaultLayout()
     private val pageColor = Color.white
