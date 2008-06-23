@@ -25,7 +25,7 @@ class PlayListS(
         private val items:Array[PlayItemS],
         private val comments:List[String]
             //Header comments for the whole file
-        ) extends PlayList {
+        ) {
 
     override def equals(that:Any):Boolean = {
         that match {
@@ -41,14 +41,14 @@ class PlayListS(
     }
 
     //Create a new PlayListS containing the same items as ours plus the new item
-    def addItem(item:PlayItem):PlayList = {
+    def addItem(item:PlayItemS):PlayListS = {
         val newItems = items ++ Array(item.asInstanceOf[PlayItemS])
         new PlayListS(ui,baseDir,newItems,comments)
     }
 
     //Create a new PlayListS containing the same items as ours except that
     //the item at the specified index has been replaced by the given item.
-    def replaceItem(itemIndex:Int, item:PlayItem): PlayListS = {
+    def replaceItem(itemIndex:Int, item:PlayItemS): PlayListS = {
         val newItems:Array[PlayItemS] = Array.make(items.length,null)
         Array.copy(items,0,newItems,0,items.length)
         newItems(itemIndex) = item.asInstanceOf[PlayItemS].usingBase(baseDir)
@@ -57,7 +57,7 @@ class PlayListS(
 
     //Create a new PlayListS containing the same items as ours except that
     //the specified image is rotated.
-    def rotateItem(itemIndex:Int, rot:Int):PlayList = {
+    def rotateItem(itemIndex:Int, rot:Int):PlayListS = {
         val newItems:Array[PlayItemS] = Array.make(items.length,null)
         Array.copy(items,0,newItems,0,items.length)
         newItems(itemIndex) = PlayItemS.rotate(items(itemIndex),rot)
@@ -112,7 +112,7 @@ class PlayListS(
         var itemBaseDir = baseDir
         items.foreach { itemOldBase =>
             val item = itemOldBase.usingBase(itemBaseDir)
-            item.printAll(out,itemBaseDir)  //write each PlayItem
+            item.printAll(out,itemBaseDir)  //write each PlayItemS
             itemBaseDir = item.getBaseDir
         }
     }
@@ -136,10 +136,10 @@ object PlayListS {
 
     /** Load a playlist from a file. */
     def load(ui:BasicUi,
-            filename:String):PlayList = load(ui,new File(filename))
+            filename:String):PlayListS = load(ui,new File(filename))
 
     /** Load a playlist from a file. */
-    def load(ui:BasicUi,f:File):PlayList = {
+    def load(ui:BasicUi,f:File):PlayListS = {
         val dir = f.getParentFile()
         if (f.isDirectory())
             loadDirectory(ui,f)
@@ -151,7 +151,7 @@ object PlayListS {
     //that file; if not found, scan the directory for all files with
     //acceptable filename extensions, in alphabetical order.
     private def loadDirectory(ui:BasicUi,
-            dir:File):PlayList = {
+            dir:File):PlayListS = {
         val indexFileName = "index."+FileInfo.MIMPRINT_EXTENSION
         val indexFile = new File(dir,indexFileName)
         if (indexFile.exists)
@@ -165,7 +165,7 @@ object PlayListS {
 
     /** Load a playlist from a stream. */
     def load(ui:BasicUi,
-            in:LineNumberReader, baseDir:File):PlayList = {
+            in:LineNumberReader, baseDir:File):PlayListS = {
         val items = new ArrayBuffer[PlayItemS]
         var listComments:List[String] = Nil
         var lines = new ListBuffer[String]

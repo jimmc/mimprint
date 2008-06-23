@@ -144,6 +144,7 @@
                  release as of 2.7.1; probably in one of the recent
                  nightly builds (as of 2008-05-22). -->
             <include name="**/*.scala"/>
+	    <exclude name="**/*.old/**/*.scala"/>
         </scalac>
     </target>
 
@@ -181,6 +182,7 @@
                  release as of 2.7.1; probably in one of the recent
                  nightly builds (as of 2008-05-22). -->
             <include name="**/*.scala"/>
+	    <exclude name="**/*.old/**/*.scala"/>
         </scalac>
     </target>
 

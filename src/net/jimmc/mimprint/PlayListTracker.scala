@@ -65,7 +65,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         case _ => println("Unrecognized message to PlayList")
     }
 
-    private def listMatches(list:PlayList):Boolean = {
+    private def listMatches(list:PlayListS):Boolean = {
         if (list!=playList) {
             println("Unknown or stale PlayList in tracker request")
                 //Could happen, but should be rare, so we basically ignore it
@@ -76,21 +76,21 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     /** Add an item to our current PlayList to produce a new current PlayList,
      * publish notices about the change.
      */
-    private def addItem(item:PlayItem) {
-        val newPlayList = playList.addItem(item).asInstanceOf[PlayListS]
+    private def addItem(item:PlayItemS) {
+        val newPlayList = playList.addItem(item)
         val newIndex = playList.size - 1
         publish(PlayListAddItem(this,playList,newPlayList,newIndex))
         playList = newPlayList
     }
 
-    private def changeItem(itemIndex:Int, item:PlayItem) {
+    private def changeItem(itemIndex:Int, item:PlayItemS) {
         val newPlayList = playList.replaceItem(itemIndex,item).
                 asInstanceOf[PlayListS]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
     }
 
-    private def setItem(itemIndex:Int, item:PlayItem) {
+    private def setItem(itemIndex:Int, item:PlayItemS) {
         val biggerPlayList = playList.ensureSize(itemIndex+1)
         val newPlayList = biggerPlayList.replaceItem(itemIndex,item).
                 asInstanceOf[PlayListS]

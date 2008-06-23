@@ -41,10 +41,7 @@ class AppS extends SResourcesBundle {
 //error on startup saying we have no "main" method.
 object AppStart {
     def main(args: Array[String]) {
-        val app = new App()
         val appS = new AppS()
-        App.setApp(app);
-        app.setFactory(AppFactoryS)
         appS.doMain(args)
     }
 }

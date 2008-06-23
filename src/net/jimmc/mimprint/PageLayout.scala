@@ -132,7 +132,7 @@ class PageLayout(app:SResources) {
     def getAreaLayout():AreaLayout = areaLayout
 
     /** Build a playlist. */
-    protected def retrieveIntoPlayList(playList:PlayList):PlayList = {
+    protected def retrieveIntoPlayList(playList:PlayListS):PlayListS = {
         areaLayout.retrieveIntoPlayList(playList)
     }
 

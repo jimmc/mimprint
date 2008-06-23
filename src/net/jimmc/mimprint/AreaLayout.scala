@@ -508,7 +508,7 @@ abstract class AreaLayout {
     }
 
     //Add all of our areas to the specified PlayList as items
-    def retrieveIntoPlayList(playList:PlayList):PlayList = {
+    def retrieveIntoPlayList(playList:PlayListS):PlayListS = {
         var pl = playList
         if (areas!=null) {
             for (i<- 0 until areas.length) {

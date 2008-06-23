@@ -23,7 +23,7 @@ class PlayItemS(
         val fileName:String,    //file name relative to the base directory
         val rotFlag:Int         //0=no rotation, 1 for +r ccw, 01 for -w cw,
                                 //  2 for +rr 180 degrees
-        ) extends PlayItem {
+        ) {
 
     //We are not trying to use these in a hash table, so we do
     //not provide a hashCode method.
@@ -75,9 +75,9 @@ class PlayItemS(
     }
     private val rotStrs = Array( "-r", "", "+r", "+rr" )
 
-    def getRotFlag = rotFlag
-    def getFileName = fileName
-    def getBaseDir = baseDir
+    def getRotFlag() = rotFlag
+    def getFileName() = fileName
+    def getBaseDir() = baseDir
 
     /** True if we have no filename. */
     def isEmpty() = fileName==null || fileName==""
