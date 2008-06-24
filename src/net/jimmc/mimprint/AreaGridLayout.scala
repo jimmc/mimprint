@@ -51,18 +51,8 @@ class AreaGridLayout extends AreaLayout {
 
     private def areaIndex(row:Int, column:Int) = row*columnCount + column
 
-    //Set up or modify our areas array
-    def revalidate() {
-        if (columnCount==0 || rowCount==0) {
-            areas = null
-            return
-        }
-        areas = allocateAreas()
-        revalidateChildren()
-    }
-
     //Allocate array of areas to match columnCount and rowCount
-    private def allocateAreas():Array[AreaLayout] = {
+    override def allocateAreas():Array[AreaLayout] = {
         val b:Rectangle = getBoundsInMargin()
         val aa:Array[AreaLayout] = new Array[AreaLayout](rowCount*columnCount)
         val w = (b.width - (columnCount-1)*spacing.width)/columnCount

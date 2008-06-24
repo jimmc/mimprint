@@ -422,8 +422,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 requestScreenMode(SViewer.SCREEN_FULL)
             case ControlL =>    //control-L, refresh
                 //refresh from our playlist and repaint the screen
-                displayPlayList(playList)
-                repaint()
+                refresh()
             /*
             case 'e' =>
                 viewer ! SViewerRequestEditDialog(playList,currentIndex)
@@ -815,6 +814,7 @@ in an image area by 180 degrees, so we just use the r key for that.
 
     def refresh() {
         fixImageIndexes()
+        controls.updateAllAreasList()
         displayPlayList(playList)
         repaint()
     }

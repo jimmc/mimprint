@@ -26,7 +26,6 @@ class AreaSplitLayout extends AreaLayout {
     //areas[0] is top or left, areas[1] is bottom or right
     private var orientation:Int = 0
     private var splitPercent:Int = 50
-    private var valid = false
 
     def getTemplateElementName() = "splitLayout"
 
@@ -69,8 +68,6 @@ class AreaSplitLayout extends AreaLayout {
         if (splitPercent<0 || splitPercent>100) {
             throw new IllegalArgumentException("splitPercent="+splitPercent)
         }
-        if (splitPercent!=this.splitPercent)
-            valid = false
         this.splitPercent = splitPercent
     }
 
@@ -84,22 +81,12 @@ class AreaSplitLayout extends AreaLayout {
     def setOrientation(orientation:Int) {
         if (orientation!=VERTICAL && orientation!=HORIZONTAL)
             throw new IllegalArgumentException("orientation="+orientation)
-        if (orientation!=this.orientation)
-            valid = false
         this.orientation = orientation
     }
 
     def getOrientation() = orientation
 
-    //Set up or modify our areas array
-    def revalidate() {
-        if (valid)
-            return             //nothing required
-        areas = allocateAreas()
-        revalidateChildren()
-    }
-
-    private def allocateAreas():Array[AreaLayout] = {
+    override def allocateAreas():Array[AreaLayout] = {
         val b:Rectangle = getBoundsInMargin()
         val aa:Array[AreaLayout] = new Array[AreaLayout](2)
         orientation match {

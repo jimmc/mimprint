@@ -1,3 +1,11 @@
+mimprint v0.2.1+
+
+  Other Changes:
+
+  * Mimprint has been converted completely over to Scala.
+
+----------------------------------------------------------------------
+
 mimprint v0.2.1  June 20, 2008  The Scala-based main window is now the default
 
   Enhancements:
@@ -21,6 +29,8 @@ mimprint v0.2.1  June 20, 2008  The Scala-based main window is now the default
     The Java-based main window will not be available in the next version.
   * The new Scala-based main window does not offer all of the View options
     that were available in the old Java-based main window.
+
+----------------------------------------------------------------------
 
 mimprint v0.2.0  June 4, 2008  Scala/Java mix
 

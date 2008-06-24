@@ -32,23 +32,23 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
 
     override def getAreaCount()  = 1   //image areas always have one area
 
-    /** We are always valid. */
-    def revalidate() {
-        //do nothing
-    }
+    def allocateAreas():Array[AreaLayout] = null
 
     def hasImage() = image!=null
 
     def setImage(newItem:PlayItemS, comp:Component) {
-        if (newItem==item)
-            return      //Same image as before, ignore the update.
-        /*
-        if (item!=null &&
-                newItem.toString().equals(item.toString())) {
-            //The image is the same image as before, so ignore the update.
-            return
+        if (newItem==item) {
+            if (transformedImage==null)
+                return
+            //same image, but we also want to look at the rotation
+            val areaBounds:Rectangle = getBoundsInMargin()
+            val imageAspect = (transformedImage.getWidth(null)>
+                               transformedImage.getHeight(null))
+            val areaAspect = (areaBounds.width>areaBounds.height)
+            val needsRotate = imageAspect ^ areaAspect
+            if (!needsRotate)
+                return      //Same image and rotation as before, ignore update.
         }
-        */
         if (newItem==null) {
             path = null
             image = null
@@ -62,10 +62,11 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
         //the image display area.
-        val imgBounds:Rectangle = getBounds()
-        val needsRotate =
-            (image.getWidth(null)>image.getHeight(null)) ^
-            (imgBounds.width<imgBounds.height)
+        SImageUtil.loadCompleteImage(comp,image) //we need the image size
+        val areaBounds:Rectangle = getBoundsInMargin()
+        val imageAspect = (image.getWidth(null)>image.getHeight(null))
+        val areaAspect = (areaBounds.width>areaBounds.height)
+        val needsRotate = imageAspect ^ areaAspect
         //We only allow playlist rotation in increments of
         //180 degrees.  The user can not rotate an image by
         //90 degrees in the printable area, if he wants that

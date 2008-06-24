@@ -534,7 +534,7 @@ class AreaPageControls(val frame:SFrame,
             a.setMargins(margins)
         }
         a.revalidate()
-        areaPage.repaint()
+        areaPage.refresh()
     }
 
     private def setSpacing(spacingStr:String) {
@@ -552,7 +552,7 @@ class AreaPageControls(val frame:SFrame,
             a.setSpacing(spacing)
         }
         a.revalidate()
-        areaPage.repaint()
+        areaPage.refresh()
     }
 
     /** Read the row and column values from the text fields
@@ -588,7 +588,7 @@ class AreaPageControls(val frame:SFrame,
         case a:AreaSplitLayout =>
             a.setSplitPercentage(splitPercent)
             a.revalidate()
-            areaPage.repaint()
+            areaPage.refresh()
         }
     }
 

@@ -135,12 +135,32 @@ abstract class AreaLayout {
         return (newStart - start)
     }
 
+    //Subclass must provide a method to allocate its areas with the right
+    //boundaries.
+    protected def allocateAreas():Array[AreaLayout]
+
     /** Allocate our array of areas.
      * @param n The number of areas to allocated.
      */
     protected def allocateAreas(n:Int) {
         areas = new Array[AreaLayout](n)
         numAreas = 0
+    }
+
+    //Transfer the children areas from old to new, but use the
+    //bounds info from the new areas.
+    private def transferAreas(fromAreas:Array[AreaLayout],
+            toAreas:Array[AreaLayout]) {
+        val minLen = if (fromAreas.length < toAreas.length) fromAreas.length
+                     else toAreas.length
+        for (i <- 0 until minLen) {
+            val fromArea = fromAreas(i)
+            val toArea = toAreas(i)
+            fromArea.setBounds(toArea.getBounds())
+                    //Change the old size to the new size
+            toAreas(i) = fromArea
+                    // then save the old as the new
+        }
     }
 
     /** Add an area to our list.
@@ -331,17 +351,25 @@ abstract class AreaLayout {
         return false   //not found
     }
 
+    /** Get the name of this element in an XML file. */
+    def getTemplateElementName():String
+
     /** Make sure our areas are correct.
      * Call this after calling any of the setXxx methods
      * that change any geometry parameters.
      */
-    def revalidate():Unit
-
-    /** Get the name of this element in an XML file. */
-    def getTemplateElementName():String
+    def revalidate():Unit = {
+        val newAreas = allocateAreas()
+        if (areas!=null)
+            transferAreas(areas,newAreas)
+        areas = newAreas
+        revalidateChildren()
+    }
 
     /** Revalidate all of our children areas. */
     protected def revalidateChildren() {
+        if (areas==null)
+            return
         areas.foreach(_.revalidate)
         setSubTreeLocations()
         setSubTreeDepths()
