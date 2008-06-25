@@ -609,7 +609,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         if (printableMulti == null) {
             //Create the printableMulti window the first time
             printableMulti = new PlayViewMulti(
-                    "printable",this,printableTracker)
+                    "printable",this,printableTracker,mainTracker)
             printableComp = printableMulti.getComponent()
             printableMulti.start()
         }

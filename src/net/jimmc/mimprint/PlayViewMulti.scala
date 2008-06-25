@@ -5,6 +5,8 @@
 
 package net.jimmc.mimprint
 
+import net.jimmc.util.Subscribe
+
 import java.awt.BorderLayout
 import java.awt.Component
 import java.io.File
@@ -12,8 +14,13 @@ import java.io.PrintWriter
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+import scala.actors.Actor.loop
+
 /** View all of the images in a PlayList. */
-class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
+class PlayViewMulti(name:String,
+        viewer:SViewer,
+        tracker:PlayListTracker,        //the printable list
+        mainTracker:PlayListTracker)   //the main list
         extends PlayViewComp(name, viewer, tracker) {
 
     private var areaPage:AreaPage = _
@@ -56,6 +63,33 @@ class PlayViewMulti(name:String, viewer:SViewer, tracker:PlayListTracker)
     protected[mimprint] def refreshAreas() {
         areaPage.displayPlayList(playList)
         areaPage.repaint()
+    }
+
+    override def act() {
+        tracker ! Subscribe(this)
+        tracker ! PlayListRequestInit(this)
+        mainTracker ! Subscribe(this)
+        loop {
+            react (handleMainPlayListMessage orElse handlePlayListMessage
+                    orElse handleOtherMessage)
+        }
+    }
+
+    private val handleMainPlayListMessage : PartialFunction[Any,Unit] = {
+        case m:PlayListSelectItem if (m.tracker==mainTracker) =>
+            mainPlayListSelect(m)
+        case m:PlayListMessage if (m.tracker==mainTracker) =>
+            //match and ignore any other messages from the mainTracker
+    }
+
+    //When we get a select on the main playlist, see if the file has
+    //our extension.  If so, try to load it as a layout template file.
+    private def mainPlayListSelect(m:PlayListSelectItem) {
+        if (m.index<0 || m.index>=m.list.size)
+            return      //nothing selected
+        val item = m.list.getItem(m.index)
+        if (item.fileName.endsWith("."+FileInfo.MIMPRINT_EXTENSION))
+            loadLayoutTemplate(new File(item.baseDir,item.fileName))
     }
 
     protected def playListInit(m:PlayListInit) {

@@ -142,13 +142,21 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 return
             }
 //println("Single "+name+" loading image "+index)
-            setCursorBusy(true)
-            val im = getTransformedImage(index)
-                //TODO - check for null im?
-            val ii = new ImageIcon(im)
-            imageComponent.setIcon(ii)
-            imageComponent.setText(null)
-            setCursorBusy(false)
+            if (item.fileName.endsWith("."+FileInfo.MIMPRINT_EXTENSION)) {
+                //It is one of our files, not an image
+                //TODO - use some code from IconLoader to display our
+                //templates?
+                imageComponent.setIcon(null)
+                imageComponent.setText(null)
+            } else {
+                setCursorBusy(true)
+                val im = getTransformedImage(index)
+                    //TODO - check for null im?
+                val ii = new ImageIcon(im)
+                imageComponent.setIcon(ii)
+                imageComponent.setText(null)
+                setCursorBusy(false)
+            }
             currentItem = item
         }
         currentIndex = index
