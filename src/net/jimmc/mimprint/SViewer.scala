@@ -60,7 +60,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var layoutMenu:JMenu = _
 
     private var statusLine:JTextField = _
-    private var mainList:PlayViewList = _
+    private var mainList:ViewListGroup = _
     private var mainSingle:PlayViewSingle = _
     private var fullSingle:PlayViewSingle = _
     private var altSingle:PlayViewSingle = _
@@ -280,7 +280,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     //Create the body of our form
     private def initForm() {
 
-        mainList = new PlayViewList("mainList",this,mainTracker)
+        mainList = new ViewListGroup("mainList",this,mainTracker)
         val imageLister = mainList.getComponent()
         mainList.start()
 
@@ -356,8 +356,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             println("Unknown sender of PlayListMessage")
         case m:SViewerRequestClose => processClose
         case m:SViewerRequestFileOpen => processFileOpen
-        case m:SViewerRequestActivate =>
-                mainList ! PlayViewListRequestActivate(m.list)
+        case m:SViewerRequestActivate => mainList.requestActivate(m.list)
         case m:SViewerRequestFocus =>
             if (fullSingle!=null && fullSingle.isShowing)
                 fullSingle ! PlayViewSingleRequestFocus()

@@ -40,10 +40,10 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         extends PlayViewComp(name,viewer,tracker) with SDragSource {
     //TODO - add modes (display icons; include file info)
     //TODO - add thread that loads image icons
-    //TODO - implement dragging to Printable view or other PlayViewList
+    //TODO - implement dropping into this list
     //TODO - add support for viewing our MIMPRINT (mpr) template files
     private val dirBgColor = new Color(0.9f, 0.8f, 0.8f)
-    private var includeDirectoryDates = false
+    protected[mimprint] var includeDirectoryDates = false
 
     private var playList:PlayListS = _
     private var targetDirectory:File = _
@@ -65,7 +65,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             //Autoscroll and drag-and-drop interfere with each other
             //(see <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4449146>)
             //so turn off autoscroll.
-        fileNameList.setCellRenderer(new PlayViewListCellRenderer())
+        showFileInfo(true)
         fileNameList.addListSelectionListener(
                 new PlayViewListSelectionListener())
         val listScrollPane = new JScrollPane(fileNameList)
@@ -131,7 +131,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //Here after updating playList.
     //Calculate the other data required for our list,
     //and redisplay our list.
-    private def redisplayList() {
+    protected[mimprint] def redisplayList() {
         targetDirectory = playList.baseDir
         playableFileNames = playList.getFileNames
         dirNames = getDirNames(targetDirectory)
@@ -188,6 +188,13 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
         case m:PlayViewListRequestActivate => listValueChanged()
         case m:Any => println("Unrecognized message to PlayViewList")
+    }
+
+    def showFileInfo(b:Boolean) {
+        if (b)
+            fileNameList.setCellRenderer(new PlayViewListCellRenderer())
+        else
+            fileNameList.setCellRenderer(new DefaultListCellRenderer())
     }
 
     class PlayViewListCellRenderer extends DefaultListCellRenderer {
