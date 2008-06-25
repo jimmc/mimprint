@@ -114,3 +114,5 @@
 - Start removing java files. [080621]
 - Finish removing all java files from main jar file. [080623]
 - Add ViewListGroup with small viewer and Options menu. [080624]
+- Make Dual and Alt window modes separately settable options. [080625]
+- Add Print List on right hand side of screen. [080625]

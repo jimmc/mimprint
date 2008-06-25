@@ -111,6 +111,7 @@ menu.Layout.SaveTemplateAs.label=Save Template As...
 
 menu.List.label=Options*
 menu.List.title.mainList=Main List
+menu.List.title.printableList=Print List
 menu.List.ShowDirDates.label=Show Folder Dates
 menu.List.ShowFileIcons.label=Show File Icons
 menu.List.ShowFileInfo.label=Show File Info
@@ -131,6 +132,7 @@ menu.View.ScreenModeFull.label=Full Screen Mode
 menu.View.ScreenModePrint.label=Printable Mode
 menu.View.ScreenModeSlideShow.label=SlideShow Mode
 menu.View.ShowAreaOutlines.label=Show Area Outlines
+menu.View.ShowPrintList.label=Show Print List
 menu.View.ShowToolBar.label=Show Tool Bar
 menu.View.ShowHelpDialog.label=Show Help Dialog
 menu.View.SplitPaneHorizontal.label=List on Left

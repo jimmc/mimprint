@@ -43,6 +43,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //TODO - implement dropping into this list
     //TODO - add support for viewing our MIMPRINT (mpr) template files
     private val dirBgColor = new Color(0.9f, 0.8f, 0.8f)
+    protected[mimprint] var includeDirectories = true
     protected[mimprint] var includeDirectoryDates = false
     protected[mimprint] var includeIcons = false
     private var showingFileInfo = false
@@ -98,11 +99,21 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     }
 
     protected def playListAddItem(m:PlayListAddItem) {
-        println("PlayViewList.playListAddItem NYI")     //TODO
+        playList = m.newList
+        if (m.index<=currentSelection)
+            currentSelection = currentSelection + 1
+        redisplayList
+        setSelectedIndex(currentSelection)
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
-        println("PlayViewList.playListRemoveItem NYI")  //TODO
+        playList = m.newList
+        if (m.index==currentSelection)
+            currentSelection = -1
+        else if (m.index<currentSelection)
+            currentSelection = currentSelection - 1
+        redisplayList
+        setSelectedIndex(currentSelection)
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {
@@ -155,11 +166,13 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 new FileInfo(i,dirCount,fileCount,targetDirectory,fileNames(i))
             ).toArray
         //Do the actual updating on the event thread to avoid race conditions
+        val displayableNames = fileNames.map((s:String) =>
+            if (s==null || s=="") "-empty" else s)
         SwingS.invokeLater {
             try {
                 appIsUpdatingModel = true
                 fileInfos = newFileInfos
-                fileNameListModel = new ArrayListModel(fileNames)
+                fileNameListModel = new ArrayListModel(displayableNames)
                 fileNameList.setModel(fileNameListModel)
                 fileNameList.updateUI()
             } finally {
@@ -170,7 +183,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var appIsUpdatingModel = false
 
     private def getDirNames(dir:File):Array[String] = {
-        if (dir==null || !dir.isDirectory)
+        if (dir==null || !dir.isDirectory || !includeDirectories)
             return Array()
         //Get the list of all subdirectories except current and parent
         val subdirs = FileUtilS.listDir(dir,(

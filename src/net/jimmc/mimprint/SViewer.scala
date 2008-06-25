@@ -64,22 +64,26 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var mainList:ViewListGroup = _
     private var mainSingle:PlayViewSingle = _
     private var fullSingle:PlayViewSingle = _
-    private var printableMulti:PlayViewMulti = _
     private var currentMainFile:File = _
     private var screenMode = SViewer.SCREEN_MODE_DEFAULT
     private var previousScreenMode = screenMode
     private var imagePane:JPanel = _
     private var mainSingleComp:Component = _
     private var fullWindow:SFrame = _
-    private var printableComp:Component = _
 
-    private var mModeAlt:SCheckBoxMenuItem = _
+    private var mShowAlt:SCheckBoxMenuItem = _
     private var altSingle:PlayViewSingle = _
     private var altWindow:JWindow = _
 
-    private var mModeDual:SCheckBoxMenuItem = _
+    private var mShowDual:SCheckBoxMenuItem = _
     private var dualSingle:PlayViewSingle = _
     private var dualWindow:SFrame = _
+
+    private var mShowPrintList:SCheckBoxMenuItem = _
+    private var printableList:ViewListGroup = _
+    private var printableLister:Component = _
+    private var printableMulti:PlayViewMulti = _
+    private var printableComp:Component = _
 
     private var lastSaveLayoutTemplateFile:File = null
     private var lastLoadLayoutTemplateFile:File = null
@@ -184,20 +188,24 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             (modeVal, checkBox)
         }
 
-        mModeAlt = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Alternate")(
-                setScreenModeAlt(mModeAlt.getState))
-        //Enable the Alternate Screen mode button only if we have an alt screen
-        mModeAlt.setVisible(hasAlternateScreen)
-        m.add(mModeAlt)
+        m.add(new JSeparator())
 
-        mModeDual = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Dual")(
-                setScreenModeDual(mModeDual.getState))
-        m.add(mModeDual)
+        mShowAlt = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Alternate")(
+                setScreenModeAlt(mShowAlt.getState))
+        //Enable the Alternate Screen mode button only if we have an alt screen
+        mShowAlt.setVisible(hasAlternateScreen)
+        m.add(mShowAlt)
+
+        mShowDual = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Dual")(
+                setScreenModeDual(mShowDual.getState))
+        m.add(mShowDual)
+
+        mShowPrintList = new SCheckBoxMenuItem(this,"menu.View.ShowPrintList")(
+                showPrintList(mShowPrintList.getState))
+        mShowPrintList.setState(true)
+        m.add(mShowPrintList)
 
         //TODO - add separator, then more commands for other View options
-        //TODO - add "Show Info In List" for main list
-        //TODO - aadd "Show Image and Info In List"
-        //TODO - add "Include Folder Dates In List"
         //TODO - add "Show Area Outlines", enabled only in mode=printable
         //TODO - add "Show Help Dialog"
 
@@ -271,7 +279,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         /* TODO - need to make this a toggle button and control its state
          * when the dual window gets opened or closed...
         tb.add(new SButton(this,"button.ModeDual")(
-                setScreenMode(SViewer.SCREEN_DUAL_WINDOW)))
+                setScreenMode(SViewer.SCREEN_DUAL)))
         */
         tb.add(new SButton(this,"button.ModeFull")(
                 setScreenMode(SViewer.SCREEN_FULL)))
@@ -297,6 +305,14 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         val imageLister = mainList.getComponent()
         mainList.start()
 
+        printableList = new ViewListGroup("printableList",this,printableTracker)
+        printableLister = printableList.getComponent()
+        printableLister.setPreferredSize(new Dimension(150,400))
+        printableList.showFileInfo(false)
+        printableList.showSingleViewer(false)
+        printableList.showDirectories(false)
+        printableList.start()
+
         mainSingle = new PlayViewSingle("main",this,mainTracker)
         mainSingleComp = mainSingle.getComponent()
         mainSingle.start()
@@ -305,8 +321,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         imagePane.setMinimumSize(new Dimension(100,100))
         imagePane.add(mainSingleComp,BorderLayout.CENTER)
 
+        val body0 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                imagePane, printableLister)
         val mainBody = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                imageLister, imagePane)
+                imageLister, body0)
+        body0.setBackground(mainSingleComp.getBackground())
         mainBody.setBackground(mainSingleComp.getBackground())
 
         statusLine = new JTextField()
@@ -484,6 +503,12 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     }
 
     private def setScreenMode(reqMode:Int) {
+        reqMode match {
+            case SViewer.SCREEN_ALT => { setScreenModeAlt(); return }
+            case SViewer.SCREEN_DUAL => { setScreenModeDual(); return }
+            case _ =>   //fall through on others
+        }
+
         val mode =
             if (reqMode == SViewer.SCREEN_PREVIOUS) previousScreenMode
             else reqMode
@@ -519,6 +544,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         setScreenModeButtons()
     }
 
+    private def setScreenModeAlt():Unit = setScreenModeAlt(!mShowAlt.getState)
     private def setScreenModeAlt(b:Boolean) {
         //TODO - if more than 2 configs, ask which one to use
         //For now, just use the second config
@@ -544,11 +570,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 //send a notice to the new window to display the current image
             this ! SViewerRequestFocus(null)
                 //make sure the right window has focus
-        }
         } else
             altWindow.hide()
     }
 
+    private def setScreenModeDual():Unit= setScreenModeDual(!mShowDual.getState)
     private def setScreenModeDual(b:Boolean) {
         if (dualSingle == null) {
             //Create the dualSingle window the first time
@@ -556,7 +582,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             val wSize = new Dimension(300,200)
                 //make it small, let user move it to other screen and resize
             dualWindow = initializePlayView1(dualSingle,wSize)(
-                    mModeDual.setState(false))
+                    mShowDual.setState(false))
         }
         if (b) {
             dualWindow.show()
@@ -619,6 +645,12 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         sWindow.setBounds(0,0,windowSize.width,windowSize.height)
         sWindow.setBackground(imageArea.getBackground())
         sWindow
+    }
+
+    private def showPrintList(b:Boolean) {
+        printableLister.setVisible(b)
+        val split = printableLister.getParent.asInstanceOf[JSplitPane]
+        split.resetToPreferredSizes()
     }
 
     private def hasAlternateScreen():Boolean =
@@ -766,6 +798,8 @@ object SViewer {
     val SCREEN_SLIDESHOW = 0
     val SCREEN_FULL = 1
     val SCREEN_PRINT = 2
+    val SCREEN_ALT = 3
+    val SCREEN_DUAL = 4
     val SCREEN_MODE_DEFAULT = SCREEN_SLIDESHOW
 }
 

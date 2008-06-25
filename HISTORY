@@ -2,6 +2,12 @@ mimprint v0.2.1+
 
   Enhancements:
 
+  * The Dual Window and Alternate Screen modes are now independently
+    selectable options (Show Second Window and Show On Alternate Screen).
+  * The new Print List on the right hand side of the main window lists
+    the files that are in the printable list, and which are displayed
+    in Printable Mode.  You can control whether this is visible with
+    the new Show Print List menu item in the View menu.
   * At the top of the main list there is now a small title bar with
     an Options menu that allows you to set options for that list.
     One of the options allows you to show a small image viewer at

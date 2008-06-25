@@ -23,8 +23,8 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     private var playViewSingle:PlayViewSingle =
             new PlayViewSingle(name+"Single", viewer, tracker)
 
+    private var includeDirectories = true
     private var groupComp:Component = _
-    private var split:JSplitPane = _
     private var singleComp:Component = _
     private var mShowFileInfo:SCheckBoxMenuItem = _
     private var mShowFileIcons:SCheckBoxMenuItem = _
@@ -36,7 +36,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         singleComp = playViewSingle.getComponent()
         val w = listComp.getPreferredSize.width
         singleComp.setPreferredSize(new Dimension(w,w*3/4))
-        split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+        val split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 listComp,singleComp)
         val panel = new JPanel()
         panel.setLayout(new BorderLayout())
@@ -76,6 +76,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
                 viewer,"menu.List.ShowDirDates")(
                     showDirDates(mShowDirDates.getState))
         mShowDirDates.setState(playViewList.includeDirectoryDates)
+        mShowDirDates.setVisible(includeDirectories)
         m.add(mShowDirDates)
 
         mShowSingleViewer = new SCheckBoxMenuItem(
@@ -99,26 +100,32 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         playViewList ! PlayViewListRequestActivate(playList)
     }
 
-    private def showFileInfo(b:Boolean) {
+    def showFileInfo(b:Boolean) {
         playViewList.showFileInfo(b)
         mShowFileIcons.setEnabled(b)
         mShowDirDates.setEnabled(b)
     }
 
-    private def showFileIcons(b:Boolean) {
+    def showFileIcons(b:Boolean) {
         playViewList.showFileIcons(b)
         playViewList.redisplayList()
     }
 
-    private def showDirDates(b:Boolean) {
+    def showDirDates(b:Boolean) {
         playViewList.includeDirectoryDates = b
         playViewList.redisplayList()
     }
 
-    private def showSingleViewer(b:Boolean) {
-        if (b)
-            split.setBottomComponent(singleComp)
-        else
-            split.remove(singleComp)
+    def showSingleViewer(b:Boolean) {
+        singleComp.setVisible(b)
+        singleComp.getParent.asInstanceOf[JSplitPane].resetToPreferredSizes()
+        mShowSingleViewer.setState(b)
+    }
+
+    def showDirectories(b:Boolean) {
+        playViewList.includeDirectories = b
+        if (mShowDirDates!=null)
+            mShowDirDates.setVisible(b)
+        this.includeDirectories = b
     }
 }

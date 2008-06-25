@@ -29,6 +29,8 @@ object FileInfo {
 
     /** True if we recognize the file as being one of ours. */
     def isOurFileName(name:String):Boolean = {
+        if (name==null)
+            return false
         val dotPos = name.lastIndexOf('.')
         if (dotPos<0)
             return false	//no extension
@@ -107,7 +109,7 @@ class FileInfo(
     import FileInfo._   //get all the stuff from our companion object
 
     val totalCount = dirCount + fileCount
-    val thisFile = new File(dir,name)
+    val thisFile = new File(dir,if (name==null) "" else name)
 
     //If not a directory, assume it is an image file,
     //until we get around to implementing other stuff.

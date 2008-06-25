@@ -77,11 +77,17 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     }
 
     protected def playListAddItem(m:PlayListAddItem) {
-        println("PlayViewSingle.playListAddItem NYI")           //TODO
+        playList = m.newList
+        if (m.index<=currentIndex)
+            currentIndex = currentIndex + 1
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
-        println("PlayViewSingle.playListRemoveItem NYI")        //TODO
+        playList = m.newList
+        if (m.index==currentIndex) {
+            imageSelected(-1)
+        } else if (m.index<currentIndex)
+            currentIndex = currentIndex - 1
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {
