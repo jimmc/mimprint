@@ -11,6 +11,7 @@ import net.jimmc.swing.SCheckBoxMenuItem
 import net.jimmc.swing.SFrame
 import net.jimmc.swing.SMenuItem
 import net.jimmc.swing.SwingS
+import net.jimmc.swing.ToolPrompter
 import net.jimmc.util.AsyncUi
 import net.jimmc.util.FileUtilS
 import net.jimmc.util.Subscribe
@@ -44,7 +45,7 @@ import scala.actors.Actor
 import scala.actors.Actor.loop
 
 class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
-        with Actor with Subscriber[PlayListMessage] {
+        with Actor with Subscriber[PlayListMessage] with ToolPrompter {
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
     private val mainTracker = new PlayListTracker(this)
@@ -63,8 +64,6 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var mainList:ViewListGroup = _
     private var mainSingle:PlayViewSingle = _
     private var fullSingle:PlayViewSingle = _
-    private var altSingle:PlayViewSingle = _
-    private var dualSingle:PlayViewSingle = _
     private var printableMulti:PlayViewMulti = _
     private var currentMainFile:File = _
     private var screenMode = SViewer.SCREEN_MODE_DEFAULT
@@ -72,9 +71,15 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var imagePane:JPanel = _
     private var mainSingleComp:Component = _
     private var fullWindow:SFrame = _
-    private var altWindow:JWindow = _
-    private var dualWindow:SFrame = _
     private var printableComp:Component = _
+
+    private var mModeAlt:SCheckBoxMenuItem = _
+    private var altSingle:PlayViewSingle = _
+    private var altWindow:JWindow = _
+
+    private var mModeDual:SCheckBoxMenuItem = _
+    private var dualSingle:PlayViewSingle = _
+    private var dualWindow:SFrame = _
 
     private var lastSaveLayoutTemplateFile:File = null
     private var lastLoadLayoutTemplateFile:File = null
@@ -168,8 +173,6 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         val modeInfo = List(
             (SViewer.SCREEN_PRINT, "Print"),
             (SViewer.SCREEN_SLIDESHOW, "SlideShow"),
-            (SViewer.SCREEN_ALT, "Alternate"),
-            (SViewer.SCREEN_DUAL_WINDOW, "DualWindow"),
             (SViewer.SCREEN_FULL, "Full")
         )
         screenModeButtons = modeInfo.map { mi =>
@@ -180,9 +183,16 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             m.add(checkBox)
             (modeVal, checkBox)
         }
+
+        mModeAlt = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Alternate")(
+                setScreenModeAlt(mModeAlt.getState))
         //Enable the Alternate Screen mode button only if we have an alt screen
-        screenModeButtons.filter(_._1==SViewer.SCREEN_ALT).foreach(
-            _._2.setVisible(hasAlternateScreen))
+        mModeAlt.setVisible(hasAlternateScreen)
+        m.add(mModeAlt)
+
+        mModeDual = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Dual")(
+                setScreenModeDual(mModeDual.getState))
+        m.add(mModeDual)
 
         //TODO - add separator, then more commands for other View options
         //TODO - add "Show Info In List" for main list
@@ -258,8 +268,11 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         val tb = new JToolBar()
         tb.setRollover(true)
 
+        /* TODO - need to make this a toggle button and control its state
+         * when the dual window gets opened or closed...
         tb.add(new SButton(this,"button.ModeDual")(
                 setScreenMode(SViewer.SCREEN_DUAL_WINDOW)))
+        */
         tb.add(new SButton(this,"button.ModeFull")(
                 setScreenMode(SViewer.SCREEN_FULL)))
 
@@ -336,6 +349,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     def errorMessage(msg:String) {
         println("ERROR: "+msg)       //TODO better implementation
     }
+
+    def showToolPrompt(s:String) = showStatus(s)
+    def clearToolPrompt() = showStatus("")
 
     //The Actor trait
     def act() {
@@ -477,25 +493,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             this.show()
 
         mode match {
-            case SViewer.SCREEN_ALT => setScreenModeAlt()
-            case SViewer.SCREEN_DUAL_WINDOW => setScreenModeDual()
             case SViewer.SCREEN_FULL => setScreenModeFull()
             case SViewer.SCREEN_PRINT => setScreenModePrint()
             case SViewer.SCREEN_SLIDESHOW => setScreenModeSlideShow()
-        }
-
-        if (altWindow!=null) {
-            if (mode == SViewer.SCREEN_ALT)
-                altWindow.validate
-            else
-                altWindow.hide
-        }
-
-        if (dualWindow!=null) {
-            if (mode == SViewer.SCREEN_DUAL_WINDOW)
-                dualWindow.validate
-            else
-                dualWindow.hide
         }
 
         if (mode != SViewer.SCREEN_FULL && fullWindow!=null) {
@@ -519,7 +519,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         setScreenModeButtons()
     }
 
-    private def setScreenModeAlt() {
+    private def setScreenModeAlt(b:Boolean) {
         //TODO - if more than 2 configs, ask which one to use
         //For now, just use the second config
 
@@ -538,19 +538,34 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             altWindow.setBounds(altScreenBounds)
             altWindow.setBackground(imageArea.getBackground())
         }
-        altWindow.show()
+        if (b) {
+            altWindow.show()
+            mainTracker ! PlayListRequestSelect(playList,playListIndex)
+                //send a notice to the new window to display the current image
+            this ! SViewerRequestFocus(null)
+                //make sure the right window has focus
+        }
+        } else
+            altWindow.hide()
     }
 
-    private def setScreenModeDual() {
+    private def setScreenModeDual(b:Boolean) {
         if (dualSingle == null) {
             //Create the dualSingle window the first time
             dualSingle = new PlayViewSingle("dual",this,mainTracker)
             val wSize = new Dimension(300,200)
                 //make it small, let user move it to other screen and resize
-            dualWindow = initializePlayView(dualSingle,wSize)
+            dualWindow = initializePlayView1(dualSingle,wSize)(
+                    mModeDual.setState(false))
         }
-        dualWindow.show()
-        //leave main window showing as well
+        if (b) {
+            dualWindow.show()
+            mainTracker ! PlayListRequestSelect(playList,playListIndex)
+                //send a notice to the new window to display the current image
+            this ! SViewerRequestFocus(null)
+                //make sure the right window has focus
+        } else
+            dualWindow.hide()
     }
 
     private def setScreenModeFull() {
@@ -586,12 +601,17 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
     private def initializePlayView(single:PlayViewSingle,
             windowSize:Dimension):SFrame = {
+        initializePlayView1(single,windowSize)(
+                setScreenMode(SViewer.SCREEN_PREVIOUS))
+    }
+    private def initializePlayView1(single:PlayViewSingle,
+            windowSize:Dimension)(moreOnClose: =>Unit):SFrame = {
         val imageArea = single.getComponent()
         single.start()
         val sWindow = new SFrame(single.name+"Window",app) {
             override def processClose() {
                 setVisible(false)
-                setScreenMode(SViewer.SCREEN_PREVIOUS)
+                moreOnClose
             }
         }
         sWindow.addWindowListener()
@@ -746,8 +766,6 @@ object SViewer {
     val SCREEN_SLIDESHOW = 0
     val SCREEN_FULL = 1
     val SCREEN_PRINT = 2
-    val SCREEN_ALT = 3
-    val SCREEN_DUAL_WINDOW = 4
     val SCREEN_MODE_DEFAULT = SCREEN_SLIDESHOW
 }
 
