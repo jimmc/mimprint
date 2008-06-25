@@ -13,13 +13,13 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragGestureEvent;
-import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragSource;
-import java.awt.dnd.DragSourceAdapter;
-import java.awt.dnd.DragSourceDropEvent;
-import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DnDConstants
+import java.awt.dnd.DragGestureEvent
+import java.awt.dnd.DragGestureListener
+import java.awt.dnd.DragSource
+import java.awt.dnd.DragSourceAdapter
+import java.awt.dnd.DragSourceDropEvent
+import java.awt.dnd.DragSourceListener
 import java.awt.Image
 import java.awt.Point
 import java.io.File
@@ -44,6 +44,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //TODO - add support for viewing our MIMPRINT (mpr) template files
     private val dirBgColor = new Color(0.9f, 0.8f, 0.8f)
     protected[mimprint] var includeDirectoryDates = false
+    protected[mimprint] var includeIcons = false
+    private var showingFileInfo = false
 
     private var playList:PlayListS = _
     private var targetDirectory:File = _
@@ -57,6 +59,13 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var fileNameList:JList = _
     private var fileNameListModel:ArrayListModel = _
     private var currentSelection = -1
+
+    private val iconLoader = new IconLoader(viewer) {
+        def iconLoaded(fileInfos:Array[FileInfo], n:Int):Boolean =
+            PlayViewList.this.iconLoaded(fileInfos,n)
+        def getFileInfoList():Array[FileInfo] = PlayViewList.this.fileInfos
+    }
+    iconLoader.setPriority(iconLoader.getPriority() - 3)
 
     def getComponent():Component = {
         val p = new JPanel()
@@ -74,6 +83,9 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         p.add(listScrollPane)
         setupDrag(fileNameList,DnDConstants.ACTION_COPY)
         ourComponent = p
+
+        iconLoader.start()
+
         p
     }
 
@@ -177,12 +189,31 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             //not loaded, need to load it
             fileInfo.loadInfo(includeDirectoryDates)
             //leave icon null, let iconLoader fill it in
-          /* TODO
-            if (listMode==MODE_FULL)
-                iconLoader.moreIcons();         //tell iconLoader to load icons
-          */
+            if (includeIcons)
+                iconLoader.moreIcons()         //tell iconLoader to load icons
         }
         fileInfo
+    }
+
+    private def iconLoaded(fileInfos:Array[FileInfo], n:Int):Boolean = {
+        if (fileInfos!=this.fileInfos) {
+            //Our list of files has changes, ignore this call
+            return false
+        }
+        //Refresh the list item
+        //We just want to tell the list to recalculate the size
+        //of the cell we have just updated, but we can't fire off
+        //a change notification here because that method of the
+        //model is protected.  Calling revalidate doesn't do the
+        //trick, so we hack it by setting the renderer again.
+        //Need to check our list mode and only do this if we are
+        //in the right mode; need to do that check within a sync
+        //block to prevent race condition.
+        synchronized {
+            if (showingFileInfo)
+                fileNameList.setCellRenderer(new PlayViewListCellRenderer())
+        }
+        true
     }
 
     override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
@@ -195,7 +226,11 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             fileNameList.setCellRenderer(new PlayViewListCellRenderer())
         else
             fileNameList.setCellRenderer(new DefaultListCellRenderer())
+        showingFileInfo = b
     }
+
+    def showFileIcons(b:Boolean)  = includeIcons = b
+        //caller should call redisplayList
 
     class PlayViewListCellRenderer extends DefaultListCellRenderer {
         override def getListCellRendererComponent(list:JList,
@@ -217,10 +252,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             cell.setText(labelText)
             //cell.setVerticalAlignment(TOP)      //put text at top left
             //cell.setHorizontalAlignment(LEFT)
-        /* TODO
-            if (listMode==MODE_FULL)
+            if (includeIcons)
                 cell.setIcon(fileInfo.icon)
-        */
             //If this item is a directory folder rather than an image,
             //color it differently in the list.
             if (!isSelected && fileInfo.isDirectory()) {
@@ -284,7 +317,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 tracker ! PlayListRequestSelect(playList,selIndex)
 
             val fileInfo = getFileInfo(index)
-            //String path = new File(targetDirectory,fileNames[index]).toString();
+            //String path = new File(targetDirectory,fileNames[index]).toString()
             val path = fileInfo.getPath()
             val icon:ImageIcon = fileInfo.icon
             //If the platform does not support image dragging, don't do it

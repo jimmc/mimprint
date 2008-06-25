@@ -27,6 +27,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     private var split:JSplitPane = _
     private var singleComp:Component = _
     private var mShowFileInfo:SCheckBoxMenuItem = _
+    private var mShowFileIcons:SCheckBoxMenuItem = _
     private var mShowDirDates:SCheckBoxMenuItem = _
     private var mShowSingleViewer:SCheckBoxMenuItem = _
 
@@ -65,6 +66,12 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         mShowFileInfo.setState(true)
         m.add(mShowFileInfo)
 
+        mShowFileIcons = new SCheckBoxMenuItem(
+                viewer,"menu.List.ShowFileIcons")(
+                    showFileIcons(mShowFileIcons.getState))
+        mShowFileIcons.setState(false)
+        m.add(mShowFileIcons)
+
         mShowDirDates = new SCheckBoxMenuItem(
                 viewer,"menu.List.ShowDirDates")(
                     showDirDates(mShowDirDates.getState))
@@ -94,7 +101,13 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
 
     private def showFileInfo(b:Boolean) {
         playViewList.showFileInfo(b)
+        mShowFileIcons.setEnabled(b)
         mShowDirDates.setEnabled(b)
+    }
+
+    private def showFileIcons(b:Boolean) {
+        playViewList.showFileIcons(b)
+        playViewList.redisplayList()
     }
 
     private def showDirDates(b:Boolean) {

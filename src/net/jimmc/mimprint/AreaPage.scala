@@ -249,18 +249,10 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
      * the given window space, and translate it to center it top/bottom or
      * left/right for whichever dimension is smaller.
      */
-    protected def scaleAndTranslate(g2:Graphics2D,
+    protected[mimprint] def scaleAndTranslate(g2:Graphics2D,
             userWidth:Int, userHeight:Int, windowWidth:Int, windowHeight:Int) {
-        val xscale = windowWidth.asInstanceOf[Double] /
-                     userWidth.asInstanceOf[Double]
-        val yscale = windowHeight.asInstanceOf[Double] /
-                     userHeight.asInstanceOf[Double]
-        val scale = if (xscale<yscale) xscale else yscale
-        if (xscale<yscale)
-            g2.translate(0,(yscale-xscale)*userHeight/2)
-        else
-            g2.translate((xscale-yscale)*userWidth/2,0)
-        g2.scale(scale,scale)
+        SImageUtil.scaleAndTranslate(g2,userWidth,userHeight,
+                windowWidth,windowHeight)
     }
 
     /** Set the cursor to a busy cursor. */

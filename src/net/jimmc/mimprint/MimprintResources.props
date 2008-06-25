@@ -112,6 +112,7 @@ menu.Layout.SaveTemplateAs.label=Save Template As...
 menu.List.label=Options*
 menu.List.title.mainList=Main List
 menu.List.ShowDirDates.label=Show Folder Dates
+menu.List.ShowFileIcons.label=Show File Icons
 menu.List.ShowFileInfo.label=Show File Info
 menu.List.ShowSingleViewer.label=Show Small Viewer
 
