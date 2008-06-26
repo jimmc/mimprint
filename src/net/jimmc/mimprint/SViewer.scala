@@ -14,6 +14,7 @@ import net.jimmc.swing.SwingS
 import net.jimmc.swing.ToolPrompter
 import net.jimmc.util.AsyncUi
 import net.jimmc.util.FileUtilS
+import net.jimmc.util.PFCatch
 import net.jimmc.util.Subscribe
 import net.jimmc.util.Subscriber
 import net.jimmc.util.UserException
@@ -379,7 +380,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         printableTracker ! Subscribe(this)
         printableTracker ! PlayListRequestInit(this)
         this ! SViewerRequestFocus(null)
-        loop { react (handleMessage) }
+        loop { react (PFCatch(handleMessage,"SViewer")) }
     }
 
     val handleMessage : PartialFunction[Any,Unit] = {

@@ -5,6 +5,7 @@
 
 package net.jimmc.mimprint
 
+import net.jimmc.util.PFCatch
 import net.jimmc.util.Subscribe
 
 import java.awt.BorderLayout
@@ -70,8 +71,9 @@ class PlayViewMulti(name:String,
         tracker ! PlayListRequestInit(this)
         mainTracker ! Subscribe(this)
         loop {
-            react (handleMainPlayListMessage orElse handlePlayListMessage
-                    orElse handleOtherMessage)
+            react (PFCatch(
+                    handleMainPlayListMessage orElse handlePlayListMessage
+                    orElse handleOtherMessage,"PlayViewMulti "+name))
         }
     }
 

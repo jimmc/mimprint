@@ -8,6 +8,7 @@ package net.jimmc.mimprint
 import net.jimmc.util.ActorPublisher
 import net.jimmc.util.AsyncUi
 import net.jimmc.util.FileUtilS
+import net.jimmc.util.PFCatch
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -29,7 +30,8 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
 
     def act() {
         loop {
-            react (handleSubscribe orElse handleOther)
+            react (PFCatch(handleSubscribe orElse handleOther,
+                    "PlayListTracker"))
         }
     }
     private val handleOther : PartialFunction[Any,Unit] = {

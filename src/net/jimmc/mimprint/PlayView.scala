@@ -6,6 +6,7 @@
 package net.jimmc.mimprint
 
 import net.jimmc.util.ActorPublisher
+import net.jimmc.util.PFCatch
 import net.jimmc.util.Subscribe
 import net.jimmc.util.Subscriber
 
@@ -20,7 +21,8 @@ abstract class PlayView(private val tracker:PlayListTracker) extends Actor
         tracker ! Subscribe(this)
         tracker ! PlayListRequestInit(this)       //send us an init message
         loop {
-            react (handlePlayListMessage orElse handleOtherMessage)
+            react (PFCatch(handlePlayListMessage orElse handleOtherMessage,
+                    "PlayView"))
         }
     }
 
