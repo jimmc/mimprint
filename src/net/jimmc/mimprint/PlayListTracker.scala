@@ -183,8 +183,11 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     def load(fileName:String, selectLast:Boolean) {
         val newPlayList = PlayListS.load(ui,fileName).asInstanceOf[PlayListS]
         publish(PlayListChangeList(this,playList,newPlayList))
-        if (newPlayList.size>0)
-            selectItem(if (selectLast) newPlayList.size - 1 else 0)
+        val idx = if (selectLast) newPlayList.size - 1 else 0
+        //Auto select the first/last item in the list if it is an image file
+        if (newPlayList.size>0 &&
+                FileInfo.isImageFileName(newPlayList.getItem(idx).fileName))
+            selectItem(idx)
         playList = newPlayList
     }
 }
