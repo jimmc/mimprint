@@ -128,11 +128,9 @@ abstract class AreaLayout {
     //Set the image indexes of all of our images.
     //Return the number of image slots we have.
     def setImageIndexes(start:Int):Int = {
-        var newStart = start
-        for (i <- 0 until areas.length) {
-            newStart = newStart + areas(i).setImageIndexes(newStart)
-        }
-        return (newStart - start)
+        val end = (start /: areas)((sum:Int,area:AreaLayout) =>
+                (sum + area.setImageIndexes(sum)))
+        end - start
     }
 
     //Subclass must provide a method to allocate its areas with the right
@@ -336,19 +334,18 @@ abstract class AreaLayout {
     def replaceArea(oldArea:AreaLayout, newArea:AreaLayout):Boolean = {
         //TODO - note that the image indexes of other areas will not
         //be correct after this, so they have to be updated separately.
-        for (i <- 0 until areas.length) {
-            if (areas(i)==oldArea) {
-                areas(i) = newArea
-                val sub = getSubTreeLocationPart(i)
-                areas(i).setParent(this)
-                areas(i).setTreeLocation(this.treeLocation+sub)
-                areas(i).setSubTreeLocations()
-                areas(i).setTreeDepth(this.treeDepth+1)
-                areas(i).setSubTreeDepths()
-                return true
-            }
+        val i = areas.findIndexOf(_ == oldArea)
+        if (i>=0) {
+            areas(i) = newArea
+            val sub = getSubTreeLocationPart(i)
+            areas(i).setParent(this)
+            areas(i).setTreeLocation(this.treeLocation+sub)
+            areas(i).setSubTreeLocations()
+            areas(i).setTreeDepth(this.treeDepth+1)
+            areas(i).setSubTreeDepths()
+            true
         }
-        return false   //not found
+        false   //not found
     }
 
     /** Get the name of this element in an XML file. */
@@ -389,13 +386,14 @@ abstract class AreaLayout {
      * @return An area from our list that contains the point,
      *         or null if none of our areas contain the point.
      */
-    def getArea(point:Point):AreaLayout = {
+    def getSubArea(point:Point):Option[AreaLayout] = {
         if (areas==null)
-            return null
-        areas.find(_.hit(point)) match {
-            case Some(a) => a
-            case None => null
-        }
+            return None
+        areas.find(_.hit(point))
+    }
+    def getAreaLeaf(point:Point):Option[AreaLayout] = {
+        getSubArea(point).map((a:AreaLayout)=>a.getAreaLeaf(point)
+            getOrElse a) orElse (if (hit(point)) Some(this) else None)
     }
 
     /** Paint all of our areas. */

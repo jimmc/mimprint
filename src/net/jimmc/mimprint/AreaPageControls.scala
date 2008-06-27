@@ -65,7 +65,7 @@ class AreaPageControls(val frame:SFrame,
     setLayout(new FlowLayout(FlowLayout.LEFT))
     addFields()
     updateAllAreasList()
-    updateAreaChoiceField(null)
+    updateAreaChoiceField(None)
 
     /** Create and add all of our fields. */
     private def addFields() {
@@ -238,25 +238,12 @@ class AreaPageControls(val frame:SFrame,
      */
     def selectArea(point:Point) {
 //println("AreaPageControl.selectArea("+point+")")
-        var aa = areaPage.areaLayout
-        if (!aa.hit(point)) {
-//System.out.println("Not in top-level areaLayout");
-            updateAreaChoiceField(null)
-            return
-        }
-        var selectedArea:AreaLayout = null
-        do {
-//System.out.println("Add area "+aa);
-            selectedArea = aa
-            aa = aa.getArea(point)
-        } while (aa!=null)
-//System.out.println("Area list size: "+v.size());
-        updateAreaChoiceField(selectedArea)
+        updateAreaChoiceField(areaPage.areaLayout.getAreaLeaf(point))
     }
 
     //After updating the allAreas array, update the areaChoiceField
     //to match it and set the selected item to the specified area.
-    private def updateAreaChoiceField(selectedArea:AreaLayout) {
+    private def updateAreaChoiceField(selectedArea:Option[AreaLayout]) {
         val numChoices = 1+allAreas.length
         val areaChoiceStrs = new Array[Any](numChoices)
         areaChoiceStrs(0) = "0. "+areaTypeToString(AREA_PAGE)
@@ -270,17 +257,11 @@ class AreaPageControls(val frame:SFrame,
                     getAreaTypeString(i+1)
         }
         areaChoiceField.setItems(areaChoiceStrs)
-        if (selectedArea==null)
-            areaChoiceField.setSelectedIndex(0)  //select the page
-        else {
-            val idx = allAreas.findIndexOf(_ == selectedArea)
-            if (idx>=0) {
-                areaChoiceField.setSelectedIndex(idx+1)
-                    //select the specified item,
-                    //this also calls the action method which
-                    //calls areaSelected(int).
-            }
-        }
+        val idx = allAreas.findIndexOf(_ == selectedArea.getOrElse(null))
+            //if selectedArea is null, findIndexOf will return -1, so
+            //when we use setSelectedIndex(idx+1) we get (0), the Page item
+        areaChoiceField.setSelectedIndex(idx+1)
+            //this also calls the action method which calls areaSelected(int)
     }
 
     //Here when the user selected the units for the page.
@@ -465,7 +446,7 @@ class AreaPageControls(val frame:SFrame,
             parentArea.replaceArea(area,newArea)
         }
         updateAllAreasList()
-        updateAreaChoiceField(newArea)    //fix area choice list
+        updateAreaChoiceField(Some(newArea))    //fix area choice list
         areaSelected(areaChoiceField.getSelectedIndex())
                 //fix area property fields
         multi.refreshAreas()
@@ -570,7 +551,7 @@ class AreaPageControls(val frame:SFrame,
             //When number of rows or columns changes, that changes our
             //list of areas.
             updateAllAreasList()
-            updateAreaChoiceField(a)
+            updateAreaChoiceField(Some(a))
         }
     }
 

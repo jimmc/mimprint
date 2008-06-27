@@ -8,19 +8,12 @@ package net.jimmc.mimprint
 import java.text.NumberFormat
 
 object PageValue {
-    private var pageValueFormat:NumberFormat = _
+    private var pageValueFormat = NumberFormat.getNumberInstance()
+    pageValueFormat.setMaximumFractionDigits(3)
 
     val UNIT_MULTIPLIER = 1000
 
-    private def initPageValueFormat() {
-        if (pageValueFormat==null) {
-            pageValueFormat = NumberFormat.getNumberInstance()
-            pageValueFormat.setMaximumFractionDigits(3)
-        }
-    }
-
     def formatPageValue(n:int):String = {
-        initPageValueFormat()
         val d:Double = n.asInstanceOf[Double]/UNIT_MULTIPLIER
         pageValueFormat.format(d)
     }

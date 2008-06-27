@@ -68,8 +68,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     private val dropActions:Int = DnDConstants.ACTION_COPY_OR_MOVE
     private val dropTargetListener:DropTargetListener =
         new AreaPageDropTargetListener()
-    private val myDropTarget:DropTarget = null
-        new DropTarget(this, dropActions, dropTargetListener, true)
+    //private val myDropTarget:DropTarget =
+    //    new DropTarget(this, dropActions, dropTargetListener, true)
 
     private var busyCursor:Cursor = _
     private var invisibleCursor:Cursor = _
@@ -192,16 +192,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
      * or null if not in an area. */
     def windowToImageArea(windowPoint:Point):AreaImageLayout = {
         val userPoint:Point = windowToUser(windowPoint)
-        var aa:AreaLayout = areaLayout
-        var bb:AreaLayout = null
-        do {
-            //Follow the tree down as far as we can
-            bb = aa.getArea(userPoint)
-            if (bb!=null)
-                aa = bb
-        } while (bb!=null)
-        aa match {
-            case aaa:AreaImageLayout => aaa
+        areaLayout.getAreaLeaf(userPoint) match {
+            case Some(aaa) if aaa.isInstanceOf[AreaImageLayout] => aaa.asInstanceOf[AreaImageLayout]
             case _ => null
         }
     }
