@@ -5,6 +5,7 @@
 
 package net.jimmc.mimprint
 
+import net.jimmc.swing.KeyListenerCatch
 import net.jimmc.swing.SDragSource
 import net.jimmc.util.SResources
 
@@ -98,7 +99,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     def fixImageIndexes() = pageLayout.fixImageIndexes
 
     private def initListeners() {
-        addKeyListener(new AreaPageKeyListener())
+        addKeyListener(new KeyListenerCatch(new AreaPageKeyListener(),viewer))
         addMouseListener(new AreaPageMouseListener())
         addMouseMotionListener(new AreaPageMouseMotionListener())
         addComponentListener(new AreaPageComponentListener())

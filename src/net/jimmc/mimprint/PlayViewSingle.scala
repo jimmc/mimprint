@@ -5,6 +5,7 @@
 
 package net.jimmc.mimprint
 
+import net.jimmc.swing.KeyListenerCatch
 import net.jimmc.swing.SwingS
 
 import java.awt.Color
@@ -48,7 +49,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         imageComponent.setPreferredSize(new Dimension(800,600))
         imageComponent.setHorizontalAlignment(SwingConstants.CENTER)
         //TODO - add bigFont option
-        imageComponent.addKeyListener(new PlayViewSingleKeyListener())
+        imageComponent.addKeyListener(
+                new KeyListenerCatch(new PlayViewSingleKeyListener(),viewer))
         imageComponent.addMouseListener(new PlayViewSingleMouseListener())
         imageComponent.addMouseMotionListener(
                 new PlayViewSingleMouseMotionListener())

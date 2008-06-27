@@ -10,12 +10,10 @@ package net.jimmc.util
  * of Actor loops, to prevent the actor from terminating when there
  * is an exception in the processing of the react statement.
  */
-class PFCatch[T](f:PartialFunction[T,Unit], name:String)
+class PFCatch[T](f:PartialFunction[T,Unit], name:String, ui:BasicQueries)
         extends PartialFunction[T,Unit] {
     val reportPrefix = "PFCatch caught exception"+
         (if (name.length>0) (" for "+name) else "") + ":"
-
-    def this(f:PartialFunction[T,Unit]) = this(f,"")
 
     /** Execute our partial function, catch exceptions. */
     def apply(x:T) = {
@@ -35,7 +33,11 @@ class PFCatch[T](f:PartialFunction[T,Unit], name:String)
 
     /** When we catch an exception, this is how we report it to the user. */
     def reportException(ex:Exception) {
-        println(reportPrefix)
+        if (ui!=null) {
+            ui.exceptionDialog(new RuntimeException(reportPrefix,ex))
+        } else {
+            println(reportPrefix)
+        }
         ex.printStackTrace()
     }
 
@@ -53,7 +55,11 @@ object PFCatch {
      * to "react" with PFCatch(...) to get the desired behavior of
      * catching exceptions in the partial function.
      */
-    def apply[T](f:PartialFunction[T,Unit]) =  new PFCatch(f)
+    def apply[T](f:PartialFunction[T,Unit]) =  new PFCatch(f, "", null)
 
-    def apply[T](f:PartialFunction[T,Unit],name:String) =  new PFCatch(f,name)
+    def apply[T](f:PartialFunction[T,Unit],name:String) =
+        new PFCatch(f,name, null)
+
+    def apply[T](f:PartialFunction[T,Unit],name:String,ui:BasicQueries) =
+        new PFCatch(f,name, ui)
 }

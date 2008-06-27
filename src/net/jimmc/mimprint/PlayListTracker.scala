@@ -31,7 +31,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     def act() {
         loop {
             react (PFCatch(handleSubscribe orElse handleOther,
-                    "PlayListTracker"))
+                    "PlayListTracker",ui))
         }
     }
     private val handleOther : PartialFunction[Any,Unit] = {

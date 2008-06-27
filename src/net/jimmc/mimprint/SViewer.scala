@@ -383,7 +383,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         printableTracker ! Subscribe(this)
         printableTracker ! PlayListRequestInit(this)
         this ! SViewerRequestFocus(null)
-        loop { react (PFCatch(handleMessage,"SViewer")) }
+        loop { react (PFCatch(handleMessage,"SViewer",this)) }
     }
 
     val handleMessage : PartialFunction[Any,Unit] = {

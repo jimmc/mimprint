@@ -73,7 +73,7 @@ class PlayViewMulti(name:String,
         loop {
             react (PFCatch(
                     handleMainPlayListMessage orElse handlePlayListMessage
-                    orElse handleOtherMessage,"PlayViewMulti "+name))
+                    orElse handleOtherMessage,"PlayViewMulti "+name, viewer))
         }
     }
 

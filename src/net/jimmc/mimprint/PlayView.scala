@@ -22,7 +22,7 @@ abstract class PlayView(private val tracker:PlayListTracker) extends Actor
         tracker ! PlayListRequestInit(this)       //send us an init message
         loop {
             react (PFCatch(handlePlayListMessage orElse handleOtherMessage,
-                    "PlayView"))
+                    "PlayView",tracker.ui))
         }
     }
 
