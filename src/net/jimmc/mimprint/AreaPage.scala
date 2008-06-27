@@ -68,8 +68,10 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     private val dropActions:Int = DnDConstants.ACTION_COPY_OR_MOVE
     private val dropTargetListener:DropTargetListener =
         new AreaPageDropTargetListener()
-    //private val myDropTarget:DropTarget =
-    //    new DropTarget(this, dropActions, dropTargetListener, true)
+    private val myDropTarget:DropTarget =
+        new DropTarget(this, dropActions, dropTargetListener, true)
+        //We don't need to keep a handle (myDropTarget is unused), but
+        //we need to instantiate the DropTarget.
 
     private var busyCursor:Cursor = _
     private var invisibleCursor:Cursor = _
