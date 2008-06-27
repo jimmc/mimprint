@@ -100,6 +100,18 @@ class PlayItemS(
             new PlayItemS(comments,newBase,relativePath,rotFlag)
         }
     }
+
+    /** Get another item with a different base such that the fileName field
+     * does not include any directory names.
+     */
+    def usingSelfBase(): PlayItemS = {
+        if ((fileName==null) || (fileName.indexOf(File.separatorChar)<0))
+            this
+        else {
+            val f = new File(baseDir,fileName)
+            usingBase(f.getParentFile)
+        }
+    }
 }
 
 object PlayItemS {

@@ -45,7 +45,7 @@ class PlayListS(
 
     //Create a new PlayListS containing the same items as ours plus the new item
     def addItem(item:PlayItemS):PlayListS = {
-        val newItems = items ++ Array(item.asInstanceOf[PlayItemS])
+        val newItems = items ++ Array(item.usingSelfBase())
         new PlayListS(ui,baseDir,newItems,comments)
     }
 
@@ -54,7 +54,7 @@ class PlayListS(
     def replaceItem(itemIndex:Int, item:PlayItemS): PlayListS = {
         val newItems:Array[PlayItemS] = Array.make(items.length,null)
         Array.copy(items,0,newItems,0,items.length)
-        newItems(itemIndex) = item.asInstanceOf[PlayItemS].usingBase(baseDir)
+        newItems(itemIndex) = item.usingSelfBase()
         new PlayListS(ui,baseDir,newItems,comments)
     }
 

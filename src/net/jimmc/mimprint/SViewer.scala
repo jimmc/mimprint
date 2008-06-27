@@ -203,7 +203,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
         mShowPrintList = new SCheckBoxMenuItem(this,"menu.View.ShowPrintList")(
                 showPrintList(mShowPrintList.getState))
-        mShowPrintList.setState(true)
+        mShowPrintList.setState(false)
         m.add(mShowPrintList)
 
         //TODO - add separator, then more commands for other View options
@@ -328,6 +328,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 imageLister, body0)
         body0.setBackground(mainSingleComp.getBackground())
         mainBody.setBackground(mainSingleComp.getBackground())
+
+        showPrintList(mShowPrintList.getState)
+        body0.setPreferredSize(mainSingleComp.getPreferredSize())
 
         statusLine = new JTextField()
         statusLine.setEditable(false)
