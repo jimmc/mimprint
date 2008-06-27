@@ -14,14 +14,14 @@ public class TestFileUtil extends TestCase {
 
     public static Test suite() {
 	Class testClass = TestFileUtil.class;
-	Class[] coverageClasses = { FileUtil.class };
+	Class[] coverageClasses = { FileUtilS.class };
 	return SuiteHelper.testOrCoverage(testClass,coverageClasses);
     }
 
     public void testRead() {
         File f = SuiteHelper.getFile(getClass(),"testFileUtil1.txt");
         try {
-            String fromFile = FileUtil.readFile(f);
+            String fromFile = FileUtilS.readFile(f);
             String exp = "This is\nfile one.\n";
             assertEquals(exp,fromFile);
         } catch (Exception ex) {
@@ -35,8 +35,8 @@ public class TestFileUtil extends TestCase {
         File f = SuiteHelper.getFile(getClass(),"testFileUtil2.tmp");
         String orig = "This is\nfile number two.\n";
         try {
-            FileUtil.writeFile(f,orig);
-            String fromFile = FileUtil.readFile(f);
+            FileUtilS.writeFile(f,orig);
+            String fromFile = FileUtilS.readFile(f);
             assertEquals(orig,fromFile);
         } catch (Exception ex) {
             throw new RuntimeException(ex);

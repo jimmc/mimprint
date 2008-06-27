@@ -12,17 +12,8 @@ object StringUtil {
     def getLongestLineWidth(s:String):Int = {
 	if (s==null)
 	    return 0
-	var maxLen = 0
-	var b = 0		//beginning of a line
-	while (b<s.length()) {
-	    var e = s.indexOf("\n",b)
-	    if (e<0)
-		e = s.length()
-	    if (e-b>maxLen)
-		maxLen = e-b
-	    b = e+1
-	}
-	maxLen
+        def max(a:Int,b:Int) = (if (a>b) a else b)
+        (0 /: s.split("\n"))((a:Int,b:String) => max(a,b.length))
     }
 
     /** Get the number of lines of text in the string. */

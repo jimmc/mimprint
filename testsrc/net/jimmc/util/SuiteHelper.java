@@ -1,6 +1,6 @@
 package net.jimmc.util;
 
-import net.jimmc.util.FileUtil;
+import net.jimmc.util.FileUtilS;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,8 +61,8 @@ public class SuiteHelper {
      */
     public static void assertFilesEqual(TestCase test, File expf, File testf) {
         try {
-            String expStr = FileUtil.readFile(expf);
-            String testStr = FileUtil.readFile(testf);
+            String expStr = FileUtilS.readFile(expf);
+            String testStr = FileUtilS.readFile(testf);
             test.assertEquals(expStr,testStr);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
