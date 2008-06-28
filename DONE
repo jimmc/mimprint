@@ -116,3 +116,4 @@
 - Add ViewListGroup with small viewer and Options menu. [080624]
 - Make Dual and Alt window modes separately settable options. [080625]
 - Add Print List on right hand side of screen. [080625]
+- Display key and actor exceptions using exceptionDialog. [080627]

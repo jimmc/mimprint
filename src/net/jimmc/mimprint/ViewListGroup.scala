@@ -6,6 +6,7 @@
 package net.jimmc.mimprint
 
 import net.jimmc.swing.SCheckBoxMenuItem
+import net.jimmc.swing.SMenu
 import net.jimmc.swing.SMenuItem
 
 import java.awt.BorderLayout
@@ -16,6 +17,7 @@ import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JPanel
 import javax.swing.JSplitPane
+import javax.swing.SwingConstants
 
 class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     private var playViewList:PlayViewList =
@@ -54,10 +56,8 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         val title = viewer.getResourceString("menu.List.title."+name)
         val label = new JLabel(title)
         mb.add(label)
-        val m = new JMenu(viewer.getResourceString("menu.List.label"))
-            //TODO - include a little down array by this label
-            //so the user has an idea that there is a menu here
-            //in this unusual place.
+        val m = new SMenu(viewer,"menu.List")
+        m.setHorizontalTextPosition(SwingConstants.LEFT)
 
         //Add our menu items
         mShowFileInfo = new SCheckBoxMenuItem(

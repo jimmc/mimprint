@@ -109,7 +109,8 @@ menu.Layout.EditDescription.label=Edit Description...
 menu.Layout.LoadTemplate.label=Load Template...
 menu.Layout.SaveTemplateAs.label=Save Template As...
 
-menu.List.label=Options*
+menu.List.label=Options
+menu.List.icon=asc.gif
 menu.List.title.mainList=Main List
 menu.List.title.printableList=Print List
 menu.List.ShowDirDates.label=Show Folder Dates

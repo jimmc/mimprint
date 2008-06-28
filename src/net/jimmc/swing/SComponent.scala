@@ -10,6 +10,7 @@ import java.awt.event.ActionListener
 import java.net.URL
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
+import javax.swing.Icon
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 
@@ -22,7 +23,7 @@ trait SComponent { this:JComponent =>
 
     def setupIcon(frame:SFrame, resPrefix:String) {
         //Set up the icon if defined in the resources and we have the call
-        type HasSetIconMethod = { def setIcon(icon:ImageIcon) }
+        type HasSetIconMethod = { def setIcon(icon:Icon) }
         this match {
             case c:HasSetIconMethod =>
                 val iconKey = resPrefix+".icon"
@@ -72,7 +73,7 @@ trait SComponent { this:JComponent =>
         }
     }
 
-    protected def loadIcon(frame:SFrame, iconName:String):ImageIcon = {
+    protected def loadIcon(frame:SFrame, iconName:String):Icon = {
         val cl = frame.getClass()
         val url:URL = cl.getResource(iconName)
         if (url==null)

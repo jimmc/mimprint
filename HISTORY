@@ -8,11 +8,11 @@ mimprint v0.2.1+
     the files that are in the printable list, and which are displayed
     in Printable Mode.  You can control whether this is visible with
     the new Show Print List menu item in the View menu.
-  * At the top of the main list there is now a small title bar with
-    an Options menu that allows you to set options for that list.
-    One of the options allows you to show a small image viewer at
-    the bottom of the list.  This is useful when operating in
-    Printable mode.
+  * At the top of the image lists (both the Main List and the Print List)
+    there is now a small title bar with an Options menu that allows
+    you to set options for that list.  One of the options allows you
+    to show a small image viewer at the bottom of the list.  This is
+    useful when operating in Printable mode.
 
   Other Changes:
 
