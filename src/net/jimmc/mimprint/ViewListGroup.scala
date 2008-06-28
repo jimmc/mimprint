@@ -102,6 +102,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
 
     def showFileInfo(b:Boolean) {
         playViewList.showFileInfo(b)
+        mShowFileInfo.setState(b)
         mShowFileIcons.setEnabled(b)
         mShowDirDates.setEnabled(b)
     }

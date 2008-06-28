@@ -118,10 +118,17 @@ menu.List.ShowFileIcons.label=Show File Icons
 menu.List.ShowFileInfo.label=Show File Info
 menu.List.ShowSingleViewer.label=Show Small Viewer
 
+menu.MultiContext.Clear.label=Clear Image Area
+menu.MultiContext.NoArea.label=Not in an image area
+menu.MultiContext.NoImage.label=No image in this image area
+menu.MultiContext.Rotate.label=Rotate (180)
+
 menu.PlayList.label=PlayList
 menu.PlayList.Active.label=Active...
 menu.PlayList.Load.label=Load...
 menu.PlayList.Save.label=Save...
+
+menu.SingleContext.AddToActive.label=Add Image to Active PlayList
 
 menu.View.label=View
 menu.View.ListIncludeDirDates.label=Include Folder Dates In List

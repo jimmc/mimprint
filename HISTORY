@@ -13,6 +13,8 @@ mimprint v0.2.1+
     you to set options for that list.  One of the options allows you
     to show a small image viewer at the bottom of the list.  This is
     useful when operating in Printable mode.
+  * The image view windows now include a context menu that opens on a
+    right mouse click.
 
   Other Changes:
 

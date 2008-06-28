@@ -7,6 +7,8 @@ package net.jimmc.mimprint
 
 import net.jimmc.swing.KeyListenerCatch
 import net.jimmc.swing.SDragSource
+import net.jimmc.swing.SLabel
+import net.jimmc.swing.SMenuItem
 import net.jimmc.util.SResources
 
 import java.awt.Color
@@ -47,6 +49,7 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringReader
 import javax.swing.JComponent
+import javax.swing.JPopupMenu
 
 class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         extends JComponent with Printable
@@ -74,6 +77,9 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         //We don't need to keep a handle (myDropTarget is unused), but
         //we need to instantiate the DropTarget.
 
+    private var imageContextMenu:JPopupMenu = _
+    private var noImageContextMenu:JPopupMenu = _
+    private var noAreaContextMenu:JPopupMenu = _
     private var busyCursor:Cursor = _
     private var invisibleCursor:Cursor = _
     private var cursorBusy = false
@@ -85,6 +91,9 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
     initListeners()
     initCursors()
+    imageContextMenu = createImageContextMenu()
+    noImageContextMenu = createNoImageContextMenu()
+    noAreaContextMenu = createNoAreaContextMenu()
     setupDrag(this,DnDConstants.ACTION_COPY_OR_MOVE)
 
     def areaLayout = pageLayout.getAreaLayout()
@@ -111,6 +120,40 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         invisibleCursor = toolkit.createCustomCursor(
             blankCursorImage, new Point(0,0), "invisible")
         busyCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+    }
+
+    //Create the popup menu to use when we are not over an image area
+    private def createNoAreaContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        m.add(new SMenuItem(viewer,"menu.MultiContext.NoArea")())
+
+        m
+    }
+
+    //Create the popup menu to use when we are over an empty image area
+    private def createNoImageContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        m.add(new SMenuItem(viewer,"menu.MultiContext.NoImage")())
+
+        m
+    }
+
+    //Create the popup menu to use when we are over an image area
+    private def createImageContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        m.add(new SMenuItem(viewer,"menu.MultiContext.Clear")(
+                clearCurrentArea()))
+        m.add(new SMenuItem(viewer,"menu.MultiContext.Rotate")(
+                rotateCurrentImage(2)))
+        m.add(new SMenuItem(viewer,"menu.Image.ShowEditDialog")(
+                viewer ! SViewerRequestEditDialog(playList,currentIndex)))
+        m.add(new SMenuItem(viewer,"menu.Image.ShowInfoDialog")(
+                viewer ! SViewerRequestInfoDialog(playList,currentIndex)))
+
+        m
     }
 
     def formatPageValue(n:Int) = PageValue.formatPageValue(n)
@@ -363,6 +406,23 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 	}
     }
 
+    private def rotateCurrentImage(rot:Int) {
+        if (currentArea!=null && currentArea.hasImage) {
+            //currentArea.rotate(rot)
+            //repaintCurrentImage()
+            tracker ! PlayListRequestRotate(playList, currentIndex, rot)
+        }
+    }
+
+    private def clearCurrentArea() = {
+        if (currentArea!=null && currentArea.hasImage) {
+            //clear image from current area
+            val item = PlayItemS.emptyItem()
+            tracker ! PlayListRequestChange(playList, currentIndex, item)
+        }
+    }
+
+
   //The Printable interface
     def print(graphics:Graphics, pageFormat:PageFormat, pageIndex:Int):Int = {
 	if (pageIndex!=0)
@@ -455,22 +515,6 @@ in an image area by 180 degrees, so we just use the r key for that.
         def requestScreenMode(mode:Int) =
             viewer ! SViewerRequestScreenMode(mode)
 
-        def rotateCurrentImage(rot:Int) {
-            if (currentArea!=null && currentArea.hasImage) {
-                //currentArea.rotate(rot)
-                //repaintCurrentImage()
-                tracker ! PlayListRequestRotate(playList, currentIndex, rot)
-            }
-        }
-
-        private def clearCurrentArea = {
-            if (currentArea!=null && currentArea.hasImage) {
-                //clear image from current area
-                val item = PlayItemS.emptyItem()
-                tracker ! PlayListRequestChange(playList, currentIndex, item)
-            }
-        }
-
         private def showHelpDialog() {
             val helpText = viewer.getResourceString("info.ImageHelp")
             viewer.invokeUi {
@@ -484,6 +528,20 @@ in an image area by 180 degrees, so we just use the r key for that.
         override def mousePressed(ev:MouseEvent) {
             requestFocus()
             selectArea(new Point(ev.getX(),ev.getY()))
+            maybeShowPopup(ev)
+        }
+        override def mouseReleased(ev:MouseEvent) = maybeShowPopup(ev)
+        private def maybeShowPopup(ev:MouseEvent) {
+            if (ev.isPopupTrigger()) {
+                val a:AreaImageLayout =
+                    windowToImageArea(new Point(ev.getX,ev.getY))
+                val contextMenu =
+                        if (a==null) noAreaContextMenu
+                        else if (a.hasImage) imageContextMenu
+                        else noImageContextMenu
+                setCursorVisible(true)
+                contextMenu.show(ev.getComponent,ev.getX,ev.getY)
+            }
         }
     }
 

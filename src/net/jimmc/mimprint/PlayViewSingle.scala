@@ -6,6 +6,8 @@
 package net.jimmc.mimprint
 
 import net.jimmc.swing.KeyListenerCatch
+import net.jimmc.swing.SMenu
+import net.jimmc.swing.SMenuItem
 import net.jimmc.swing.SwingS
 
 import java.awt.Color
@@ -27,6 +29,7 @@ import java.awt.Point
 import java.io.File
 import javax.swing.ImageIcon
 import javax.swing.JLabel
+import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 
 class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
@@ -37,6 +40,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     private var currentIndex:Int = -1
     private var currentItem:PlayItemS = _
 
+    private var contextMenu:JPopupMenu = _
     private var cursorBusy = false
     private var cursorVisible = true
     private var invisibleCursor:Cursor = _
@@ -58,9 +62,42 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 new PlayViewSingleComponentListener())
         initCursors
         mediaTracker = new MediaTracker(imageComponent)
+
+        contextMenu = createContextMenu()
+
         imageComponent
     }
 
+    private def createContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        //TODO - add a label at the start?
+        m.add(new SMenuItem(viewer,"menu.Image.PreviousImage")(
+                    tracker ! PlayListRequestUp(playList)))
+        m.add(new SMenuItem(viewer,"menu.Image.NextImage")(
+                    tracker ! PlayListRequestDown(playList)))
+        m.add(new SMenuItem(viewer,"menu.Image.PreviousDirectory")(
+                    tracker ! PlayListRequestLeft(playList)))
+        m.add(new SMenuItem(viewer,"menu.Image.NextDirectory")(
+                    tracker ! PlayListRequestRight(playList)))
+        val mr = new SMenu(viewer,"menu.Image.RotateMenu")
+        m.add(mr)
+        mr.add(new SMenuItem(viewer,"menu.Image.RotateMenu.R90")(
+                    requestRotate(1)))
+        mr.add(new SMenuItem(viewer,"menu.Image.RotateMenu.R180")(
+                    requestRotate(2)))
+        mr.add(new SMenuItem(viewer,"menu.Image.RotateMenu.R270")(
+                    requestRotate(-1)))
+        m.add(new SMenuItem(viewer,"menu.Image.AddToActive")(
+                    viewer ! SViewerRequestAddToActive(playList,currentIndex)))
+        m.add(new SMenuItem(viewer,"menu.Image.ShowEditDialog")(
+                    viewer ! SViewerRequestEditDialog(playList,currentIndex)))
+        m.add(new SMenuItem(viewer,"menu.Image.ShowInfoDialog")(
+                    viewer ! SViewerRequestInfoDialog(playList,currentIndex)))
+
+        m
+    }
+    
     def isShowing():Boolean = imageComponent.isShowing
 
     //TODO - add code to preload next/previous images?
@@ -316,8 +353,18 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         def mouseClicked(ev:MouseEvent) = ()
         def mouseEntered(ev:MouseEvent) = ()
         def mouseExited(ev:MouseEvent) = ()
-        def mousePressed(ev:MouseEvent) = imageComponent.requestFocus()
-        def mouseReleased(ev:MouseEvent) = ()
+        def mousePressed(ev:MouseEvent) = {
+            if (!maybeShowPopup(ev))
+                imageComponent.requestFocus()
+        }
+        def mouseReleased(ev:MouseEvent) = maybeShowPopup(ev)
+        private def maybeShowPopup(ev:MouseEvent):Boolean = {
+            if (ev.isPopupTrigger()) {
+                setCursorVisible(true)
+                contextMenu.show(ev.getComponent,ev.getX,ev.getY)
+                true
+            } else false
+        }
     }
 
     class PlayViewSingleMouseMotionListener extends MouseMotionListener {
