@@ -49,6 +49,33 @@ class PlayListS(
         new PlayListS(ui,baseDir,newItems,comments)
     }
 
+    //Create a new PlayListS where we have added the specified item at
+    //the specified index.  All items which previous had the same or
+    //higher index are moved up one.
+    def insertItem(itemIndex:Int, item:PlayItemS): PlayListS = {
+        val newItems:Array[PlayItemS] = Array.make(items.length+1,null)
+        if (itemIndex>0)
+            Array.copy(items,0,newItems,0,itemIndex)
+        val n = items.length - itemIndex    //number of items after it to move
+        if (n>0)
+            Array.copy(items,itemIndex,newItems,itemIndex+1,n)
+        newItems(itemIndex) = item.usingSelfBase()
+        new PlayListS(ui,baseDir,newItems,comments)
+    }
+
+    //Create a new PlayListS where we have removed the item at
+    //the specified index.  All items which previously had a
+    //higher index are moved down one.
+    def removeItem(itemIndex:Int): PlayListS = {
+        val newItems:Array[PlayItemS] = Array.make(items.length-1,null)
+        if (itemIndex>0)
+            Array.copy(items,0,newItems,0,itemIndex)
+        val n = items.length - itemIndex - 1  //number of items after it to move
+        if (n>0)
+            Array.copy(items,itemIndex+1,newItems,itemIndex,n)
+        new PlayListS(ui,baseDir,newItems,comments)
+    }
+
     //Create a new PlayListS containing the same items as ours except that
     //the item at the specified index has been replaced by the given item.
     def replaceItem(itemIndex:Int, item:PlayItemS): PlayListS = {

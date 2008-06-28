@@ -15,6 +15,9 @@ mimprint v0.2.1+
     useful when operating in Printable mode.
   * The image view windows now include a context menu that opens on a
     right mouse click.
+  * The context menu in images in Printable Mode allows you to insert
+    blank images and delete images from the Print List, which in turn
+    affects the location of the images in the print layout.
 
   Other Changes:
 

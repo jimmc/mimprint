@@ -49,6 +49,7 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringReader
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPopupMenu
 
 class AreaPage(viewer:SViewer, tracker:PlayListTracker)
@@ -78,6 +79,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         //we need to instantiate the DropTarget.
 
     private var imageContextMenu:JPopupMenu = _
+    private var imageContextMenuTitle:JLabel = _
     private var noImageContextMenu:JPopupMenu = _
     private var noAreaContextMenu:JPopupMenu = _
     private var busyCursor:Cursor = _
@@ -135,7 +137,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     private def createNoImageContextMenu():JPopupMenu = {
         val m = new JPopupMenu()
 
-        m.add(new SMenuItem(viewer,"menu.MultiContext.NoImage")())
+        m.add(new SLabel(viewer,"menu.MultiContext.NoImage"))
+        addInsertRemoveMenuItems(m)
 
         m
     }
@@ -144,6 +147,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     private def createImageContextMenu():JPopupMenu = {
         val m = new JPopupMenu()
 
+        imageContextMenuTitle = new JLabel("Image")
+        m.add(imageContextMenuTitle)
         m.add(new SMenuItem(viewer,"menu.MultiContext.Clear")(
                 clearCurrentArea()))
         m.add(new SMenuItem(viewer,"menu.MultiContext.Rotate")(
@@ -152,8 +157,16 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 viewer ! SViewerRequestEditDialog(playList,currentIndex)))
         m.add(new SMenuItem(viewer,"menu.Image.ShowInfoDialog")(
                 viewer ! SViewerRequestInfoDialog(playList,currentIndex)))
+        addInsertRemoveMenuItems(m)
 
         m
+    }
+
+    private def addInsertRemoveMenuItems(m:JPopupMenu) {
+        m.add(new SMenuItem(viewer,"menu.MultiContext.InsertImage")(
+                requestInsertImage))
+        m.add(new SMenuItem(viewer,"menu.MultiContext.RemoveImage")(
+                requestRemoveImage))
     }
 
     def formatPageValue(n:Int) = PageValue.formatPageValue(n)
@@ -422,6 +435,21 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         }
     }
 
+    private def requestScreenMode(mode:Int) =
+        viewer ! SViewerRequestScreenMode(mode)
+
+    private def requestInsertImage() {
+        if (currentIndex>=0 && currentIndex<playList.size) {
+            val item = PlayItemS.emptyItem
+            tracker ! PlayListRequestInsert(playList, currentIndex, item)
+        }
+    }
+
+    private def requestRemoveImage() {
+        if (currentIndex>=0 && currentIndex<playList.size) {
+            tracker ! PlayListRequestRemove(playList, currentIndex)
+        }
+    }
 
   //The Printable interface
     def print(graphics:Graphics, pageFormat:PageFormat, pageIndex:Int):Int = {
@@ -512,9 +540,6 @@ in an image area by 180 degrees, so we just use the r key for that.
         }
         //End KeyListener interface
 
-        def requestScreenMode(mode:Int) =
-            viewer ! SViewerRequestScreenMode(mode)
-
         private def showHelpDialog() {
             val helpText = viewer.getResourceString("info.ImageHelp")
             viewer.invokeUi {
@@ -537,8 +562,12 @@ in an image area by 180 degrees, so we just use the r key for that.
                     windowToImageArea(new Point(ev.getX,ev.getY))
                 val contextMenu =
                         if (a==null) noAreaContextMenu
-                        else if (a.hasImage) imageContextMenu
-                        else noImageContextMenu
+                        else if (!a.hasImage) noImageContextMenu
+                        else {
+                            imageContextMenuTitle.setText(
+                                playList.getItem(currentIndex).fileName)
+                            imageContextMenu
+                        }
                 setCursorVisible(true)
                 contextMenu.show(ev.getComponent,ev.getX,ev.getY)
             }

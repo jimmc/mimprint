@@ -17,14 +17,22 @@ sealed abstract class PlayListRequest
 case class PlayListRequestInit(sub:Subscriber[PlayListMessage])
         extends PlayListRequest
 
-/** Request to add an item to a playlist. */
+/** Request to add an item to the end of a playlist. */
 case class PlayListRequestAdd(list:PlayListS, item:PlayItemS)
         extends PlayListRequest
 
-/** Request to remove an item from a playlist. */
-//case class PlayListRequestRemove(list:PlayListS, index:Int)
-//        extends PlayListRequest
-//TODO - PlayListRequestRemove NYI
+/** Request to insert an item at the specified point in  a playlist.
+ * All items at and after the given index are moved up by one, and
+ * the new item is inserted at the given index point.
+ */
+case class PlayListRequestInsert(list:PlayListS, index:Int, item:PlayItemS)
+        extends PlayListRequest
+
+/** Request to remove an item from a playlist.
+ * After the removal, all items above the given index are moved down by one.
+ */
+case class PlayListRequestRemove(list:PlayListS, index:Int)
+        extends PlayListRequest
 
 /** Request to replace an item with a new item. */
 case class PlayListRequestChange(list:PlayListS, index:Int, item:PlayItemS)

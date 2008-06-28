@@ -118,3 +118,5 @@
 - Add Print List on right hand side of screen. [080625]
 - Display key and actor exceptions using exceptionDialog. [080627]
 - Add right-click menus to PlayViewSingle and Multi. [080628]
+- Add "Insert Empty Image" and "Remove Image" commands to image context
+  menu in Multi view. [080628]

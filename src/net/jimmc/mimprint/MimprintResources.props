@@ -121,6 +121,8 @@ menu.List.ShowSingleViewer.label=Show Small Viewer
 menu.MultiContext.Clear.label=Clear Image Area
 menu.MultiContext.NoArea.label=Not in an image area
 menu.MultiContext.NoImage.label=No image in this image area
+menu.MultiContext.InsertImage.label=Insert Empty into Print List
+menu.MultiContext.RemoveImage.label=Remove from Print List
 menu.MultiContext.Rotate.label=Rotate (180)
 
 menu.PlayList.label=PlayList

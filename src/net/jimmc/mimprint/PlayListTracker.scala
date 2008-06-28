@@ -40,6 +40,12 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         case m:PlayListRequestAdd =>
             if (listMatches(m.list))
                 addItem(m.item)
+        case m:PlayListRequestInsert =>
+            if (listMatches(m.list))
+                insertItem(m.index,m.item)
+        case m:PlayListRequestRemove =>
+            if (listMatches(m.list))
+                removeItem(m.index)
         case m:PlayListRequestChange =>
             if (listMatches(m.list))
                 changeItem(m.index,m.item)
@@ -82,6 +88,18 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         val newPlayList = playList.addItem(item)
         val newIndex = playList.size - 1
         publish(PlayListAddItem(this,playList,newPlayList,newIndex))
+        playList = newPlayList
+    }
+
+    private def insertItem(itemIndex:Int, item:PlayItemS) {
+        val newPlayList = playList.insertItem(itemIndex, item)
+        publish(PlayListAddItem(this,playList,newPlayList,itemIndex))
+        playList = newPlayList
+    }
+
+    private def removeItem(index:Int) {
+        val newPlayList = playList.removeItem(index)
+        publish(PlayListRemoveItem(this,playList,newPlayList,index))
         playList = newPlayList
     }
 
