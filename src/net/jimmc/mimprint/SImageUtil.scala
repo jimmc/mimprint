@@ -116,28 +116,6 @@ object SImageUtil {
             return sourceImage	//no scaling
 
         val (srcWidth, srcHeight) = getImageSize(sourceImage)
-        /*
-        var srcWidth = sourceImage.getWidth(null)
-        var srcHeight = sourceImage.getHeight(null)
-        var waitCount = 0
-        while (srcWidth<0 || srcHeight<0) {
-            //The image has not yet started loading, so we don't
-            //know it's size.  Wait just a bit.
-            waitCount = waitCount + 1
-            if (waitCount>50) {       //5 seconds
-                println("Timed out waiting to load image "+path)
-(new Exception("debug")).printStackTrace()
-                return null	//can't get it
-            }
-            try {
-                Thread.sleep(100)
-            } catch {
-                case ex:Exception => //ignore
-            }
-            srcWidth = sourceImage.getWidth(null)
-            srcHeight = sourceImage.getHeight(null)
-        }
-        */
 
         val xy = (rotation==1 || rotation==3)
                 //True if rotated by 90 (or 270) degrees, so the
@@ -184,7 +162,7 @@ object SImageUtil {
             //know it's size.  Wait just a bit.
             waitCount = waitCount + 1
             if (waitCount > 100)
-                return (0, 0)   //TODO - throw exception?
+                throw new RuntimeException("Timed out loading image")
             try { Thread.sleep(100) } catch { case _ => } //ignore errors here
         }
         (sourceImage.getWidth(null), sourceImage.getHeight(null))

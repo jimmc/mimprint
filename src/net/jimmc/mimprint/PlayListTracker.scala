@@ -193,8 +193,10 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
 
     ///Save our playlist to a file.
     def save(filename:String) = playList.save(filename)
+    def save(filename:String,absolute:Boolean) =
+        playList.save(filename,absolute)
 
-    def save(f:File) = playList.save(f)
+    def save(f:File) = playList.save(f,false)
 
     def save(out:PrintWriter, baseDir:File) = playList.save(out, baseDir)
 

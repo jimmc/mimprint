@@ -116,14 +116,21 @@ class PlayListS(
 
     def getItem(n:Int) = items(n)
 
+    def getBaseDirs():Array[File] = items.map(_.getBaseDir())
+
     def getFileNames():Array[String] = items.map(_.getFileName())
 
     /** Save our playlist to a file. */
-    def save(filename:String):Unit = save(new File(filename))
+    def save(filename:String):Unit = save(new File(filename),false)
+    def save(filename:String,absolute:Boolean):Unit =
+        save(new File(filename), absolute)
 
-    def save(f:File) {
-        val dir = f.getParentFile()
+    def save(f:File, absolute:Boolean) {
+        val dir =
+            if (absolute) new File(File.separator)
+            else f.getParentFile()
         val pw = new PrintWriter(f)
+           //TODO - should use getPrintWriterFor to check for overwriting a file
         save(pw,dir)
         pw.flush()
         pw.close()

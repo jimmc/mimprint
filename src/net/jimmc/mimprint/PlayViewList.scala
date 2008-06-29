@@ -23,6 +23,8 @@ import java.awt.dnd.DragSourceListener
 import java.awt.Image
 import java.awt.Point
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.AbstractListModel
 import javax.swing.BorderFactory
 import javax.swing.DefaultListCellRenderer
@@ -60,6 +62,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var fileNameList:JList = _
     private var fileNameListModel:ArrayListModel = _
     private var currentSelection = -1
+    def baseDir = playList.baseDir
 
     private val iconLoader = new IconLoader(viewer) {
         def iconLoaded(fileInfos:Array[FileInfo], n:Int):Boolean =
@@ -88,6 +91,16 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         iconLoader.start()
 
         p
+    }
+
+    def viewPlayList(rootDir:String) {
+        val sw = new StringWriter()
+        val pw = new PrintWriter(sw)
+        playList.save(pw,new File(rootDir))
+        val s = sw.toString
+        viewer.infoDialog("PlayList Contents, baseDir="+rootDir+":\n"+s) //TODO i18n
+        pw.close()
+        sw.close()
     }
 
     def isShowing():Boolean = ourComponent.isShowing
@@ -156,14 +169,19 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //and redisplay our list.
     protected[mimprint] def redisplayList() {
         targetDirectory = playList.baseDir
+        val playableDirs = playList.getBaseDirs
         playableFileNames = playList.getFileNames
         dirNames = getDirNames(targetDirectory)
         dirCount = dirNames.length
         fileCount = playableFileNames.length
         fileNames = dirNames ++ playableFileNames
         val newFileInfos:Array[FileInfo] =
-            (0 until fileNames.length).map((i:Int) =>
-                new FileInfo(i,dirCount,fileCount,targetDirectory,fileNames(i))
+            (0 until fileNames.length).map((i:Int) => {
+                val ii = i - dirNames.length
+                val fDir = if (ii<0) targetDirectory
+                    else if (playableDirs(ii).isAbsolute) playableDirs(ii)
+                    else new File(targetDirectory,playableDirs(ii).getPath)
+                new FileInfo(i,dirCount,fileCount,fDir,fileNames(i))}
             ).toArray
         //Do the actual updating on the event thread to avoid race conditions
         val displayableNames = fileNames.map((s:String) =>
@@ -291,6 +309,17 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 listValueChanged
         }
     }
+
+    //Send out a select request to cause our listeners to refresh themselves
+    def requestSelect() = {
+        if (tracker!=null && playList!=null)
+            tracker ! PlayListRequestSelect(playList,currentSelection)
+    }
+
+    def load(path:String) = tracker.load(path)
+
+    def save(path:String) = tracker.save(path)
+    def save(path:String,absolute:Boolean) = tracker.save(path,absolute)
 
     private def listValueChanged() {
         currentSelection = fileNameList.getSelectedIndex()

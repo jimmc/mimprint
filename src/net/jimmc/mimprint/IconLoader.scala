@@ -22,10 +22,16 @@ abstract class IconLoader(viewer:SViewer) extends Thread {
     override def run() {
 //System.out.println("running iconLoader")
         while (true) {  //keep running until the app exits
-            val fileInfos = getFileInfoList()
-            val updatedCount = loadFileInfos(fileInfos)
-            if (updatedCount==0)
-                waitForMoreIcons()
+            try {
+                val fileInfos = getFileInfoList()
+                val updatedCount = loadFileInfos(fileInfos)
+                if (updatedCount==0)
+                    waitForMoreIcons()
+            } catch {
+                case ex:Exception =>
+                    viewer.exceptionDialog(ex)
+                    Thread.sleep(10)
+            }
         }
     }
 

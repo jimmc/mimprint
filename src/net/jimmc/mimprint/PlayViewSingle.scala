@@ -295,6 +295,11 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         imageComponent.setCursor(if (visible) null else invisibleCursor)
     }
 
+    def refresh() {
+        currentItem = null          //force reload of image to get new size
+        imageSelected(currentIndex)
+    }
+
     class PlayViewSingleKeyListener extends KeyListener {
         def keyPressed(ev:KeyEvent) {
             setCursorVisible(false)    //turn off cursor on any key
@@ -375,10 +380,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     class PlayViewSingleComponentListener extends ComponentListener {
         def componentHidden(ev:ComponentEvent) = ()
         def componentMoved(ev:ComponentEvent) = ()
-        def componentResized(ev:ComponentEvent) = {
-            currentItem = null          //force reload of image to get new size
-            imageSelected(currentIndex)
-        }
+        def componentResized(ev:ComponentEvent) = refresh
         def componentShown(ev:ComponentEvent) = ()
     }
 }

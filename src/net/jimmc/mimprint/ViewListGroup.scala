@@ -12,6 +12,7 @@ import net.jimmc.swing.SMenuItem
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.io.File
 import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JMenuBar
@@ -40,6 +41,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         singleComp.setPreferredSize(new Dimension(w,w*3/4))
         val split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 listComp,singleComp)
+        split.setResizeWeight(0.8)
         val panel = new JPanel()
         panel.setLayout(new BorderLayout())
         panel.add(split,BorderLayout.CENTER)
@@ -53,10 +55,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     //Create a menu bar with one menu, our Options menu
     private def createOptionsMenuBar():JMenuBar = {
         val mb = new JMenuBar()
-        val title = viewer.getResourceString("menu.List.title."+name)
-        val label = new JLabel(title)
-        mb.add(label)
-        val m = new SMenu(viewer,"menu.List")
+        val m = new SMenu(viewer,"menu.List."+name)
         m.setHorizontalTextPosition(SwingConstants.LEFT)
 
         //Add our menu items
@@ -86,6 +85,23 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         m.add(mShowSingleViewer)
         showSingleViewer(mShowSingleViewer.getState)
                 //make sure window state is in sync with menu item state
+
+        m.add(new SMenuItem(viewer,"menu.List.Open")(processOpen))
+
+        val sm = new SMenu(viewer,"menu.List.Save")
+        sm.add(new SMenuItem(viewer,"menu.List.Save.Absolute")(
+                processSave(true)))
+        sm.add(new SMenuItem(viewer,"menu.List.Save.Relative")(
+                processSave(false)))
+        m.add(sm)
+
+        val vcm = new SMenu(viewer,"menu.List.ViewContents")
+
+        vcm.add(new SMenuItem(viewer,"menu.List.ViewContents.Absolute")(
+                playViewList.viewPlayList("/")))
+        vcm.add(new SMenuItem(viewer,"menu.List.ViewContents.RelativeCurrent")(
+                playViewList.viewPlayList(".")))
+        m.add(vcm)
 
         mb.add(m)
         mb
@@ -121,6 +137,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         singleComp.setVisible(b)
         singleComp.getParent.asInstanceOf[JSplitPane].resetToPreferredSizes()
         mShowSingleViewer.setState(b)
+        playViewList.requestSelect
     }
 
     def showDirectories(b:Boolean) {
@@ -128,5 +145,21 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         if (mShowDirDates!=null)
             mShowDirDates.setVisible(b)
         this.includeDirectories = b
+    }
+
+    private def processOpen() {
+        val msg = viewer.getResourceString("query.PlayListToOpen")
+        val newFile = viewer.fileOrDirectoryOpenDialog(msg,playViewList.baseDir)
+        if (newFile!=null) {
+            playViewList.load(newFile.getPath)
+        }
+    }
+
+    private def processSave(absolute:Boolean) {
+        val msg = viewer.getResourceString("query.PlayListToSave")
+        val newFile = viewer.fileSaveDialog(msg,playViewList.baseDir)
+        if (newFile!=null) {
+            playViewList.save(newFile.getPath,absolute)
+        }
     }
 }

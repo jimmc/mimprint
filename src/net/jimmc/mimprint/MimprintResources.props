@@ -109,14 +109,22 @@ menu.Layout.EditDescription.label=Edit Description...
 menu.Layout.LoadTemplate.label=Load Template...
 menu.Layout.SaveTemplateAs.label=Save Template As...
 
-menu.List.label=Options
-menu.List.icon=asc.gif
-menu.List.title.mainList=Main List
-menu.List.title.printableList=Print List
+menu.List.mainList.label=Main List
+menu.List.mainList.icon=asc.gif
+menu.List.Open.label=Open...
+menu.List.printableList.label=Print List
+menu.List.printableList.icon=asc.gif
+menu.List.Save.label=Save
+menu.List.Save.Absolute.label=Absolute
+menu.List.Save.Relative.label=Relative
 menu.List.ShowDirDates.label=Show Folder Dates
 menu.List.ShowFileIcons.label=Show File Icons
 menu.List.ShowFileInfo.label=Show File Info
 menu.List.ShowSingleViewer.label=Show Small Viewer
+
+menu.List.ViewContents.label=View Contents
+menu.List.ViewContents.Absolute.label=Absolute
+menu.List.ViewContents.RelativeCurrent.label=Relative to Current
 
 menu.MultiContext.Clear.label=Clear Image Area
 menu.MultiContext.NoArea.label=Not in an image area
@@ -176,6 +184,8 @@ query.Exit.title=Exit Mimprint?
 query.FileToOpen=File or Directory to Open
 query.Info.NoDescription=(No description)
 query.Info.title=Mimprint: Info
+query.PlayListToOpen=PlayList File or Directory to Open
+query.PlayListToSave=Save to PlayList File
 
 status.LoadedTemplateFromFile=Loaded template from file {0}
 status.SavedTemplateToFile=Saved template to file {0}

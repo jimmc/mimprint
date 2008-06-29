@@ -113,7 +113,6 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         mb.add(layoutMenu)
         mb.add(createViewMenu())
         mb.add(createHelpMenu())
-        mb.add(createDebugMenu())
 
         mb
     }
@@ -231,27 +230,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         m
     }
 
-    private def createDebugMenu():JMenu = {
-        val m = new JMenu("Debug")
-        m.add(new SMenuItem(this,"menu.Debug.ShowPrintablePlayList")(
-                showPrintablePlayList(".")))
-        m.add(new SMenuItem(this,"menu.Debug.ShowPrintablePlayListRoot")(
-                showPrintablePlayList("/")))
-        m
-    }
-
-    private def showPrintablePlayList(rootDir:String) {
-        val sw = new StringWriter()
-        val pw = new PrintWriter(sw)
-        printablePlayList.save(pw,new File(rootDir))
-        val s = sw.toString
-        infoDialog("Printable PlayList:\n"+s)
-    }
-
     private def requestRotate(rot:Int) {
         mainTracker ! PlayListRequestRotate(playList, playListIndex, rot)
     }
-
 
     def processFileOpen() {
         val msg = getResourceString("query.FileToOpen")
@@ -324,6 +305,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
         val body0 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 imagePane, printableLister)
+        body0.setResizeWeight(0.8)
         val mainBody = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 imageLister, body0)
         body0.setBackground(mainSingleComp.getBackground())
