@@ -91,8 +91,9 @@
             <pathelement location="${hansel-bcel.jar}"/>
         </path>
 
-        <!-- The classpath for creating our javadoc docs. -->
-	<path id="javadoc.classpath">
+        <!-- The classpath for creating our scaladoc docs. -->
+	<path id="scaladoc.classpath">
+            <pathelement location="${scala.library.jar}"/>
 	    <path refid="compile.classpath"/>
 	</path>
 
@@ -399,29 +400,26 @@
     		description="Compile all the documentation"/>
 
     <target name="apidoc" depends="init"
-    		description="Create the javadoc documentation">
+    		description="Create the scaladoc documentation">
         <uptodate targetfile="${apidoc.dir}/index.html"
 		property="apidoc-uptodate">
 	    <srcfiles dir="${src.dir}"
-	    	includes="**/*.java"
-		excludes="**/*.old/**/*.java"/>
+	    	includes="**/*.scala"
+		excludes="**/*.old/**/*.scala"/>
 	</uptodate>
 	<antcall target="create-apidoc"/>
     </target>
 
     <target name="create-apidoc" depends="init" unless="apidoc-uptodate">
         <mkdir dir="${apidoc.dir}"/>
-	<javadoc
-		sourcepath="${src.dir}"
+	<scaladoc
+		srcdir="${src.dir}"
 		destdir="${apidoc.dir}"
-		overview="${overview.html}"
-		classpathref="javadoc.classpath"
+		classpathref="scaladoc.classpath"
 	>
-	    <fileset dir="${src.dir}">
-	    	<include name="**/*.java"/>
-	    	<exclude name="**/*.old/**/*.java"/>
-	    </fileset>
-	</javadoc>
+            <include name="**/*.scala"/>
+            <exclude name="**/*.old/**/*.scala"/>
+	</scaladoc>
     </target>
 
     <target name="coverage" description="Run unit tests with coverage">

@@ -6,7 +6,7 @@
 <center>
 <h1>README</h1>
 <h3>Mimprint<br>
-    v0.2.0  June 4, 2008</h3>
+    v0.2.2  June 29, 2008</h3>
 </center>
 
 <p>
@@ -30,7 +30,7 @@
 <a name="introduction"><h2>Introduction</h2></a>
 <p>
 Mimprint is an image printing and viewing program
-written in Java and distributed under the GPL.
+written in Scala (100% Java-compatible)  and distributed under the GPL.
 In addition to providing a way to view and step through GIF and JPEG images,
 it allows laying out multiple images at different sizes on one page
 for printing.
@@ -47,23 +47,28 @@ to download the latest version of Mimprint.
 <a name="features"><h2>Features</h2></a>
 <ul>
   <li>Licensed under GPL, freely redistributable with source.
-  <li>Written in Java, runs on Windows, Mac and Unix.
-  <li>Five viewing modes:
+  <li>Written in Scala, runs on any standar Java Virtual machine,
+      runs on Windows, Mac and Unix.
+  <li>Three viewing modes:
   <ul>
     <li>Printable mode allows collecting images onto a page for printing.
     <li>SlideShow viewing mode allows easily stepping through a folder of
         image files.
     <li>Full screen mode scales images to fit in a full-window frame.
-    <li>Alternate screen mode displays images on a second screen with no frame
-        (when a second screen is available).
-    <li>Secondary Window mode displays images in a second window, which can
-        be moved and resized to fit an alternate screen when mimprint is
-        used in an environment in which the alternate screen is not detected
-        (such as can happen when using X remotely).
   </ul>
-  <li>Browser with icons allows easy navigation of image directories.
+  <li>Images can be displayed on an alternate screen, such as for viewing
+      on an external display.
+  <li>Images can be displayed in a second window, which can be moved and
+      resized to fit an alternate screen when mimprint is
+      used in an environment in which the alternate screen is not detected
+      (such as can happen when using X remotely).
+  <li>View and edit image playlists.
+  <li>Browser with optional image icons
+      allows easy navigation of image directories.
   <li>Browser allows easy navigation through collections of layout templates.
-  <li>Images and directories can be annotated using a text file.
+  <li>Images can be dragged and dropped to any area in the printable page
+      from the browser, any other printable page area, or external programs.
+  <li>Images and directories can be annotated using text files.
   <li>Prints a single image on a page, or multiple copies of a single image,
       or multiple images, all at the same size or at different sizes
       by using layout templates.
@@ -80,6 +85,8 @@ Sorry, but there is no Users Guide yet.
 Try this:
 <ul>
 <li>From the View menu, select Printable Screen Mode.
+<li>In the Main List browser, from the Main List menu, enable
+    the option to show image icons in the list.
 <li>In the browser on the left side of the screen, browse to the
     templates/mixedsize folder.
     You should see small images of the templates in the browser.
@@ -90,7 +97,7 @@ Try this:
 <li>Explore the menus.
 </ul>
 <p>
-For programmers, the javadoc-generated
+For programmers, the scaladoc-generated
 <a href="doc/api/index.html">API Reference</a>
 provides detailed documentation on the packages and classes used in
 Mimprint (available after you have <a href="#source">unpacked the source</a>).
@@ -238,7 +245,7 @@ archive file with the commands
 <code>cd mimprint-<i>N_N_N</i><br>
       unzip src.zip</code>
 </blockquote>
-This will create a <code>src</code> directory with all of the Java files,
+This will create a <code>src</code> directory with all of the Scala files,
 as well as adding a few other files (such as a build.xml file)
 to your mimprint directory.
 You must have the
@@ -251,7 +258,7 @@ You can download this from the
 <a href="http://www.scala-lang.org/">Scala web page</a>.
 
 <p>
-If you want to look at the Javadoc-generated API documentation
+If you want to look at the scaladoc-generated API documentation
 for the Java classes, you must first unpack those html files from
 the <code>apidoc.zip</code> archive file with the commands
 <blockquote>
@@ -263,7 +270,7 @@ Alternatively, you can unpack <code>src.zip</code> and then run the command
 <blockquote>
 <code>ant doc</code>
 </blockquote>
-to run javadoc and create the API documents from the source files
+to run scaladoc and create the API documents from the source files
 (you must have the
 <a href="http://ant.apache.org/">ant</a> program installed on your
 system in order to create the documentation using this command).
@@ -300,11 +307,11 @@ On Unix, run
 <code>java -jar mimprint.jar</code>
 </blockquote>
 If the java binary is not in your PATH, you can explicitly specify the
-path to it.  For example, if you have installed JDK1.4 into
-<code>/usr/local/j2sdk1.4.2</code>,
+Scala to it.  For example, if you have installed JDK1.5 into
+<code>/usr/local/jdk1.5</code>,
 you can run mimprint with the command
 <blockquote>
-<code>/usr/local/j2sdk1.4.2/bin/java -jar mimprint.jar</code>
+<code>/usr/local/jdk1.5/bin/java -jar mimprint.jar</code>
 </blockquote>
 <p>
 On Solaris 2.6 or later, you can directly run mimprint.jar.
