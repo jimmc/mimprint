@@ -449,7 +449,7 @@
     		description="Tag all files in git for the current release">
 	<echo message="Tagging files as ${version.name}-${version.number}"/>
         <exec executable="git" failonerror="true" >
-            <arg line="tag -a ${version.name}-${version.number}"/>
+            <arg line="tag -a -m 'Auto-tag version ${version.number}' ${version.name}-${version.number}"/>
         </exec>
     </target>
 
