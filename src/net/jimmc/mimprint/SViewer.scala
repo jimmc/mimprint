@@ -395,6 +395,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 showImageEditDialog(m.list,m.index)
         case m:SViewerRequestAddToActive =>
                 addToActive(m.list,m.index)
+        case m:SViewerRequestDirEditDialog =>
+                showDirEditDialog(m.list)
     }
 
     private def processMainPlayListMessage(msg:PlayListMessage) {
@@ -697,6 +699,18 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         }
     }
 
+    private def showDirEditDialog(pl:PlayListS) {
+        val title = getResourceFormatted("prompt.TextForDirectory",
+                pl.baseDir.getPath)
+        val descFile = new File(pl.baseDir,"summary.txt")
+        val oldText =
+            if (descFile.exists) FileUtilS.readFile(descFile)
+            else ""
+        val newText:String = editTextDialog(title,oldText)
+        if (newText!=null)
+            FileUtilS.writeFile(descFile,newText)
+    }
+
     private def getFileInfo(pl:PlayListS, idx:Int):FileInfo = {
         if (idx<0)
             return null         //no image selected
@@ -800,6 +814,8 @@ case class SViewerRequestInfoDialog(list:PlayListS,index:Int)
 case class SViewerRequestEditDialog(list:PlayListS,index:Int)
         extends SViewerRequest
 case class SViewerRequestAddToActive(list:PlayListS,index:Int)
+        extends SViewerRequest
+case class SViewerRequestDirEditDialog(list:PlayListS)
         extends SViewerRequest
 
 /*

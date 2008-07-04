@@ -63,6 +63,7 @@ info.ImageHelp=Available commands:\n\
         DEL, BS - clear current image (Printable mode only)\n\
 	Ctrl L - refresh\n\
         a - alternate screen mode\n\
+	E - edit text about the directory\n\
 	e - edit text about the image\n\
 	f - full screen mode\n\
 	i - show info about the image\n\
@@ -101,6 +102,7 @@ menu.Image.RotateMenu.label=Rotate Image
 menu.Image.RotateMenu.R90.label=90 degrees CCW
 menu.Image.RotateMenu.R180.label=180 degrees
 menu.Image.RotateMenu.R270.label=90 degrees CW
+menu.Image.ShowDirEditDialog.label=Show Directory Edit Dialog
 menu.Image.ShowEditDialog.label=Show Edit Dialog
 menu.Image.ShowInfoDialog.label=Show Info Dialog
 
@@ -167,6 +169,7 @@ prompt.Print.PageSizeMismatch.Intro=Page size is not the same as paper size
 prompt.Print.PageSizeMismatch.PageSize=Page size is {0} by {1} {2}
 prompt.Print.PageSizeMismatch.PaperSize=Paper size is {0} by {1} {2}
 prompt.SaveLayoutTemplateAs=Save Layout Template As...
+prompt.TextForDirectory=Text for directory {0}
 prompt.TextForImage=Text for {0}
 
 query.button.Details.label=Details

@@ -94,6 +94,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                     viewer ! SViewerRequestEditDialog(playList,currentIndex)))
         m.add(new SMenuItem(viewer,"menu.Image.ShowInfoDialog")(
                     viewer ! SViewerRequestInfoDialog(playList,currentIndex)))
+        m.add(new SMenuItem(viewer,"menu.Image.ShowDirEditDialog")(
+                    viewer ! SViewerRequestDirEditDialog(playList)))
 
         m
     }
@@ -326,6 +328,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 case 'a' => requestScreenMode(SViewer.SCREEN_ALT)
                 case 'e' =>
                         viewer ! SViewerRequestEditDialog(playList,currentIndex)
+                case 'E' =>
+                        viewer ! SViewerRequestDirEditDialog(playList)
                 case 'f' => requestScreenMode(SViewer.SCREEN_FULL)
                 case 'i' =>
                         viewer ! SViewerRequestInfoDialog(playList,currentIndex)

@@ -4,6 +4,8 @@ mimprint v0.2.2+
 
   * The current directory is now display as a path, as in Mac browsers,
     so you can directly select any parent directory in the path.
+  * There is now a menu command in the popup menu, also using the E key,
+    to edit the summary.txt file for the current folder.
 
 ----------------------------------------------------------------------
 
