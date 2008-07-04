@@ -33,146 +33,140 @@ trait FileDialogs { this: BasicQueries =>
     /** True if we should allow debugging of UserException */
     val debugUserExceptions:Boolean
 
+    def toOption(f:File):Option[File] = if (f==null) None else Some(f)
+
+    def toOption(s:String):Option[String] = if (s==null) None else Some(s)
+
+    private def decodeChooserResult(result:Int, chooser:JFileChooser):
+            Option[File] = {
+        if (result!=JFileChooser.APPROVE_OPTION)
+            None	//canceled
+        else
+            toOption(chooser.getSelectedFile())
+    }
+
     /** Put up a file open dialog. */
-    def fileOpenDialog(prompt:String):File = {
-        fileOpenDialog(prompt,null.asInstanceOf[String]);
+    def fileOpenDialog(prompt:String):Option[File] = {
+        fileOpenDialog(prompt,None.asInstanceOf[Option[File]])
+    }
+
+    //I wanted to use dflt:Option[String], but scalac complained that I
+    //then had two methods with the same signature after type erasure,
+    //so I have changed this one back to a String which can be null.
+    /** Put up a file open dialog.
+     * @return None if cancelled.
+     */
+    def fileOpenDialog(prompt:String, dflt:String):Option[File] = {
+        fileOpenDialog(prompt, toOption(dflt).map(new File(_)))
     }
 
     /** Put up a file open dialog.
-     * @return null if cancelled.
+     * @return None if cancelled.
      */
-    def fileOpenDialog(prompt:String, dflt:String):File = {
-        val chooser = new JFileChooser(dflt)
+    def fileOpenDialog(prompt:String, dflt:Option[File]):Option[File] = {
+        val chooser = new JFileChooser(dflt getOrElse null)
         chooser.setDialogTitle(prompt)
         val result = chooser.showOpenDialog(dialogParent)
-        if (result!=JFileChooser.APPROVE_OPTION)
-            null	//cancelled
-        else
-            chooser.getSelectedFile()
+        decodeChooserResult(result,chooser)
     }
 
-    /** Put up a file open dialog.
-     * @return null if cancelled.
-     */
-    def fileOpenDialog(prompt:String, dflt:File):File = {
-        val chooser = new JFileChooser(dflt)
-        chooser.setDialogTitle(prompt)
-        val result = chooser.showOpenDialog(dialogParent)
-        if (result!=JFileChooser.APPROVE_OPTION)
-            return null	//cancelled
-        else
-            chooser.getSelectedFile()
-    }
-
-    def fileOrDirectoryOpenDialog(prompt:String, dflt:File):File = {
-        fileOrDirectoryOpenDialog(prompt, dflt, null)
+    def fileOrDirectoryOpenDialog(prompt:String, dflt:Option[File]):
+            Option[File] = {
+        fileOrDirectoryOpenDialog(prompt, dflt, None)
     }
 
     /** Put up a dialog to open a file or a directory.
      * @param prompt The title for the dialog.
      * @param dflt The intially default file or directory.
      * @param approveLabel The label to use on the Approve button.
-     * @return The selected file or directory, or null if cancelled.
+     * @return The selected file or directory, or None if cancelled.
      */
-    def fileOrDirectoryOpenDialog(prompt:String, dflt:File,
-                            approveLabel:String):File = {
+    def fileOrDirectoryOpenDialog(prompt:String, dflt:Option[File],
+                            approveLabel:Option[String]):Option[File] = {
         val chooser = new JFileChooser()
         //If the specified directory does not exist, JFileChooser
         //defaults to a completely different directory.
         //In an attempt to be slightly more reasonable, we
         //look for the closest parent that does exist.
         var d = dflt
-        while (d!=null && !d.exists()) {
-            d = d.getParentFile()
+        while (d.isDefined && !d.get.exists) {
+            d = d.flatMap(f=>toOption(f.getParentFile))
         }
-        chooser.setCurrentDirectory(d)
+        chooser.setCurrentDirectory(d getOrElse null)
         chooser.setDialogType(JFileChooser.OPEN_DIALOG)
         chooser.setDialogTitle(prompt)
         chooser.setMultiSelectionEnabled(false)
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES)
 
-        val result = if (approveLabel!=null)
-                chooser.showDialog(dialogParent, approveLabel) else
+        val result = if (approveLabel.isDefined)
+                chooser.showDialog(dialogParent, approveLabel.get) else
                 chooser.showOpenDialog(dialogParent)
-        if (result != JFileChooser.APPROVE_OPTION)
-            null	//user cancelled
-        else
-            chooser.getSelectedFile()
+        decodeChooserResult(result,chooser)
     }
 
     /** Put up a file save dialog. */
-    def fileSaveDialog(prompt:String):File = {
-        fileSaveDialog(prompt,null.asInstanceOf[String]);
+    def fileSaveDialog(prompt:String):Option[File] = {
+        fileSaveDialog(prompt,None.asInstanceOf[Option[File]])
+    }
+
+    //See fileOpenDialog for comment about dflt:String
+    /** Put up a file save dialog.
+     * @return None if cancelled
+     */
+    def fileSaveDialog(prompt:String, dflt:String):Option[File] = {
+        fileSaveDialog(prompt,toOption(dflt).map(new File(_)))
     }
 
     /** Put up a file save dialog.
-     * @return null if cancelled
+     * @return None if cancelled
      */
-    def fileSaveDialog(prompt:String, dflt:String):File = {
-        val chooser = new JFileChooser(dflt)
+    def fileSaveDialog(prompt:String, dflt:Option[File]):Option[File] = {
+        val chooser = new JFileChooser(dflt getOrElse null)
         chooser.setDialogTitle(prompt)
         val result = chooser.showSaveDialog(dialogParent)
-        if (result!=JFileChooser.APPROVE_OPTION)
-            null	//cancelled
-        else
-            chooser.getSelectedFile()
-    }
-
-    /** Put up a file save dialog.
-     * @return null if cancelled
-     */
-    def fileSaveDialog(prompt:String, dflt:File):File = {
-        val chooser = new JFileChooser(dflt)
-        chooser.setDialogTitle(prompt)
-        val result = chooser.showSaveDialog(dialogParent)
-        if (result!=JFileChooser.APPROVE_OPTION)
-            return null	//cancelled
-        else
-            chooser.getSelectedFile();
+        decodeChooserResult(result,chooser)
     }
 
     /** Put up a directory save dialog.
-     * @return null if cancelled
+     * @return None if cancelled
      */
-    def directorySaveDialog(prompt:String, dflt:File):File = {
-        val chooser = new JFileChooser(dflt)
+    def directorySaveDialog(prompt:String, dflt:Option[File]):Option[File] = {
+        val chooser = new JFileChooser(dflt getOrElse null)
         chooser.setDialogTitle(prompt)
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
         val result = chooser.showSaveDialog(dialogParent)
-        if (result!=JFileChooser.APPROVE_OPTION)
-            null	//cancelled
-        else
-            chooser.getSelectedFile()
+        decodeChooserResult(result,chooser)
     }
 
     /** Put up a dialog to select a directory.
      * @param defaultDir The directory intially displayed in the dialog.
      * @param title The title for the dialog.
      * @param approveLabel The label to use on the Approve button.
-     * @return The selected directory, or null if cancelled.
+     * @return The selected directory, or None if cancelled.
      */
-    def selectDirectory(defaultDir:String,title:String,
-                            approveLabel:String):String = {
+    def selectDirectory(defaultDir:Option[String],title:String,
+                            approveLabel:Option[String]):Option[String] = {
         val chooser = new JFileChooser()
-        var d:File = if (defaultDir!=null) new File(defaultDir) else null
+        var d = defaultDir.map(new File(_))
         //If the specified directory does not exist, JFileChooser
         //defaults to a completely different directory.
         //In an attempt to be slightly more reasonable, we
         //look for the closest parent that does exist.
-        while (d!=null && !d.exists()) {
-            d = d.getParentFile()
+        while (d.isDefined && !d.get.exists) {
+            d = d.flatMap(f=>toOption(f.getParentFile))
         }
-        chooser.setCurrentDirectory(d)
+        chooser.setCurrentDirectory(d getOrElse null)
         chooser.setDialogType(JFileChooser.OPEN_DIALOG)
         chooser.setDialogTitle(title)
         chooser.setMultiSelectionEnabled(false)
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
 
-        if (chooser.showDialog(dialogParent, approveLabel)
-                    != JFileChooser.APPROVE_OPTION)
-            null	//user cancelled
+        val result = chooser.showDialog(dialogParent,
+                        approveLabel getOrElse null)
+        if (result != JFileChooser.APPROVE_OPTION)
+            None	//user cancelled
         else
-            chooser.getSelectedFile().toString()
+            toOption(chooser.getSelectedFile().toString())
     }
 
     /* TBD - add saveTextToFile(String text) that asks here for
@@ -182,28 +176,28 @@ trait FileDialogs { this: BasicQueries =>
     /** Get a PrintWriter for the specified file.
      * If the file aready exists, ask the user for confirmation
      * before overwriting the file.
-     * @return The opened PrintWriter, or null if the user
+     * @return The opened PrintWriter, or None if the user
      *         declined to open the file.
      */
-    def getPrintWriterFor(filename:String):PrintWriter =
+    def getPrintWriterFor(filename:String):Option[PrintWriter] =
         getPrintWriterFor(new File(filename))
 
     /** Get a PrintWriter for the specified file.
      * If the file aready exists, ask the user for confirmation
      * before overwriting the file.
-     * @return The opened PrintWriter, or null if the user
+     * @return The opened PrintWriter, or None if the user
      *         declined to open the file.
      */
-    def getPrintWriterFor(f:File):PrintWriter = {
+    def getPrintWriterFor(f:File):Option[PrintWriter] = {
         if (f.exists()) {
             val msg = dialogRes.getResourceFormatted(
                     "query.Confirm.FileExists",f.toString())
             if (!confirmDialog(msg))
-                    return null 	//cancelled
+                    return None 	//cancelled
         }
         try {
             val w = new PrintWriter(new FileWriter(f))
-            w
+            Some(w)
         } catch {
             case ex:IOException =>
                 //TBD - handle this exception?
@@ -222,13 +216,11 @@ trait FileDialogs { this: BasicQueries =>
      *         or on error.
      */
     def saveTextToFile(text:String, filename:String):Boolean = {
-        val w = getPrintWriterFor(filename)
-        if (w==null)
-            false
-        else {
+        val wOpt = getPrintWriterFor(filename)
+        wOpt.foreach { w =>
             w.write(text)
             w.close()
-            true
         }
+        wOpt.isDefined
     }
 }

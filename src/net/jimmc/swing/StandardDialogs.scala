@@ -204,8 +204,8 @@ trait StandardDialogs extends BasicQueries { this: FileDialogs =>
             case 2 =>		//Save Traceback To File
                 val prompt:String = dialogRes.getResourceString(
                         "query.SaveTracebackToFile");
-                val traceFile:File = fileSaveDialog(prompt);
-                if (traceFile!=null) {
+                val traceFileOpt:Option[File] = fileSaveDialog(prompt)
+                traceFileOpt.foreach { traceFile =>
                     try {
                         val w = new FileWriter(traceFile);
                         val pw = new PrintWriter(w);

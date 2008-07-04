@@ -65,7 +65,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var mainList:ViewListGroup = _
     private var mainSingle:PlayViewSingle = _
     private var fullSingle:PlayViewSingle = _
-    private var currentMainFile:File = _
+    private var currentMainFile:Option[File] = None
     private var screenMode = SViewer.SCREEN_MODE_DEFAULT
     private var previousScreenMode = screenMode
     private var imagePane:JPanel = _
@@ -86,8 +86,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var printableMulti:PlayViewMulti = _
     private var printableComp:Component = _
 
-    private var lastSaveLayoutTemplateFile:File = null
-    private var lastLoadLayoutTemplateFile:File = null
+    private var lastSaveLayoutTemplateFile:Option[File] = None
+    private var lastLoadLayoutTemplateFile:Option[File] = None
 
     setJMenuBar(createMenuBar())
     initForm()
@@ -237,9 +237,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     def processFileOpen() {
         val msg = getResourceString("query.FileToOpen")
         val newMainFile = fileOrDirectoryOpenDialog(msg,currentMainFile)
-        if (newMainFile!=null) {
+        if (newMainFile.isDefined) {
             currentMainFile = newMainFile
-            mainTracker.load(newMainFile.getPath)
+            mainTracker.load(newMainFile.get.getPath)
         }
     }
 
@@ -327,7 +327,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 
     def mainOpen(fileName:String) {
         try {
-            currentMainFile = new File(fileName)
+            currentMainFile = Some(new File(fileName))
             mainTracker.load(fileName)
         } catch {
             case ex:FileNotFoundException =>
@@ -731,28 +731,28 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     /** Save the current layout to a named file. */
     private def saveLayoutTemplateAs() {
         val prompt = getResourceString("prompt.SaveLayoutTemplateAs")
-        val f:File = fileSaveDialog(prompt,lastSaveLayoutTemplateFile)
-        if (f==null)
+        val fOpt = fileSaveDialog(prompt,lastSaveLayoutTemplateFile)
+        if (fOpt.isEmpty)
             return
-        lastSaveLayoutTemplateFile = f
-        val pw = getPrintWriterFor(f)
-        if (pw==null)
+        lastSaveLayoutTemplateFile = fOpt
+        val pwOpt = getPrintWriterFor(fOpt.get)
+        if (pwOpt.isEmpty)
             return         //cancelled
-        printableMulti.saveLayoutTemplate(pw)
-        pw.close()
+        printableMulti.saveLayoutTemplate(pwOpt.get)
+        pwOpt.get.close()
         val status = getResourceFormatted("status.SavedTemplateToFile",
-                f.toString())
+                fOpt.get.toString())
         showStatus(status)
     }
 
     /** Load a layout from a named file. */
     private def loadLayoutTemplate() {
         val prompt = getResourceString("prompt.LoadLayoutTemplate");
-        val f:File = fileOpenDialog(prompt,lastLoadLayoutTemplateFile);
-        if (f==null)
+        val fOpt = fileOpenDialog(prompt,lastLoadLayoutTemplateFile);
+        if (fOpt.isEmpty)
             return
-        lastLoadLayoutTemplateFile = f
-        loadLayoutTemplate(f)
+        lastLoadLayoutTemplateFile = fOpt
+        loadLayoutTemplate(fOpt.get)
     }
 
     //Load the specified layout template

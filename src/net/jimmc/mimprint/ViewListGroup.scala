@@ -149,17 +149,15 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
 
     private def processOpen() {
         val msg = viewer.getResourceString("query.PlayListToOpen")
-        val newFile = viewer.fileOrDirectoryOpenDialog(msg,playViewList.baseDir)
-        if (newFile!=null) {
-            playViewList.load(newFile.getPath)
-        }
+        val newFile = viewer.fileOrDirectoryOpenDialog(
+                msg,viewer.toOption(playViewList.baseDir))
+        newFile.foreach(f => playViewList.load(f.getPath))
     }
 
     private def processSave(absolute:Boolean) {
         val msg = viewer.getResourceString("query.PlayListToSave")
-        val newFile = viewer.fileSaveDialog(msg,playViewList.baseDir)
-        if (newFile!=null) {
-            playViewList.save(newFile.getPath,absolute)
-        }
+        val newFile = viewer.fileSaveDialog(
+                msg,viewer.toOption(playViewList.baseDir))
+        newFile.foreach(f => playViewList.save(f.getPath,absolute))
     }
 }

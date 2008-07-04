@@ -12,9 +12,6 @@ Bugs:
 PlayLists:
 - Allow specifying multiple image files and use that as the list of files
   rather than using a directory list (if >1 file specified). (020818)
-- Look for a special file in each directory (e.g. images.mmp) with one line
-  per image to display, each line having a file name and possibly flags such
-  as whether to rotate it. (020818)
 - Call the above a "Playlist" file.  Allow specifying a playlist file on
   the command line, in which case it displays all images listed in that
   playlist file.  Allow multiple playlist files on the command line; 
@@ -40,15 +37,9 @@ Printable:
   pages.  Add a command to take the marked images and drop them into the
   slots on the multiple pages, advancing to the next page when each page
   is full. (071230)
-- Make a "printable" playlist, make it easy to add the currently viewed
-  item in slideshow mode to the playlist. (080501)
-- Assign an order to each of the slots in a printable screen, then make it
-  so that applying a playlist to the screen will take the images from the
-  playlist and fill them into the printable screen in that order. (080501)
 - Support templates with multiple pages, plus a way of specifying which
   layout to use for each page.  As a page is filled up, add another page
   to the current set of pages. (080501)
-- Add a command to clear an image area. (060123)
 - Add templates for labels to template library. (051116)
 - Option in template to display captions under photos: separate control
   for showing filename, file date and file text. (051116)
