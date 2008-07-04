@@ -32,6 +32,8 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
 
     override def getAreaCount()  = 1   //image areas always have one area
 
+    override def getImageAreaCount() = 1
+
     def allocateAreas():Array[AreaLayout] = null
 
     def hasImage() = image!=null
@@ -95,15 +97,57 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         g2.dispose()
     }
 
+    override def printPage(g2p:Graphics2D, comp:Component,
+            playList:PlayListS, start:Int):Int ={
+        if (start >= playList.size)
+            return 0
+        val g2 = g2p.create().asInstanceOf[Graphics2D]
+            //make a copy of our caller's gc so our changes don't
+            //affect the caller.
+        val printItem = playList.getItem(start)
+        if (printItem==item)
+            paintImage(g2) //this changes the transformation in g2
+        else {
+            paintImage(g2,comp,printItem)
+        }
+        g2.dispose()
+        1
+    }
+
     private def paintImage(g2:Graphics2D) {
         if (transformedImage==null)
             return     //no image to paint
+        paintTransformedImage(g2, transformedImage)
+    }
+
+    private def paintImage(g2:Graphics2D, comp:Component, item:PlayItemS) {
+        val path = new File(item.baseDir,item.fileName).getPath
+        val image = comp.getToolkit().createImage(path)
+        //We look at the aspect ratio of the image and
+        //auto-rotate it to match the aspect ratio of
+        //the image display area.
+        SImageUtil.loadCompleteImage(comp,image) //we need the image size
+        val areaBounds:Rectangle = getBoundsInMargin()
+        val imageAspect = (image.getWidth(null)>image.getHeight(null))
+        val areaAspect = (areaBounds.width>areaBounds.height)
+        val needsRotate = imageAspect ^ areaAspect
+        //We only allow playlist rotation in increments of
+        //180 degrees.  The user can not rotate an image by
+        //90 degrees in the printable area, if he wants that
+        //he must tweak that area's size to change the
+        //aspect ratio.
+        val rot = (item.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
+        val txImage = SImageUtil.scaleAndRotate(image,rot,path,comp)
+        paintTransformedImage(g2,txImage)
+    }
+
+    private def paintTransformedImage(g2:Graphics2D, txImage:Image) {
         val b:Rectangle = getBoundsInMargin()
         val transform:AffineTransform = new AffineTransform()
         g2.translate(b.x,b.y)
-        scaleAndTranslate(g2,transformedImage.getWidth(null),
-            transformedImage.getHeight(null),b.width,b.height)
-        g2.drawImage(transformedImage,transform,null)
+        scaleAndTranslate(g2,txImage.getWidth(null),
+            txImage.getHeight(null),b.width,b.height)
+        g2.drawImage(txImage,transform,null)
     }
 
     /** Given an area of specified size in user space, scale it to fit into

@@ -125,3 +125,4 @@
 - Change fileDialog methods to use Option rather than null. [080703]
 - Display current dir as path components, Mac-style. [080704]
 - Add popup menu command and 'E' key to edit the directory summary file.[080704]
+- Make printing work for multiple pages. [080704]

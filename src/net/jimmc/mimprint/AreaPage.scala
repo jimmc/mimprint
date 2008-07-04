@@ -283,8 +283,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
     override def paint(g:Graphics) = paint(g,getWidth,getHeight,showOutlines)
 
-    private def paint(g:Graphics, devWidth:Int, devHeight:Int,
-            drawOutlines:Boolean) {
+    private def setupGraphics(g:Graphics,devWidth:Int,devHeight:Int):
+            Graphics2D = {
         val g2 = g.asInstanceOf[Graphics2D]
         g2.setColor(getBackground)
         g2.fillRect(0,0,devWidth,devHeight)     //clear to background
@@ -293,6 +293,12 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         g2.setColor(pageColor)
         g2.fillRect(0,0,pageWidth,pageHeight)
         g2.setColor(getForeground)
+        g2
+    }
+
+    private def paint(g:Graphics, devWidth:Int, devHeight:Int,
+            drawOutlines:Boolean) {
+        val g2 = setupGraphics(g, devWidth, devHeight)
         areaLayout.paint(g2,currentArea,highlightedArea,drawOutlines)
     }
 
@@ -453,15 +459,24 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
   //The Printable interface
     def print(graphics:Graphics, pageFormat:PageFormat, pageIndex:Int):Int = {
-	if (pageIndex!=0)
+        val imagesPerPage = areaLayout.getImageAreaCount
+        val totalPages = (playList.size + imagesPerPage - 1)/imagesPerPage
+	if (pageIndex>=totalPages)
 	    return Printable.NO_SUCH_PAGE
         val paper:Paper = pageFormat.getPaper()
         val paperWidth = paper.getWidth.asInstanceOf[Int]
         val paperHeight = paper.getHeight.asInstanceOf[Int]
-	paint(graphics,paperWidth,paperHeight,false)
+        val start = pageIndex * imagesPerPage
+	printPage(graphics,paperWidth,paperHeight,start)
 	Printable.PAGE_EXISTS
     }
   //End Printable interface
+
+    //Print one page of images
+    private def printPage(g:Graphics, devWidth:Int, devHeight:Int, start:Int) ={
+        val g2 = setupGraphics(g, devWidth, devHeight)
+        areaLayout.printPage(g2,this,playList,start)
+    }
 
     class AreaPageKeyListener extends KeyListener {
         var knownKeyPress = false

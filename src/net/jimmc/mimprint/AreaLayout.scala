@@ -7,6 +7,7 @@
 package net.jimmc.mimprint
 
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Insets
@@ -61,7 +62,15 @@ abstract class AreaLayout {
             return null        //no such area
         return areas(n)
     }
+
+    //Get the number of immediate subareas
     def getAreaCount() = if (areas==null) 0 else areas.length
+
+    //Get the number of image areas in this area and all descendents
+    def getImageAreaCount():Int = {
+        if (areas==null) 0
+        else ((0 /: areas)((sum:Int,a:AreaLayout) => sum + a.getImageAreaCount))
+    }
 
     /** Set our parent layout.
      * @param parent Our parent layout, or null if we are the top level layout.
@@ -406,6 +415,16 @@ abstract class AreaLayout {
         //If we are the highlighted area, paint our outline
         if (highlightedArea==this)
             paintOutline(g2,highlightedColor,2*borderThickness,borderThickness)
+    }
+
+    def printPage(g2:Graphics2D, comp:Component,
+            playList:PlayListS, start:Int):Int = {
+        //paint each of our image page areas
+        if (areas==null)
+            return 0
+        val end = (start /: areas)((sum:Int,area:AreaLayout) =>
+                (sum + area.printPage(g2,comp,playList,sum)))
+        end - start
     }
 
     //Paint the outlines for our area.
