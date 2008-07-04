@@ -44,7 +44,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //TODO - add thread that loads image icons
     //TODO - implement dropping into this list
     //TODO - add support for viewing our MIMPRINT (mpr) template files
-    private val dirBgColor = new Color(0.9f, 0.8f, 0.8f)
+    private val pathBgColor = new Color(0.9f, 0.9f, 0.8f)
+    private val subdirBgColor = new Color(0.9f, 0.8f, 0.8f)
     protected[mimprint] var includeDirectories = true
     protected[mimprint] var includeDirectoryDates = false
     protected[mimprint] var includeIcons = false
@@ -53,8 +54,10 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var playList:PlayListS = _
     private var targetDirectory:File = _
     private var playableFileNames:Array[String] = _
-    private var dirNames:Array[String] = _
-    private var dirCount:Int = _
+    private var pathNames:Array[String] = _
+    private var pathCount:Int = _
+    private var subdirNames:Array[String] = _
+    private var subdirCount:Int = _
     private var fileNames:Array[String] = _
     private var fileCount:Int = _
     private var fileInfos:Array[FileInfo] = _
@@ -132,14 +135,14 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     protected def playListChangeItem(m:PlayListChangeItem) {
         playList = m.newList
         redisplayList
-        val newSelection = m.index + dirCount
+        val newSelection = m.index + pathCount + subdirCount
         //If the selected item got changed, we have to re-highlight it
         if (newSelection==currentSelection)
             setSelectedIndex(currentSelection)
     }
 
     protected def playListSelectItem(m:PlayListSelectItem) {
-        val newSelection = m.index + dirCount
+        val newSelection = m.index + pathCount + subdirCount
         if (newSelection==currentSelection)
             return              //no change
         setSelectedIndex(newSelection)
@@ -171,17 +174,23 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         targetDirectory = playList.baseDir
         val playableDirs = playList.getBaseDirs
         playableFileNames = playList.getFileNames
-        dirNames = getDirNames(targetDirectory)
-        dirCount = dirNames.length
+        pathNames = getPathNames(targetDirectory)
+        val pathParents = getPathParents(pathNames)
+        pathCount = pathNames.length
+        subdirNames = getSubdirNames(targetDirectory)
+        subdirCount = subdirNames.length
         fileCount = playableFileNames.length
-        fileNames = dirNames ++ playableFileNames
+        fileNames = pathNames ++ subdirNames ++ playableFileNames
+        val dirCount = pathCount + subdirCount
         val newFileInfos:Array[FileInfo] =
             (0 until fileNames.length).map((i:Int) => {
-                val ii = i - dirNames.length
-                val fDir = if (ii<0) targetDirectory
+                val ii = i - dirCount
+                val fDir = if (i<pathCount) pathParents(i)
+                    else if (ii<0) targetDirectory
                     else if (playableDirs(ii).isAbsolute) playableDirs(ii)
                     else new File(targetDirectory,playableDirs(ii).getPath)
-                new FileInfo(i,dirCount,fileCount,fDir,fileNames(i))}
+                new FileInfo(i,pathCount,subdirCount,fileCount,
+                        fDir,fileNames(i))}
             ).toArray
         //Do the actual updating on the event thread to avoid race conditions
         val displayableNames = fileNames.map((s:String) =>
@@ -200,7 +209,29 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     }
     private var appIsUpdatingModel = false
 
-    private def getDirNames(dir:File):Array[String] = {
+    private def getPathNames(f:File):Array[String] = {
+        if (f==null || !includeDirectories)
+            return Array()
+        val dir = if (f.isDirectory) f else f.getParentFile
+        val a = dir.getCanonicalPath.split(File.separator)
+        //Trim off leading blank
+        if (a.length>0 && a(0)=="")
+            a.slice(0,a.length)
+        else
+            a
+    }
+
+    private def getPathParents(p:Array[String]):Array[File] = {
+        var d = new File(File.separator)        //root
+        val dd:Array[File] = p map { s =>
+            val f = new File(d,s)
+            d = f
+            if (f.getParentFile==null) f else f.getParentFile
+        }
+        dd
+    }
+
+    private def getSubdirNames(dir:File):Array[String] = {
         if (dir==null || !dir.isDirectory || !includeDirectories)
             return Array()
         //Get the list of all subdirectories except current and parent
@@ -209,8 +240,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 name!="." && name!=".."))
         Sorting.stableSort(subdirs,
                     (s1:String,s2:String)=>FileInfo.compareFileNames(s1,s2)<0)
-        //Put current first, parent second, followed by sorted subdirs
-        Array(".","..") ++ subdirs
+        subdirs
     }
 
     //Get the FileInfo for the specified file in the fileNames list
@@ -288,7 +318,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             //If this item is a directory folder rather than an image,
             //color it differently in the list.
             if (!isSelected && fileInfo.isDirectory()) {
-                cell.setBackground(dirBgColor)
+                val c = if (index<pathCount) pathBgColor else subdirBgColor
+                cell.setBackground(c)
             }
             cell.setBorder(BorderFactory.createLineBorder(Color.black))
             cell
@@ -325,14 +356,14 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         currentSelection = fileNameList.getSelectedIndex()
         if (currentSelection<0)
             return              //nothing selected now
-        if (currentSelection>=dirCount) {
+        if (currentSelection >= (pathCount+subdirCount)) {
             //we have selected a file
             //TODO - check to see if it is an MPR file (e.g. our template)
-            val listIndex = currentSelection - dirCount
+            val listIndex = currentSelection - (pathCount + subdirCount)
             //Send the select request to our PlayListTracker
             tracker ! PlayListRequestSelect(playList,listIndex)
         } else {
-            //A directory has been selected
+            //A directory has been selected (path or subdir)
             if (!appIsSelecting) {
                 //If user clicked (rather than using up or down arrows
                 //in the main window), then we open that directory.
@@ -353,7 +384,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             //Whether or not the drag succeeds, we have now selected this
             //item in the list.  In order to keep things in sync, send
             //out a select notification.
-            val selIndex = index - dirCount
+            val selIndex = index - (pathCount + subdirCount)
             //Send a select request to our PlayListTracker
             if (selIndex >= 0)
                 tracker ! PlayListRequestSelect(playList,selIndex)

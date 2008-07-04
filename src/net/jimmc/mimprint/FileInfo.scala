@@ -101,14 +101,15 @@ object FileInfo {
  */
 class FileInfo(
     index:Int,          //the index of this entry within the containing list
-    dirCount:Int,       //number of directories in the list
+    pathCount:Int,      //number of path components in the list
+    subdirCount:Int,       //number of subdirectories in the list
     fileCount:Int,      //number of files in the list
     dir:File,           //the directory containing the file
     val name:String)        //name of the file with the directory
 {
     import FileInfo._   //get all the stuff from our companion object
 
-    val totalCount = dirCount + fileCount
+    val totalCount = pathCount + subdirCount + fileCount
     val thisFile = new File(dir,if (name==null) "" else name)
 
     //If not a directory, assume it is an image file,
@@ -143,7 +144,7 @@ class FileInfo(
     def getFile() = thisFile
 
     /** True if this FileInfo represents a directory. */
-    def isDirectory() = (fType==DIR)
+    def isDirectory() = (index<pathCount) || (fType==DIR)
 
     /** Get the text for the specified file. */
     private def getFileText():String = {
@@ -194,22 +195,25 @@ class FileInfo(
             sb.append("<html>")
             sb.append("<b>")
             sb.append(fn)
-            if (f.isDirectory())
+            if (index<pathCount || f.isDirectory())
                 sb.append(File.separator)
             sb.append("</b>")
         } else {
             sb.append("File: ")        //TODO i18n
             sb.append(fn)
-            if (f.isDirectory())
+            if (index<pathCount || f.isDirectory())
                 sb.append(File.separator)
         }
 
         //Add (N of M)
         val thisIndex = index+1
-        if (isDirectory()) {
-            sb.append("; Folder "+thisIndex+" of "+dirCount)  //TBD i18n
+        if (index<pathCount) {
+            sb.append("; Path "+thisIndex+" of "+pathCount) //TBD i18n
+        } else if (isDirectory()) {
+            val dirIndex = thisIndex - pathCount
+            sb.append("; Folder "+dirIndex+" of "+subdirCount)  //TBD i18n
         } else {
-            val fileIndex = thisIndex - dirCount
+            val fileIndex = thisIndex - (pathCount + subdirCount)
             sb.append("; File "+fileIndex+" of "+fileCount)  //TBD i18n
         }
 
@@ -225,7 +229,7 @@ class FileInfo(
         sb.append("; ")
         sb.append(fileSizeStr)
 
-        if (includeDirDates || fType!=DIR) {
+        if (includeDirDates || (index>=pathCount && fType!=DIR)) {
             //Add file modification date/time
             val modTimeMillis:Long = f.lastModified()
             val modDate = new Date(modTimeMillis)
@@ -302,5 +306,15 @@ println("IOException reading ZoneInfo: "+ex.getMessage())
         this.text = text
         html = getFileTextInfo(true,true)
         info = getFileTextInfo(false,true)
+    }
+
+    override def toString():String = {
+        "FileInfo("+
+            index+","+
+            pathCount+","+
+            subdirCount+","+
+            fileCount+","+
+            dir+","+
+            name+")"
     }
 }

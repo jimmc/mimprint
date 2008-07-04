@@ -123,3 +123,4 @@
 - Add View Contents, Open and Save commands to List menu. [080629]
 - v0.2.2. [080629]
 - Change fileDialog methods to use Option rather than null. [080703]
+- Display current dir as path components, Mac-style. [080704]

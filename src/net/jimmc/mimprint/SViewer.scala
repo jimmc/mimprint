@@ -702,7 +702,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             return null         //no image selected
         val item = pl.getItem(idx)
         val itemFile = new File(item.getBaseDir,item.getFileName)
-        val fileInfo:FileInfo = new FileInfo(idx,0,pl.size,
+        val fileInfo:FileInfo = new FileInfo(idx,0,0,pl.size,
                 itemFile.getParentFile(), itemFile.getName())
         if (!fileInfo.infoLoaded)
             fileInfo.loadInfo(true)     //TODO - includeDirectoryDates flag?
