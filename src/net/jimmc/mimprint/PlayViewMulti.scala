@@ -33,6 +33,8 @@ class PlayViewMulti(name:String,
     private var areaPanel:JPanel = _
     private var controlPanel:JPanel = _
 
+    private var currentPage = 0
+
     def getComponent():Component = {
         panel = new JPanel()
         panel.setLayout(new BorderLayout())
@@ -61,8 +63,29 @@ class PlayViewMulti(name:String,
         p
     }
 
+    protected[mimprint] def setPageNumber(n:Int) {
+        val imagesPerPage = areaPage.getImageAreaCount
+        val pages = (playList.size+imagesPerPage - 1)/imagesPerPage
+        currentPage = if (n<0) 0 else if (n>=pages) pages - 1 else n
+        refreshAreas
+    }
+
+    private def recalculatePageCount() {
+        val imagesPerPage = areaPage.getImageAreaCount
+        val newPageCount = (playList.size+imagesPerPage - 1)/imagesPerPage
+        areaPageControls.setPageCount(newPageCount)
+        if (currentPage>=newPageCount) {
+            currentPage = newPageCount - 1
+            if (currentPage<0)
+                currentPage = 0
+            areaPageControls.setPageNumberDisplay(currentPage)
+        }
+    }
+
     protected[mimprint] def refreshAreas() {
-        areaPage.displayPlayList(playList)
+        recalculatePageCount()
+        val imagesPerPage = areaPage.getImageAreaCount
+        areaPage.displayPlayList(playList,currentPage*imagesPerPage)
         areaPage.repaint()
     }
 

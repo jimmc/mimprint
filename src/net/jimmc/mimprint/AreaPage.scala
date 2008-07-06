@@ -66,7 +66,10 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
     private var playList:PlayListS = PlayListS(viewer)
     private var currentIndex:Int = -1
-        //index of the currentArea
+        //index of the currentArea in the displayed page
+        //The index into the playList is currentIndex+currentStart
+    private var currentStart = 0        //index of first image to display
+    private def currentListIndex = currentIndex + currentStart
 
     private var dragArea:AreaImageLayout = _
 
@@ -154,9 +157,9 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         m.add(new SMenuItem(viewer,"menu.MultiContext.Rotate")(
                 rotateCurrentImage(2)))
         m.add(new SMenuItem(viewer,"menu.Image.ShowEditDialog")(
-                viewer ! SViewerRequestEditDialog(playList,currentIndex)))
+                viewer ! SViewerRequestEditDialog(playList,currentListIndex)))
         m.add(new SMenuItem(viewer,"menu.Image.ShowInfoDialog")(
-                viewer ! SViewerRequestInfoDialog(playList,currentIndex)))
+                viewer ! SViewerRequestInfoDialog(playList,currentListIndex)))
         addInsertRemoveMenuItems(m)
 
         m
@@ -171,8 +174,12 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
     def formatPageValue(n:Int) = PageValue.formatPageValue(n)
 
-    def displayPlayList(playList:PlayListS) {
-        /*val n =*/ displayPlayList(areaLayout,playList,0)
+    def displayPlayList(playList:PlayListS):Unit =
+        displayPlayList(playList,currentStart)
+
+    def displayPlayList(playList:PlayListS, start:Int) {
+        currentStart = start
+        /*val n =*/ displayPlayList(areaLayout,playList,start)
         //n is the number of items from the list which are displayed
         this.playList = playList
     }
@@ -222,7 +229,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         if (a!=null) {
             currentArea = a
             currentIndex = a.getImageIndex
-            val msg = "ImageIndex="+currentIndex
+            val msg = "ImageIndex="+currentListIndex
                 //TODO better message; add image path
             viewer.showStatus(msg)
         } else {
@@ -429,7 +436,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         if (currentArea!=null && currentArea.hasImage) {
             //currentArea.rotate(rot)
             //repaintCurrentImage()
-            tracker ! PlayListRequestRotate(playList, currentIndex, rot)
+            tracker ! PlayListRequestRotate(playList, currentListIndex, rot)
         }
     }
 
@@ -437,7 +444,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         if (currentArea!=null && currentArea.hasImage) {
             //clear image from current area
             val item = PlayItemS.emptyItem()
-            tracker ! PlayListRequestChange(playList, currentIndex, item)
+            tracker ! PlayListRequestChange(playList, currentListIndex, item)
         }
     }
 
@@ -445,17 +452,19 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         viewer ! SViewerRequestScreenMode(mode)
 
     private def requestInsertImage() {
-        if (currentIndex>=0 && currentIndex<playList.size) {
+        if (currentListIndex>=0 && currentListIndex<playList.size) {
             val item = PlayItemS.emptyItem
-            tracker ! PlayListRequestInsert(playList, currentIndex, item)
+            tracker ! PlayListRequestInsert(playList, currentListIndex, item)
         }
     }
 
     private def requestRemoveImage() {
-        if (currentIndex>=0 && currentIndex<playList.size) {
-            tracker ! PlayListRequestRemove(playList, currentIndex)
+        if (currentListIndex>=0 && currentListIndex<playList.size) {
+            tracker ! PlayListRequestRemove(playList, currentListIndex)
         }
     }
+
+    def getImageAreaCount():Int = areaLayout.getImageAreaCount
 
   //The Printable interface
     def print(graphics:Graphics, pageFormat:PageFormat, pageIndex:Int):Int = {
@@ -515,9 +524,9 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 refresh()
             /*
             case 'e' =>
-                viewer ! SViewerRequestEditDialog(playList,currentIndex)
+                viewer ! SViewerRequestEditDialog(playList,currentListIndex)
             case 'i' =>
-                viewer ! SViewerRequestInfoDialog(playList,currentIndex)
+                viewer ! SViewerRequestInfoDialog(playList,currentListIndex)
             case 'o' =>    //file-open dialog
                 viewer ! SViewerRequestFileOpen()
             */
@@ -580,7 +589,7 @@ in an image area by 180 degrees, so we just use the r key for that.
                         else if (!a.hasImage) noImageContextMenu
                         else {
                             imageContextMenuTitle.setText(
-                                playList.getItem(currentIndex).fileName)
+                                playList.getItem(currentListIndex).fileName)
                             imageContextMenu
                         }
                 setCursorVisible(true)

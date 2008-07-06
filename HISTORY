@@ -8,7 +8,9 @@ mimprint v0.2.2+
     to edit the summary.txt file for the current folder.
   * When the list of printable images is larger than will fit on one
     page, printing of those images will now print on multiple pages,
-    using the same layout on each page.
+    using the same layout on each page.  A Page selection box appears
+    on the Printable page allowing you to select which page of images
+    appears on the screen.
 
 ----------------------------------------------------------------------
 

@@ -28,10 +28,7 @@ import scala.collection.mutable.ArrayBuffer
 class AreaPageControls(val frame:SFrame,
         val multi:PlayViewMulti, val areaPage:AreaPage)
         extends JPanel {
-    import AreaPageControls.AREA_PAGE
-    import AreaPageControls.AREA_IMAGE
-    import AreaPageControls.AREA_GRID
-    import AreaPageControls.AREA_SPLIT
+    import AreaPageControls._           //pick up our constants
 
     private var updatingSelected = false
 
@@ -60,6 +57,10 @@ class AreaPageControls(val frame:SFrame,
     private var layoutLabel:SLabel = null
     private var layoutField:SComboBox = null
 
+    private var pageNumberPanel:JPanel = null
+    private var pageNumberField:STextField = null
+    private var pageOfField:SLabel = null
+
     private var allAreas:Array[AreaLayout] = null
 
     setLayout(new FlowLayout(FlowLayout.LEFT))
@@ -69,13 +70,18 @@ class AreaPageControls(val frame:SFrame,
 
     /** Create and add all of our fields. */
     private def addFields() {
+
+        //Set up the Page fields
+        pageNumberPanel = makePageNumberPanel()
+        //pageNumberPanel.setVisible(false)
+        add(pageNumberPanel)
+
         areaChoiceField = new SComboBox(frame)(
                 areaSelected(areaChoiceField.getSelectedIndex()))
         add(areaChoiceField)
         addAreaValueChangedListener()
         val prefix = "NotImplementedYet"     //TODO
 
-        //Set up the Page fields
         widthLabel = makeLabel("Width")
         add(widthLabel)
         widthField = new STextField(frame, prefix+".width",4)(
@@ -163,6 +169,22 @@ class AreaPageControls(val frame:SFrame,
                 //TODO define constants
         layoutField.setItems(initialLayoutItems.asInstanceOf[Array[Any]])
         add(layoutField)
+    }
+
+    private def makePageNumberPanel():JPanel = {
+        val p = new JPanel()
+
+        p.add(new SLabel(frame,"toolbar.Layout.PageNumber.Label"))
+        pageNumberField = new STextField(frame,
+                "toolbar.Layout.PageNumber.Number",2)(
+            setPageNumber(pageNumberField.getText)
+        )
+        pageNumberField.setText("1")
+        p.add(pageNumberField)
+        pageOfField = new SLabel(frame,"toolbar.Layout.PageNumber.Of")
+        p.add(pageOfField)
+
+        p
     }
 
     //Make a label, add tooltip if defined, using resources
@@ -342,6 +364,23 @@ class AreaPageControls(val frame:SFrame,
         updatingSelected = false
         areaPage.repaint()
     }
+
+    def setPageCount(n:Int) {
+        val s = getResourceFormatted("toolbar.Layout.PageNumber.Of.format",n)
+        pageOfField.setText(s)
+        pageNumberPanel.setVisible(n>1)
+    }
+
+    //s is a 1-based number
+    private def setPageNumber(s:String):Unit =
+        setPageNumber(Integer.parseInt(s) - 1)
+
+    //n is a 0-based number
+    private def setPageNumber(n:Int) {
+        multi.setPageNumber(n)
+    }
+    protected[mimprint] def setPageNumberDisplay(n:Int) =
+        pageNumberField.setText((n+1).toString)
 
     //Given a page dimension, format it for display to the user
     protected def formatPageValue(n:Int):String = {
@@ -576,6 +615,10 @@ class AreaPageControls(val frame:SFrame,
     /** Get a string from our resources. */
     def getResourceString(name:String):String =
         frame.getResourceString(name)
+
+    /** Get a string from our resources. */
+    def getResourceFormatted(name:String, arg:Any):String =
+        frame.getResourceFormatted(name, arg)
 
     /** Get a string from our resources. */
     def getResourceFormatted(name:String, args:Array[Any]):String =
