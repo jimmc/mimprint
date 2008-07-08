@@ -8,6 +8,8 @@ package net.jimmc.mimprint
 import net.jimmc.swing.SCheckBoxMenuItem
 import net.jimmc.swing.SMenu
 import net.jimmc.swing.SMenuItem
+import net.jimmc.util.SomeOrNone
+import net.jimmc.util.SomeOrNone.optionNotNull
 
 import java.awt.BorderLayout
 import java.awt.Component
@@ -150,14 +152,14 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     private def processOpen() {
         val msg = viewer.getResourceString("query.PlayListToOpen")
         val newFile = viewer.fileOrDirectoryOpenDialog(
-                msg,viewer.toOption(playViewList.baseDir))
+                msg,SomeOrNone(playViewList.baseDir))
         newFile.foreach(f => playViewList.load(f.getPath))
     }
 
     private def processSave(absolute:Boolean) {
         val msg = viewer.getResourceString("query.PlayListToSave")
         val newFile = viewer.fileSaveDialog(
-                msg,viewer.toOption(playViewList.baseDir))
+                msg,SomeOrNone(playViewList.baseDir))
         newFile.foreach(f => playViewList.save(f.getPath,absolute))
     }
 }

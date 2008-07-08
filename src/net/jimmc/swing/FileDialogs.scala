@@ -7,6 +7,8 @@
 package net.jimmc.swing
 
 import net.jimmc.util.BasicQueries
+import net.jimmc.util.SomeOrNone
+import net.jimmc.util.SomeOrNone.optionNotNull
 import net.jimmc.util.SResources
 import net.jimmc.util.UserException
 
@@ -33,16 +35,16 @@ trait FileDialogs { this: BasicQueries =>
     /** True if we should allow debugging of UserException */
     val debugUserExceptions:Boolean
 
-    def toOption(f:File):Option[File] = if (f==null) None else Some(f)
+    //def toOption(f:File):Option[File] = if (f==null) None else Some(f)
 
-    def toOption(s:String):Option[String] = if (s==null) None else Some(s)
+    //def toOption(s:String):Option[String] = if (s==null) None else Some(s)
 
     private def decodeChooserResult(result:Int, chooser:JFileChooser):
             Option[File] = {
         if (result!=JFileChooser.APPROVE_OPTION)
             None	//canceled
         else
-            toOption(chooser.getSelectedFile())
+            SomeOrNone(chooser.getSelectedFile())
     }
 
     /** Put up a file open dialog. */
@@ -57,14 +59,14 @@ trait FileDialogs { this: BasicQueries =>
      * @return None if cancelled.
      */
     def fileOpenDialog(prompt:String, dflt:String):Option[File] = {
-        fileOpenDialog(prompt, toOption(dflt).map(new File(_)))
+        fileOpenDialog(prompt, SomeOrNone(dflt).map(new File(_)))
     }
 
     /** Put up a file open dialog.
      * @return None if cancelled.
      */
     def fileOpenDialog(prompt:String, dflt:Option[File]):Option[File] = {
-        val chooser = new JFileChooser(dflt getOrElse null)
+        val chooser = new JFileChooser(dflt getOrNull)
         chooser.setDialogTitle(prompt)
         val result = chooser.showOpenDialog(dialogParent)
         decodeChooserResult(result,chooser)
@@ -90,9 +92,9 @@ trait FileDialogs { this: BasicQueries =>
         //look for the closest parent that does exist.
         var d = dflt
         while (d.isDefined && !d.get.exists) {
-            d = d.flatMap(f=>toOption(f.getParentFile))
+            d = d.flatMap(f=>SomeOrNone(f.getParentFile))
         }
-        chooser.setCurrentDirectory(d getOrElse null)
+        chooser.setCurrentDirectory(d getOrNull)
         chooser.setDialogType(JFileChooser.OPEN_DIALOG)
         chooser.setDialogTitle(prompt)
         chooser.setMultiSelectionEnabled(false)
@@ -114,14 +116,14 @@ trait FileDialogs { this: BasicQueries =>
      * @return None if cancelled
      */
     def fileSaveDialog(prompt:String, dflt:String):Option[File] = {
-        fileSaveDialog(prompt,toOption(dflt).map(new File(_)))
+        fileSaveDialog(prompt,SomeOrNone(dflt).map(new File(_)))
     }
 
     /** Put up a file save dialog.
      * @return None if cancelled
      */
     def fileSaveDialog(prompt:String, dflt:Option[File]):Option[File] = {
-        val chooser = new JFileChooser(dflt getOrElse null)
+        val chooser = new JFileChooser(dflt getOrNull)
         chooser.setDialogTitle(prompt)
         val result = chooser.showSaveDialog(dialogParent)
         decodeChooserResult(result,chooser)
@@ -131,7 +133,7 @@ trait FileDialogs { this: BasicQueries =>
      * @return None if cancelled
      */
     def directorySaveDialog(prompt:String, dflt:Option[File]):Option[File] = {
-        val chooser = new JFileChooser(dflt getOrElse null)
+        val chooser = new JFileChooser(dflt getOrNull)
         chooser.setDialogTitle(prompt)
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
         val result = chooser.showSaveDialog(dialogParent)
@@ -153,20 +155,19 @@ trait FileDialogs { this: BasicQueries =>
         //In an attempt to be slightly more reasonable, we
         //look for the closest parent that does exist.
         while (d.isDefined && !d.get.exists) {
-            d = d.flatMap(f=>toOption(f.getParentFile))
+            d = d.flatMap(f=>SomeOrNone(f.getParentFile))
         }
-        chooser.setCurrentDirectory(d getOrElse null)
+        chooser.setCurrentDirectory(d getOrNull)
         chooser.setDialogType(JFileChooser.OPEN_DIALOG)
         chooser.setDialogTitle(title)
         chooser.setMultiSelectionEnabled(false)
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
 
-        val result = chooser.showDialog(dialogParent,
-                        approveLabel getOrElse null)
+        val result = chooser.showDialog(dialogParent, approveLabel getOrNull)
         if (result != JFileChooser.APPROVE_OPTION)
             None	//user cancelled
         else
-            toOption(chooser.getSelectedFile().toString())
+            SomeOrNone(chooser.getSelectedFile().toString())
     }
 
     /* TBD - add saveTextToFile(String text) that asks here for
