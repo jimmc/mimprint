@@ -9,7 +9,7 @@ import net.jimmc.swing.SCheckBoxMenuItem
 import net.jimmc.swing.SMenu
 import net.jimmc.swing.SMenuItem
 import net.jimmc.util.SomeOrNone
-import net.jimmc.util.SomeOrNone.optionNotNull
+import net.jimmc.util.SomeOrNone.optionOrNull
 
 import java.awt.BorderLayout
 import java.awt.Component

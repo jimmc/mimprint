@@ -8,7 +8,7 @@ package net.jimmc.swing
 
 import net.jimmc.util.BasicQueries
 import net.jimmc.util.SomeOrNone
-import net.jimmc.util.SomeOrNone.optionNotNull
+import net.jimmc.util.SomeOrNone.optionOrNull
 import net.jimmc.util.SResources
 import net.jimmc.util.UserException
 
