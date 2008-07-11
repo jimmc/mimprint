@@ -7,6 +7,7 @@
 package net.jimmc.swing
 
 import net.jimmc.util.BasicQueries
+import net.jimmc.util.FileQueries
 import net.jimmc.util.SomeOrNone
 import net.jimmc.util.SomeOrNone.optionOrNull
 import net.jimmc.util.SResources
@@ -20,7 +21,7 @@ import java.io.PrintWriter
 import javax.swing.JFileChooser
 
 /** A collection of standard dialog methods about files. */
-trait FileDialogs { this: BasicQueries =>
+trait FileDialogs extends FileQueries { this: BasicQueries =>
     private val maxSimpleMessageLength = 80
     private val maxSimpleMessageLineCount = 30
     private val maxSimpleMessageLineWidth = 80

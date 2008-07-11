@@ -5,7 +5,7 @@
 
 package net.jimmc.util
 
-trait AsyncUi extends BasicUi {
+trait AsyncUi extends StandardUi {
     /** The invokeUi method can be called by a client to execute code
      * asynchronously from itself.  This is typically used when the
      * caller does not want to block, but needs to call a UI query
