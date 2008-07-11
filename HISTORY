@@ -2,10 +2,14 @@ mimprint v0.2.2+
 
   Enhancements:
 
-  * The current directory is now display as a path, as in Mac browsers,
-    so you can directly select any parent directory in the path.
+  * The current directory is now displayed as separate path components,
+    as in Mac browsers, so you can directly select any parent
+    directory in the path.
   * There is now a menu command in the popup menu, also using the E key,
     to edit the summary.txt file for the current folder.
+  * There is now a right-click popup menu on the List display for image
+    entries (but not for directory entries) containing a menu command
+    to remove that item from the PlayList.
   * When the list of printable images is larger than will fit on one
     page, printing of those images will now print on multiple pages,
     using the same layout on each page.  A Page selection box appears

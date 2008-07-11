@@ -7,6 +7,7 @@ package net.jimmc.mimprint
 
 import net.jimmc.swing.SwingS
 import net.jimmc.swing.SDragSource
+import net.jimmc.swing.SMenuItem
 import net.jimmc.util.FileUtilS
 
 import java.awt.BorderLayout
@@ -20,6 +21,8 @@ import java.awt.dnd.DragSource
 import java.awt.dnd.DragSourceAdapter
 import java.awt.dnd.DragSourceDropEvent
 import java.awt.dnd.DragSourceListener
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.awt.Image
 import java.awt.Point
 import java.io.File
@@ -34,6 +37,7 @@ import javax.swing.ImageIcon
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JScrollPane
 
 import scala.util.Sorting
@@ -65,7 +69,17 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var fileNameList:JList = _
     private var fileNameListModel:ArrayListModel = _
     private var currentSelection = -1
+        //JList index of selected item; if an image is selected, this value
+        // is == imageIndex+pathCount+subdirCount
+    private def currentImageSelection =
+        currentSelection - (pathCount + subdirCount)
     def baseDir = playList.baseDir
+
+    private var noContextMenu:JPopupMenu = _
+    private var pathContextMenu:JPopupMenu = _
+    private var subdirContextMenu:JPopupMenu = _
+    private var fileContextMenu:JPopupMenu = _
+    private var fileContextMenuTitle:JLabel = _
 
     private val iconLoader = new IconLoader(viewer) {
         def iconLoaded(fileInfos:Array[FileInfo], n:Int):Boolean =
@@ -82,6 +96,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             //(see <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4449146>)
             //so turn off autoscroll.
         showFileInfo(true)
+        fileNameList.addMouseListener(new PlayViewListMouseListener())
         fileNameList.addListSelectionListener(
                 new PlayViewListSelectionListener())
         val listScrollPane = new JScrollPane(fileNameList)
@@ -91,9 +106,50 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         setupDrag(fileNameList,DnDConstants.ACTION_COPY)
         ourComponent = p
 
+        noContextMenu = createNoContextMenu()
+        pathContextMenu = createPathContextMenu()
+        subdirContextMenu = createSubdirContextMenu()
+        fileContextMenu = createFileContextMenu()
+
         iconLoader.start()
 
         p
+    }
+
+    private def createNoContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        m.add(new JLabel("This is the No-selection popup menu"))
+
+        m
+    }
+
+    private def createPathContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        m.add(new JLabel("This is the Path popup menu"))
+
+        m
+    }
+
+    private def createSubdirContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        m.add(new JLabel("This is the Subdir popup menu"))
+
+        m
+    }
+
+    private def createFileContextMenu():JPopupMenu = {
+        val m = new JPopupMenu()
+
+        fileContextMenuTitle = new JLabel("Image")
+        m.add(fileContextMenuTitle)
+
+        m.add(new SMenuItem(viewer,"menu.ListContext.Image.Remove")(
+                requestRemove()))
+
+        m
     }
 
     def viewPlayList(rootDir:String) {
@@ -116,18 +172,18 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
 
     protected def playListAddItem(m:PlayListAddItem) {
         playList = m.newList
-        if (m.index<=currentSelection)
-            currentSelection = currentSelection + 1
+        if (m.index<=currentImageSelection)
+            currentSelection += 1
         redisplayList
         setSelectedIndex(currentSelection)
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
         playList = m.newList
-        if (m.index==currentSelection)
+        if (m.index==currentImageSelection)
             currentSelection = -1
-        else if (m.index<currentSelection)
-            currentSelection = currentSelection - 1
+        else if (m.index<currentImageSelection)
+            currentSelection -= 1
         redisplayList
         setSelectedIndex(currentSelection)
     }
@@ -135,9 +191,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     protected def playListChangeItem(m:PlayListChangeItem) {
         playList = m.newList
         redisplayList
-        val newSelection = m.index + pathCount + subdirCount
-        //If the selected item got changed, we have to re-highlight it
-        if (newSelection==currentSelection)
+        //If our selected item got changed, we have to re-highlight it
+        if (m.index==currentImageSelection)
             setSelectedIndex(currentSelection)
     }
 
@@ -342,9 +397,14 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     }
 
     //Send out a select request to cause our listeners to refresh themselves
-    def requestSelect() = {
+    def requestSelect() {
         if (tracker!=null && playList!=null)
-            tracker ! PlayListRequestSelect(playList,currentSelection)
+            tracker ! PlayListRequestSelect(playList,currentImageSelection)
+    }
+
+    def requestRemove() {
+        if (tracker!=null && playList!=null)
+            tracker ! PlayListRequestRemove(playList,currentImageSelection)
     }
 
     def load(path:String) = tracker.load(path)
@@ -359,9 +419,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         if (currentSelection >= (pathCount+subdirCount)) {
             //we have selected a file
             //TODO - check to see if it is an MPR file (e.g. our template)
-            val listIndex = currentSelection - (pathCount + subdirCount)
             //Send the select request to our PlayListTracker
-            tracker ! PlayListRequestSelect(playList,listIndex)
+            tracker ! PlayListRequestSelect(playList,currentImageSelection)
         } else {
             //A directory has been selected (path or subdir)
             if (!appIsSelecting) {
@@ -419,6 +478,30 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         }
     }
     //end SDragSource trait
+
+    class PlayViewListMouseListener extends MouseAdapter {
+        override def mousePressed(ev:MouseEvent) = maybeShowPopup(ev)
+        override def mouseReleased(ev:MouseEvent) = maybeShowPopup(ev)
+        private def maybeShowPopup(ev:MouseEvent):Boolean = {
+            if (ev.isPopupTrigger()) {
+                val n = fileNameList.locationToIndex(new Point(ev.getX,ev.getY))
+                val m =
+                    if (n<0) noContextMenu
+                    else if (n<pathCount) pathContextMenu
+                    else if (n<pathCount+subdirCount) subdirContextMenu
+                    else fileContextMenu
+                //For now, only show the fileContextMenu
+                if (m==fileContextMenu) {
+                    val x = n - (pathCount+subdirCount)
+                    val item = playList.getItem(x)
+                    fileContextMenuTitle.setText(item.fileName)
+                    m.show(ev.getComponent,ev.getX,ev.getY)
+                    true
+                }
+                else true
+            } else false
+        }
+    }
 }
 
 sealed abstract class PlayViewListRequest

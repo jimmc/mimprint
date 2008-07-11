@@ -128,6 +128,8 @@ menu.List.ViewContents.label=View Contents
 menu.List.ViewContents.Absolute.label=Absolute
 menu.List.ViewContents.RelativeCurrent.label=Relative to Current
 
+menu.ListContext.Image.Remove.label=Remove From PlayList
+
 menu.MultiContext.Clear.label=Clear Image Area
 menu.MultiContext.NoArea.label=Not in an image area
 menu.MultiContext.NoImage.label=No image in this image area

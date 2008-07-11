@@ -127,3 +127,5 @@
 - Add popup menu command and 'E' key to edit the directory summary file.[080704]
 - Make printing work for multiple pages. [080704]
 - Add Page selection field to printable page. [080706]
+- Add right-click menu to PlayViewList, with Remove Item menu item. [080711]
+- Fix a list-index bug in PlayViewList. [080711]
