@@ -6,7 +6,6 @@
 package net.jimmc.swing
 
 import net.jimmc.util.BasicQueries
-import net.jimmc.util.FileQueries
 import net.jimmc.util.SomeOrNone
 import net.jimmc.util.SResources
 import net.jimmc.util.StringUtil
@@ -100,7 +99,7 @@ trait BasicDialogs extends BasicQueries {
      */
     protected def getMessageDisplay(msg:String):Object = {
         if (!messageRequiresScrollPane(msg))
-                return msg;
+                return msg
         //It's a long string, so rather than putting it up as
         //a single string, we put it up as a text box with
         //wraparound turned on.
@@ -161,7 +160,7 @@ trait BasicDialogs extends BasicQueries {
 
     /** A dialog to display an exception. */
     def exceptionDialog(ex:Throwable) {
-        var error = ex.getMessage();
+        var error = ex.getMessage()
         if (error==null || error.trim().length()==0)
                 error = ex.getClass().getName()
         if ((ex.isInstanceOf[UserException]) && debugUserExceptions) {
@@ -170,7 +169,7 @@ trait BasicDialogs extends BasicQueries {
                 errorDialog(error)
                 return
         }
-        val title = dialogRes.getResourceString("query.Error.title");
+        val title = dialogRes.getResourceString("query.Error.title")
         val labels = Array(
             dialogRes.getResourceString("query.button.OK.label"),
             dialogRes.getResourceString("query.button.Details.label")
@@ -191,7 +190,7 @@ trait BasicDialogs extends BasicQueries {
         ex.printStackTrace(new PrintWriter(sw))
         val stackTrace = sw.toString()
 
-        val title= dialogRes.getResourceString("query.ErrorDetails.title");
+        val title= dialogRes.getResourceString("query.ErrorDetails.title")
         val labels = Array(
             dialogRes.getResourceString("query.button.OK.label"),
             dialogRes.getResourceString("query.button.PrintTraceback.label"),
@@ -205,12 +204,12 @@ trait BasicDialogs extends BasicQueries {
                 ex.printStackTrace()
             case 2 =>		//Save Traceback To File
                 val prompt:String = dialogRes.getResourceString(
-                        "query.SaveTracebackToFile");
+                        "query.SaveTracebackToFile")
                 //If we don't happen to have access to the file-save dialog,
                 //we can fall back on the normaml string dialog in a pinch.
                 val traceFileOpt:Option[File] =
                     this match {
-                        case fd:FileQueries =>
+                        case fd:FileDialogs =>
                             fd.fileSaveDialog(prompt)
                         case _ =>
                             val fn = stringDialog(prompt)
@@ -218,14 +217,22 @@ trait BasicDialogs extends BasicQueries {
                     }
                 traceFileOpt.foreach { traceFile =>
                     try {
-                        val w = new FileWriter(traceFile);
-                        val pw = new PrintWriter(w);
-                        ex.printStackTrace(pw);
-                        pw.close();
-                        w.close();
+                        //getPrintWriter is preferred because it checks to
+                        //see if the file already exists.
+                        val pwOpt = this match {
+                            case fd:FileDialogs =>
+                                fd.getPrintWriterFor(traceFile)
+                            case _ =>
+                                val w = new FileWriter(traceFile)
+                                Some(new PrintWriter(w))
+                        }
+                        pwOpt.foreach { pw =>
+                            ex.printStackTrace(pw)
+                            pw.close()
+                        }
                     } catch {
                         case e2:Exception =>
-                            System.out.println("Error writing trace file");
+                            System.out.println("Error writing trace file")
                             //ignore errors in this part
                     }
                 }
