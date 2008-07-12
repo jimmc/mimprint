@@ -5,7 +5,7 @@
 
 package net.jimmc.mimprint
 
-import net.jimmc.util.BasicUi
+import net.jimmc.util.StandardUi
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -20,7 +20,7 @@ import scala.util.Sorting
 
 /** A playlist of images.  Immutable. */
 class PlayListS(
-        val ui:BasicUi,
+        val ui:StandardUi,
         val baseDir:File,
         private val items:Array[PlayItemS],
         private val comments:List[String]
@@ -129,11 +129,12 @@ class PlayListS(
         val dir =
             if (absolute) new File(File.separator)
             else f.getParentFile()
-        val pw = new PrintWriter(f)
-           //TODO - should use getPrintWriterFor to check for overwriting a file
-        save(pw,dir)
-        pw.flush()
-        pw.close()
+        val pwOpt = ui.getPrintWriterFor(f)
+        pwOpt.foreach { pw =>
+            save(pw,dir)
+            pw.flush()
+            pw.close()
+        }
     }
 
     def save(out:PrintWriter, baseDir:File) {
@@ -148,12 +149,12 @@ class PlayListS(
 }
 
 object PlayListS {
-    def apply(ui:BasicUi):PlayListS = {
+    def apply(ui:StandardUi):PlayListS = {
         new PlayListS(ui,new File("."),new Array[PlayItemS](0),Nil)
     }
 
     /** Create a playlist from the given set of filenames. */
-    def apply(ui:BasicUi,
+    def apply(ui:StandardUi,
             base:File, filenames:Array[String], start:Int, length:Int):
             PlayListS = {
         val items = filenames.slice(start,start+length).map(
@@ -162,11 +163,11 @@ object PlayListS {
     }
 
     /** Load a playlist from a file. */
-    def load(ui:BasicUi,
+    def load(ui:StandardUi,
             filename:String):PlayListS = load(ui,new File(filename))
 
     /** Load a playlist from a file. */
-    def load(ui:BasicUi,f:File):PlayListS = {
+    def load(ui:StandardUi,f:File):PlayListS = {
         val dir = f.getParentFile()
         if (f.isDirectory())
             loadDirectory(ui,f)
@@ -177,7 +178,7 @@ object PlayListS {
     //Given a directory, look for a file called "index.mpr" and load
     //that file; if not found, scan the directory for all files with
     //acceptable filename extensions, in alphabetical order.
-    private def loadDirectory(ui:BasicUi,
+    private def loadDirectory(ui:StandardUi,
             dir:File):PlayListS = {
         val indexFileName = "index."+FileInfo.MIMPRINT_EXTENSION
         val indexFile = new File(dir,indexFileName)
@@ -191,7 +192,7 @@ object PlayListS {
     }
 
     /** Load a playlist from a stream. */
-    def load(ui:BasicUi,
+    def load(ui:StandardUi,
             in:LineNumberReader, baseDir:File):PlayListS = {
         val items = new ArrayBuffer[PlayItemS]
         var listComments:List[String] = Nil
