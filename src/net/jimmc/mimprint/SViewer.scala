@@ -50,6 +50,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
     private val mainTracker = new PlayListTracker(this)
+    mainTracker.askSaveOnChanges = true
     private var playList:PlayListS = _  //current main play list
     private var playListIndex:Int = -1  //currently selected item in main list
 

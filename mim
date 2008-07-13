@@ -5,8 +5,10 @@ SCALA_HOME=$HOME/net/scala/scala-current
 SCALA_LIB_DIR=$SCALA_HOME/lib
 [ -d $SCALA_HOME/lib ] && SCALA_LIB_DIR=$SCALA_HOME/lib
 #SCALA_COMPILER_JAR=${SCALA_HOME}/lib/scala-compiler.jar
-#SCALA_LIBRARY_JAR=${SCALA_HOME}/lib/scala-library.jar
-SCALA_CLASSPATH=`echo $SCALA_LIB_DIR/*.jar | tr ' ' ':'`
+SCALA_LIBRARY_JAR=${SCALA_LIB_DIR}/scala-library.jar
+#SCALA_CLASSPATH=`echo $SCALA_LIB_DIR/*.jar | tr ' ' ':'`
+SCALA_CLASSPATH=${SCALA_LIBRARY_JAR}
+#See also below for use of local copy of scala-library.jar
 SCALAMAIN_CLASS=scala.tools.nsc.MainGenericRunner
 APP_MAIN_CLASS=net.jimmc.mimprint.AppStart
 
@@ -57,6 +59,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+#Use local copy of scala-library if we have it.
+[ -f ${MIMPRINTHOME}/scala-library.jar ] && SCALA_CLASSPATH=${MIMPRINTHOME}/scala-library.jar
 CP=${SCALA_CLASSPATH}:${MIMPRINTHOME}/mimprint.jar
 exec $JAVA $JAVA_ARGS $JDEBUG $MAC_OPTS -cp $CP \
     $SCALA_MAIN_CLASS $APP_MAIN_CLASS "$@"

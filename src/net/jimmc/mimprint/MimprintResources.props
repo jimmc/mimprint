@@ -33,8 +33,14 @@ dialog.PlayList.Load.title=Load PlayList
 dialog.PlayList.LoadSave.button.Browse.label=Browse
 dialog.PlayList.LoadSave.label.File=File:
 dialog.PlayList.LoadSave.label.PlayList=PlayList:
+dialog.PlayList.SaveChanges.prompt=\
+    Changes have been made to this PlayList.\n\
+    Do you want to save the changes before proceding?
+dialog.PlayList.SaveChanges.title=Save PlayList Changes
+dialog.PlayList.SaveChanges.buttons=Save|Save As...|Discard Changes|Cancel
 
 dialog.PlayList.Save.title=Save PlayList
+dialog.PlayList.SaveAs.prompt=Save PlayList To File
 
 dialog.PlayList.FileBrowser.Load.title=Load PlayList File
 #dialog.PlayList.FileBrowser.Load.prompt=Load PlayList File
@@ -119,6 +125,7 @@ menu.List.printableList.icon=asc.gif
 menu.List.Save.label=Save
 menu.List.Save.Absolute.label=Absolute
 menu.List.Save.Relative.label=Relative
+menu.List.SaveAs.label=Save
 menu.List.ShowDirDates.label=Show Folder Dates
 menu.List.ShowFileIcons.label=Show File Icons
 menu.List.ShowFileInfo.label=Show File Info

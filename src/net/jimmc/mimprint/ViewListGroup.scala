@@ -97,6 +97,13 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
                 processSave(false)))
         m.add(sm)
 
+        val sma = new SMenu(viewer,"menu.List.SaveAs")
+        sma.add(new SMenuItem(viewer,"menu.List.Save.Absolute")(
+                processSaveAs(true)))
+        sma.add(new SMenuItem(viewer,"menu.List.Save.Relative")(
+                processSaveAs(false)))
+        m.add(sma)
+
         val vcm = new SMenu(viewer,"menu.List.ViewContents")
 
         vcm.add(new SMenuItem(viewer,"menu.List.ViewContents.Absolute")(
@@ -157,9 +164,13 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     }
 
     private def processSave(absolute:Boolean) {
+        tracker.save(absolute)
+    }
+
+    private def processSaveAs(absolute:Boolean) {
         val msg = viewer.getResourceString("query.PlayListToSave")
         val newFile = viewer.fileSaveDialog(
                 msg,SomeOrNone(playViewList.baseDir))
-        newFile.foreach(f => playViewList.save(f.getPath,absolute))
+        newFile.foreach(f => tracker.save(f.getPath,absolute))
     }
 }

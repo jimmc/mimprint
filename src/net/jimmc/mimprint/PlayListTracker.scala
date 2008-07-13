@@ -22,6 +22,9 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     //Our current playlist
     private var playList:PlayListS = PlayListS(ui)
     private var currentIndex:Int = -1
+    private var isModified = false
+    private var lastLoadFileName:String = _
+    var askSaveOnChanges = false
 
     /* We always start our actor right away so that clients can send
      * us subscribe requests as soon as we are created.
@@ -89,18 +92,21 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         val newIndex = playList.size - 1
         publish(PlayListAddItem(this,playList,newPlayList,newIndex))
         playList = newPlayList
+        isModified = true
     }
 
     private def insertItem(itemIndex:Int, item:PlayItemS) {
         val newPlayList = playList.insertItem(itemIndex, item)
         publish(PlayListAddItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
+        isModified = true
     }
 
     private def removeItem(index:Int) {
         val newPlayList = playList.removeItem(index)
         publish(PlayListRemoveItem(this,playList,newPlayList,index))
         playList = newPlayList
+        isModified = true
     }
 
     private def changeItem(itemIndex:Int, item:PlayItemS) {
@@ -108,6 +114,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
                 asInstanceOf[PlayListS]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
+        isModified = true
     }
 
     private def setItem(itemIndex:Int, item:PlayItemS) {
@@ -116,6 +123,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
                 asInstanceOf[PlayListS]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
+        isModified = true
     }
 
     private def rotateItem(itemIndex:Int, rot:Int) {
@@ -123,6 +131,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
                 asInstanceOf[PlayListS]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
+        isModified = true
     }
 
     private def selectItem(itemIndex:Int) {
@@ -172,6 +181,8 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     }
 
     private def selectLeft() {
+        if (!saveChangesAndContinue())
+            return      //canceled
         val newDir:File = FileUtilS.getPreviousDirectory(playList.baseDir)
         if (newDir==null) {
             val eMsg = "No previous directory"
@@ -182,6 +193,8 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     }
 
     private def selectRight() {
+        if (!saveChangesAndContinue())
+            return      //canceled
         val newDir:File = FileUtilS.getNextDirectory(playList.baseDir)
         if (newDir==null) {
             val eMsg = "No next directory"
@@ -192,18 +205,59 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     }
 
     ///Save our playlist to a file.
-    def save(filename:String) = playList.save(filename)
-    def save(filename:String,absolute:Boolean) =
-        playList.save(filename,absolute)
+    def save(filename:String):Boolean = {
+        val b =playList.save(filename)
+        if (b) isModified = false
+        b
+    }
 
-    def save(f:File) = playList.save(f,false)
+    def save(absolute:Boolean):Boolean = {
+        save(lastLoadFileName,absolute)
+    }
 
-    def save(out:PrintWriter, baseDir:File) = playList.save(out, baseDir)
+    def saveAs(defaultName:String, absolute:Boolean):Boolean = {
+        val prompt = ui.getResourceString("dialog.PlayList.SaveAs.prompt")
+        ui.fileSaveDialog(prompt,defaultName) match {
+            case None => false
+            case Some(f) => save(f,absolute)
+        }
+    }
 
-    def load(fileName:String):Unit = load(fileName,false)
+    def save(filename:String,absolute:Boolean):Boolean = {
+        val b = playList.save(filename,absolute)
+        if (b) isModified = false
+        b
+    }
+
+    def save(f:File):Boolean = save(f,false)
+
+    def save(f:File, absolute:Boolean):Boolean = {
+        val b = playList.save(f,absolute)
+        if (b) isModified = false
+        b
+    }
+
+    def save(out:PrintWriter, baseDir:File):Boolean = {
+        val b = playList.save(out, baseDir)
+        if (b) isModified = false
+        b
+    }
+
+    def load(fileName:String):Unit = {
+        if (!saveChangesAndContinue())
+            return      //canceled
+        load(fileName,false)
+    }
 
     def load(fileName:String, selectLast:Boolean) {
+        if (!saveChangesAndContinue())
+            return      //canceled
         val newPlayList = PlayListS.load(ui,fileName).asInstanceOf[PlayListS]
+        lastLoadFileName =
+            if ((new File(fileName)).isDirectory)
+                fileName+File.separator+"index.mpr"
+            else
+                fileName
         publish(PlayListChangeList(this,playList,newPlayList))
         val idx = if (selectLast) newPlayList.size - 1 else 0
         //Auto select the first/last item in the list if it is an image file
@@ -211,5 +265,39 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
                 FileInfo.isImageFileName(newPlayList.getItem(idx).fileName))
             selectItem(idx)
         playList = newPlayList
+        isModified = false
+    }
+
+    //If our playlist has changed AND the askSaveOnChanges flag is true,
+    //we ask the user if he wants to save the playlist.
+    //Return true if the user saved successfully or declined to save;
+    //return false if the user canceled.
+    private def saveChangesAndContinue():Boolean = {
+        if (!askSaveOnChanges)
+            return true         //ignore changes at this point
+        if (!isModified)
+            return true         //no changes, no need to save
+        val prefix = "dialog.PlayList.SaveChanges."
+        val prompt = ui.getResourceString(prefix+"prompt")
+            //TODO - put default filename into prompt
+        val title = ui.getResourceString(prefix+"title")
+        val labels = ui.getResourceString(prefix+"buttons").split("\\|")
+            //Labels are: Save, Save As, Discard, Cancel
+        ui.multiButtonDialog(prompt, title, labels) match {
+            case 0 =>   //Save to default location
+                if (lastLoadFileName!=null)
+                    save(lastLoadFileName)
+                else
+                    saveAs(null,false)
+            case 1 =>   //Save As
+                saveAs(lastLoadFileName,false)
+            case 2 =>   //Ignore changes
+                isModified = false      //we don't care about the changes
+                true
+            case 3 =>   //Cancel button
+                false   //caller should not continue
+            case -1 =>  //window close button, treat as cancel
+                false
+        }
     }
 }

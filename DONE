@@ -129,3 +129,6 @@
 - Add Page selection field to printable page. [080706]
 - Add right-click menu to PlayViewList, with Remove Item menu item. [080711]
 - Fix a list-index bug in PlayViewList. [080711]
+- Ask about saving playlist if it changed, when moving to new list. [080711]
+- Add Save As menu command to List menu, change Save command to save to
+  the default filename from which the list was loaded. [080711]

@@ -7,6 +7,9 @@ mimprint v0.2.2+
     directory in the path.
   * There is now a menu command in the popup menu, also using the E key,
     to edit the summary.txt file for the current folder.
+  * The List menu now includes a Save As command which prompts for a filename
+    to which to save the list.  The Save command now saves to the default
+    location, the file from which the list was loaded.
   * There is now a right-click popup menu on the List display for image
     entries (but not for directory entries) containing a menu command
     to remove that item from the PlayList.

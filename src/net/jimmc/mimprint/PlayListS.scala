@@ -121,11 +121,12 @@ class PlayListS(
     def getFileNames():Array[String] = items.map(_.getFileName())
 
     /** Save our playlist to a file. */
-    def save(filename:String):Unit = save(new File(filename),false)
-    def save(filename:String,absolute:Boolean):Unit =
+    def save(filename:String):Boolean = save(new File(filename),false)
+    def save(filename:String,absolute:Boolean):Boolean =
         save(new File(filename), absolute)
 
-    def save(f:File, absolute:Boolean) {
+    //True if we wrote out the file, false if cancelled
+    def save(f:File, absolute:Boolean):Boolean = {
         val dir =
             if (absolute) new File(File.separator)
             else f.getParentFile()
@@ -135,9 +136,13 @@ class PlayListS(
             pw.flush()
             pw.close()
         }
+        pwOpt.isDefined         //false if user cancelled due to overwrite issue
     }
 
-    def save(out:PrintWriter, baseDir:File) {
+    //For consistency with the other save methods, our return type is Boolean.
+    //We always return true because there is no option for the user to cancel
+    //when this method is called.
+    def save(out:PrintWriter, baseDir:File):Boolean = {
         comments.foreach(out.println(_))        //write out the header comments
         var itemBaseDir = baseDir
         items.foreach { itemOldBase =>
@@ -145,6 +150,7 @@ class PlayListS(
             item.printAll(out,itemBaseDir)  //write each PlayItemS
             itemBaseDir = item.getBaseDir
         }
+        true
     }
 }
 

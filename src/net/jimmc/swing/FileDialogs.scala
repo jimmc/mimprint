@@ -193,7 +193,7 @@ trait FileDialogs extends FileQueries { this: BasicQueries =>
     def getPrintWriterFor(f:File):Option[PrintWriter] = {
         if (f.exists()) {
             val msg = dialogRes.getResourceFormatted(
-                    "query.Confirm.FileExists",f.toString())
+                    "query.Confirm.FileExists.prompt",f.toString())
             if (!confirmDialog(msg))
                     return None 	//cancelled
         }
