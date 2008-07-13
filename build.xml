@@ -10,7 +10,7 @@
         <property name="rel.jar" value="${rel.subdir}.jar" />
 
         <property name="relbin.files"
-                value="README README.html VERSION LICENSE COPYRIGHT HISTORY"/>
+            value="README README.html VERSION LICENSE COPYRIGHT HISTORY mim"/>
 	<property name="jarinst.files"
 		value="${src.dir}/jarinst/*.c ${src.dir}/jarinst/*.ini
 			${src.dir}/jarinst/*.inf ${src.dir}/jarinst/*.bat"/>
@@ -461,7 +461,10 @@
 	<copy todir="${rel.dir}" flatten="true" preservelastmodified="true">
 	    <fileset dir="." includes="${relbin.files}"/>
 	</copy>
+        <chmod dir="${rel.dir}" includes="mim" perm="+x"/>
 	<copy todir="${rel.dir}" file="${mimprint.jar}"
+		preservelastmodified="true"/>
+	<copy todir="${rel.dir}" file="${scala.library.jar}"
 		preservelastmodified="true"/>
 	<copy todir="${rel.dir}" file="${jshortcut.jar}"
 		preservelastmodified="true"/>

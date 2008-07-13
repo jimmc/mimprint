@@ -6,7 +6,7 @@
 <center>
 <h1>README</h1>
 <h3>Mimprint<br>
-    v0.2.2  June 29, 2008</h3>
+    v0.2.2+  July 12, 2008</h3>
 </center>
 
 <p>
@@ -47,7 +47,7 @@ to download the latest version of Mimprint.
 <a name="features"><h2>Features</h2></a>
 <ul>
   <li>Licensed under GPL, freely redistributable with source.
-  <li>Written in Scala, runs on any standar Java Virtual machine,
+  <li>Written in Scala, runs on any standard Java Virtual Machine,
       runs on Windows, Mac and Unix.
   <li>Three viewing modes:
   <ul>
@@ -139,7 +139,8 @@ Mimprint (available after you have <a href="#source">unpacked the source</a>).
     <td valign=top>Mimprint uses Drag and Drop.
       <ul>
         <li>On Linux, Java 1.5.0 or better is required; bugs in 1.4 cause
-            drag and drop not to work, which makes the Printable page unusable.
+            drag and drop not to work.
+            Printing in general is troublesome in Java on Linux.
         <li>On Mac, Java 1.4.2 or better is required.
 	<li>On Windows, Java 1.4.2 or better is required.
             Unfortunately, dragging from the browsing list is not working
@@ -253,7 +254,7 @@ You must have the
 system in order to build Mimprint from source files.
 
 <p>
-You will also need a scala development environment.
+You will also need a Scala development environment.
 You can download this from the
 <a href="http://www.scala-lang.org/">Scala web page</a>.
 
@@ -272,7 +273,9 @@ Alternatively, you can unpack <code>src.zip</code> and then run the command
 </blockquote>
 to run scaladoc and create the API documents from the source files
 (you must have the
-<a href="http://ant.apache.org/">ant</a> program installed on your
+<a href="http://ant.apache.org/">ant</a> program
+and the Scala development environment
+installed on your
 system in order to create the documentation using this command).
 
 <p>
@@ -301,29 +304,24 @@ and run
 </blockquote>
 You can manually set up a shortcut to mimprint.jar.
 
-<h4>On Unix</h4>
-On Unix, run
+<h4>On Unix and Mac OS X</h4>
+On Unix or Mac OS X, run
 <blockquote>
-<code>java -jar mimprint.jar</code>
+<code>mim</code>
 </blockquote>
-If the java binary is not in your PATH, you can explicitly specify the
-Scala to it.  For example, if you have installed JDK1.5 into
-<code>/usr/local/jdk1.5</code>,
-you can run mimprint with the command
-<blockquote>
-<code>/usr/local/jdk1.5/bin/java -jar mimprint.jar</code>
-</blockquote>
-<p>
-On Solaris 2.6 or later, you can directly run mimprint.jar.
+optionally providing a starting directory.
+You may need to modify the script on Unix platforms,
+depending on how Java is installed.
 
 <h4>Starting at a specified location</h4>
 <p>
-On any platform you can include an image file or directory name
-when starting mimprint to tell it to start in that directory.
+On any platform you can include a directory name,
+playlist file or image file
+when starting mimprint to tell it what to display.
 Just include that name as the first argument after the above command,
 like this:
 <blockquote>
-<code>java -jar mimprint.jar /home/jimmc/photos/folder1</code>
+<code>mim /home/jimmc/photos/folder1</code>
 </blockquote>
 
 <p>
