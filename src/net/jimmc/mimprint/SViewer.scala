@@ -59,6 +59,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
     private var printablePlayListIndex:Int = -1
 
     private val toolBar = createToolBar()
+    toolBar.setVisible(false)
     private var printMenuItem:SMenuItem = _
     private var layoutMenu:JMenu = _
 
@@ -104,7 +105,9 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         else
             this
     }
-    
+   
+    def setToolBarVisible() = toolBar.setVisible(true)
+
     private def createMenuBar():JMenuBar = {
         val mb = new JMenuBar()
         mb.add(createFileMenu())

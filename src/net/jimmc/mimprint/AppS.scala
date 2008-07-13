@@ -30,6 +30,8 @@ class AppS extends SResourcesBundle {
                     println(help)
                     System.exit(0)
                 case "-new" =>  //ignore
+                case "-toolbar" =>
+                    viewer.setToolBarVisible()
                 case fn =>       //assume filename
                     viewer.mainOpen(fn)
             }
