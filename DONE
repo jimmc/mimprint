@@ -132,3 +132,4 @@
 - Ask about saving playlist if it changed, when moving to new list. [080711]
 - Add Save As menu command to List menu, change Save command to save to
   the default filename from which the list was loaded. [080711]
+- Add mim.bat, fix a small startup bug on Windows. [080714]

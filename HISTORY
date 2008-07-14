@@ -18,6 +18,7 @@ mimprint v0.2.2+
     using the same layout on each page.  A Page selection box appears
     on the Printable page allowing you to select which page of images
     appears on the screen.
+  * There is now a mim.bat startup script for Windows.
 
 ----------------------------------------------------------------------
 

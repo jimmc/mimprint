@@ -268,7 +268,10 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         if (f==null || !includeDirectories)
             return Array()
         val dir = if (f.isDirectory) f else f.getParentFile
-        val a = dir.getCanonicalPath.split(File.separator)
+	//On Windows, File.separator is a backslash, which we have to quote
+	//with a backslash in order to work as a regexp for the split call.
+        val a = dir.getCanonicalPath.split(
+		if (File.separator=="\\") "\\\\" else File.separator)
         //Trim off leading blank
         if (a.length>0 && a(0)=="")
             a.slice(0,a.length)

@@ -236,6 +236,12 @@ and enter the java command shown above.
 Any error messages should now show up in the DOS window.
 
 <p>
+After running the installer, there is currently a manual step:
+you must download the Scala development environment, then copy
+the two files scala-compiler.jar and scala-library.jar into the
+unpacked mimprint directory next to mimprint.jar.
+
+<p>
 <a name="source"><h2>Unpacking the Mimprint Source</h2></a>
 
 <p>
@@ -296,13 +302,12 @@ If you have not already done so, you must
 <h4>On Windows</h4>
 <p>
 On Windows,
-double-click on the shortcut (if you have set one up)
-or CD to the directory containing mimprint.jar
-and run
+open a terminal window and enter the command
 <blockquote>
-<code>java -jar mimprint.jar</code>
+<code>mim</code>
 </blockquote>
-You can manually set up a shortcut to mimprint.jar.
+You can manually set up a shortcut to mim.bat,
+after which you can just double-click on that shortcut to launch mimprint.
 
 <h4>On Unix and Mac OS X</h4>
 On Unix or Mac OS X, run
