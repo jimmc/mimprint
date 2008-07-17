@@ -1,4 +1,13 @@
-mimprint v0.2.3  July 14, 2008  Minor bug fixes
+mimprint v0.2.3b
+
+  Bug Fixes:
+
+  * Fixed the label on the "Save As" menu command in the List menu
+    (it mistakenly said just "Save", so there were to "Save" commands).
+
+----------------------------------------------------------------------
+
+mimprint v0.2.3  July 14, 2008  Minor bug fixes and enhancements
 
   Enhancements:
 
