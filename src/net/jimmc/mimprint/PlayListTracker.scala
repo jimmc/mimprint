@@ -281,9 +281,10 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         val prompt = ui.getResourceString(prefix+"prompt")
             //TODO - put default filename into prompt
         val title = ui.getResourceString(prefix+"title")
-        val labels = ui.getResourceString(prefix+"buttons").split("\\|")
+        //val labels = ui.getResourceString(prefix+"buttons").split("\\|")
             //Labels are: Save, Save As, Discard, Cancel
-        ui.multiButtonDialog(prompt, title, labels) match {
+        val buttonKeys = ui.getResourceString(prefix+"buttonKeys").split("\\|")
+        ui.multiButtonDialogR(prompt, title, prefix, buttonKeys) match {
             case 0 =>   //Save to default location
                 if (lastLoadFileName!=null)
                     save(lastLoadFileName)

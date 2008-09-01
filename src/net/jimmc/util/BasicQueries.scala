@@ -39,6 +39,16 @@ trait BasicQueries {
     def multiButtonDialog(prompt:String, title:String,
             labels:Array[String]):Int
 
+    /** Put up a dialog with multiple buttons using resources.
+     * @param prompt The prompt string.
+     * @param title The title string.
+     * @param prefix The resource prefix, including the dot separator.
+     * @param buttonKeys The resource keys for the buttons.
+     * @return The index number of the selected button.
+     */
+    def multiButtonDialogR(prompt:String, title:String, prefix:String,
+            buttonKeys:Array[String]):Int
+
     /** A dialog to display an exception. */
     def exceptionDialog(ex:Throwable)
 

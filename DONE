@@ -135,3 +135,5 @@
 - Add mim.bat, fix a small startup bug on Windows. [080714]
 - v0.2.3. [080714]
 - Change "Save" label to "Save As" in List menu. [080716]
+- Add multiButtonR method that uses resources to set button mnemonics. [080831]
+- Add mnemonics to buttons in Save/SaveAs/Cancel/Discard dialog. [080831]

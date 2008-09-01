@@ -12,11 +12,14 @@ import net.jimmc.util.StringUtil
 import net.jimmc.util.UserException
 
 import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
 import java.io.StringWriter
+import javax.swing.AbstractButton
+import javax.swing.Icon
 import javax.swing.JDialog
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
@@ -156,6 +159,59 @@ trait BasicDialogs extends BasicQueries {
                 JOptionPane.DEFAULT_OPTION,JOptionPane.QUESTION_MESSAGE,
                 null, labels.asInstanceOf[Array[Object]], dflt)
         t
+    }
+
+    /** Put up a dialog with multiple buttons, using resources to
+     * determine the button labels, mnemonics, and displayed mnemonic index.
+     * @param prompt The prompt string.
+     * @param title The title string.
+     * @param prefix The resource prefix string, including the dot separator.
+     * @param buttonKeys The resource keys for the buttons to be displayed.
+     * @return The index number of the selected button.
+     */
+    def multiButtonDialogR(prompt:String, title:String, prefix:String,
+            buttonKeys:Array[String]):Int = {
+        val promptObj = getMessageDisplay(prompt)
+        val dflt:String = null
+        val labels = buttonKeys.map{key:String=>
+                dialogRes.getResourceString(prefix+"button."+key+".label")}
+        val mnemonics = buttonKeys.map{key:String=>
+            dialogRes.getResourceStringOption(prefix+"button."+key+".mnemonic")}
+        val mnemList = (labels zip mnemonics) filter {
+                km => km._2.isDefined } map {
+                km => (km._1,km._2.get.charAt(0).asInstanceOf[Int]) }
+        val mnemMap = Map() ++ mnemList
+        val mnemIndexes = buttonKeys.map{key:String=>
+            dialogRes.getResourceStringOption(prefix+"button."+key+".mnemonicIndex")}
+        val mxList = (labels zip mnemIndexes) filter {
+                km => km._2.isDefined } map {
+                km => (km._1,Integer.parseInt(km._2.get)) }
+        val mxMap = Map() ++ mxList
+        //mxMap is a map of button label to mnemonic index offset
+        val icon:Icon = null
+        val defaultLabel:Object = null
+        val pane = new JOptionPane(prompt, JOptionPane.QUESTION_MESSAGE,
+                JOptionPane.DEFAULT_OPTION, icon,
+                labels.asInstanceOf[Array[Object]], defaultLabel)
+        val dialog = pane.createDialog(dialogParent, title)
+        addMnemonicsToButtons(pane,mnemMap,mxMap)
+        dialog.show()
+        pane.getValue match {
+            case s:String => labels.indexOf(s)
+            case _ => -1
+        }
+    }
+
+    private def addMnemonicsToButtons(p:Container,
+            mnemMap:Map[String,Int], mxMap:Map[String,Int]) {
+        p.getComponents foreach { _ match {
+            case b:AbstractButton =>
+                val label = b.getText
+                mnemMap.get(label) foreach { b.setMnemonic(_) }
+                mxMap.get(label) foreach { b.setDisplayedMnemonicIndex(_) }
+            case c:Container => addMnemonicsToButtons(c,mnemMap,mxMap)
+            case _ => //ignore
+        }}
     }
 
     /** A dialog to display an exception. */
