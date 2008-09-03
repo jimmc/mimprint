@@ -172,7 +172,6 @@ trait BasicDialogs extends BasicQueries {
     def multiButtonDialogR(prompt:String, title:String, prefix:String,
             buttonKeys:Array[String]):Int = {
         val promptObj = getMessageDisplay(prompt)
-        val dflt:String = null
         val labels = buttonKeys.map{key:String=>
                 dialogRes.getResourceString(prefix+"button."+key+".label")}
         val mnemonics = buttonKeys.map{key:String=>
@@ -189,7 +188,8 @@ trait BasicDialogs extends BasicQueries {
         val mxMap = Map() ++ mxList
         //mxMap is a map of button label to mnemonic index offset
         val icon:Icon = null
-        val defaultLabel:Object = null
+        val defaultLabel:Object = dialogRes.getResourceStringOption(
+                prefix+"defaultButtonLabel").getOrElse(null)
         val pane = new JOptionPane(prompt, JOptionPane.QUESTION_MESSAGE,
                 JOptionPane.DEFAULT_OPTION, icon,
                 labels.asInstanceOf[Array[Object]], defaultLabel)

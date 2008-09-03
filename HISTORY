@@ -1,4 +1,11 @@
-mimprint v0.2.3b
+mimprint v0.2.3b+
+
+  Enhancements:
+
+  * The Save/SaveAs/Discard/Cancel dialog displayed when moving to another
+    directory and there have been changes to the current playlist now
+    has key accelerators (S/A/D/C), and Save is the default (so can be
+    activated by pressing Enter).
 
   Bug Fixes:
 

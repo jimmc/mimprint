@@ -48,6 +48,7 @@ dialog.PlayList.SaveChanges.button.save.mnemonic=S
 dialog.PlayList.SaveChanges.button.saveAs.label=Save As...
 dialog.PlayList.SaveChanges.button.saveAs.mnemonic=A
 dialog.PlayList.SaveChanges.button.saveAs.mnemonicIndex=5
+dialog.PlayList.SaveChanges.defaultButtonLabel=Save
 
 dialog.PlayList.Save.title=Save PlayList
 dialog.PlayList.SaveAs.prompt=Save PlayList To File
