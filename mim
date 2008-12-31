@@ -2,6 +2,10 @@
 #A sample startup script for mimprint for Linux or Mac OSX.
 
 SCALA_HOME=$HOME/net/scala/scala-current
+if [ ! -d $SCALA_HOME ]; then
+    HERE=`dirname $0`
+    SCALA_HOME=$HERE/../../net/scala/scala-current
+fi
 SCALA_LIB_DIR=$SCALA_HOME/lib
 [ -d $SCALA_HOME/lib ] && SCALA_LIB_DIR=$SCALA_HOME/lib
 #SCALA_COMPILER_JAR=${SCALA_HOME}/lib/scala-compiler.jar
