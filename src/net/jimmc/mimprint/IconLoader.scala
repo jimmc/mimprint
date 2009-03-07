@@ -164,9 +164,9 @@ abstract class IconLoader(viewer:SViewer) extends Thread {
     }
 
     private def getImageFileIcon(fileInfo:FileInfo):ImageIcon = {
-        val toolkit = viewer.getToolkit()
+        //val toolkit = viewer.getToolkit()
         val path = fileInfo.getPath()
-        val fullImage = toolkit.createImage(path)
+        val fullImage = SImageUtil.getImage(viewer,path)
         val scaledImage = SImageUtil.createScaledImage(fullImage,
                 0,SImageUtil.ICON_SIZE,SImageUtil.ICON_SIZE,path)
         return new ImageIcon(scaledImage)

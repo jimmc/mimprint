@@ -207,15 +207,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     private def getTransformedImage(index:Int):Image = {
         val item = playList.getItem(index)
         val f = new File(item.baseDir,item.fileName)
-        val im = imageComponent.getToolkit.createImage(f.getPath)
+        val im = SImageUtil.getImage(imageComponent,f.getPath)
         SImageUtil.scaleAndRotate(im,item.rotFlag,f.getPath, imageComponent)
-/*
-        val si = createScaledImage(im,item.rotFlag,f.getPath)
-        loadCompleteImage(si)
-        val ri = createRotatedImage(si,item.rotFlag)
-        loadCompleteImage(ri)
-        ri
-*/
     }
     
     private def createScaledImage(sourceImage:Image,rot:Int,path:String):
@@ -226,57 +219,10 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 
     private def createRotatedImage(sourceImage:Image,rot:Int):Image = {
         SImageUtil.createRotatedImage(sourceImage,rot,imageComponent)
-/*
-        if (((rot+4)%4)==0)
-            return sourceImage
-        val (w, h) = getImageSize(sourceImage)
-        val dstImage = imageComponent.createImage(
-                if (rot%2==0) w else h,  if (rot%2==0) h else w)
-        val dstG2 = dstImage.getGraphics.asInstanceOf[Graphics2D]
-        var transform:AffineTransform = null
-        ((rot+4)%4) match {
-            case 1 => transform = new AffineTransform(
-                    0.0, -1.0, 1.0, 0.0, 0.0, w)
-            case 2 => transform = new AffineTransform(
-                    -1.0, 0.0, 0.0, -1.0, w, h)
-            case 3 => transform = new AffineTransform(
-                    0.0, 1.0, -1.0, 0.0, h, 0.0)
-            case 0 =>   //shouldn't happen, we checked for rot%4==0 above
-                return sourceImage
-        }
-        dstG2.drawImage(sourceImage,transform,null)
-        dstImage
-*/
     }
-
-/*
-    private def getImageSize(sourceImage:Image):(Int,Int) = {
-        var waitCount = 0
-        while (sourceImage.getWidth(null)<0 || sourceImage.getHeight(null)<0) {
-            //THe image has not yet started loading, so we don't
-            //know it's size.  Wait just a bit.
-            waitCount = waitCount + 1
-            if (waitCount > 100)
-                return (0, 0)   //TODO - throw exception?
-            try { Thread.sleep(100) } catch { case _ => } //ignore errors here
-        }
-        (sourceImage.getWidth(null), sourceImage.getHeight(null))
-    }
-*/
 
     private def loadCompleteImage(image:Image) {
         SImageUtil.loadCompleteImage(mediaTracker,image)
-/*
-        mediaTracker.addImage(image,0)
-        try {
-            mediaTracker.waitForID(0,20000)
-        } catch {
-            //TODO - better info
-            case ex:InterruptedException =>
-                throw new RuntimeException(ex)
-        }
-        mediaTracker.removeImage(image,0)
-*/        
     }
 
     //Set the cursor to a busy cursor.

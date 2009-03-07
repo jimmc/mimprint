@@ -60,7 +60,7 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
             return
         }
         path = new File(newItem.baseDir,newItem.fileName).getPath
-        image = comp.getToolkit().createImage(path)
+        image = SImageUtil.getImage(comp,path)
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
         //the image display area.
@@ -122,7 +122,7 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
 
     private def paintImage(g2:Graphics2D, comp:Component, item:PlayItemS) {
         val path = new File(item.baseDir,item.fileName).getPath
-        val image = comp.getToolkit().createImage(path)
+        val image = SImageUtil.getImage(comp,path)
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
         //the image display area.

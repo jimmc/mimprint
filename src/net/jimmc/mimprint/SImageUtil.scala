@@ -20,6 +20,22 @@ object SImageUtil {
 
     def ICON_SIZE = 64
 
+    //Get an image for the specified file from our cache,
+    //or create it if it is not in our cache.
+    def getImage(comp:Component, path:String):Image = {
+        val cp = ImageCache.getPathImage(path)
+        if (cp.isDefined)
+            return cp.get.image
+        val im = createImage(comp, path)
+        ImageCache.cachePathImage(path,im)
+        im
+    }
+
+    private def createImage(comp:Component, path:String):Image = {
+        val toolkit = comp.getToolkit
+        toolkit.createImage(path)
+    }
+
     /** Create a transparent image the size of one of our image icons,
      *  suitable for dragging.
      */
@@ -128,8 +144,15 @@ object SImageUtil {
         val dstWidth = (srcWidth * scale).asInstanceOf[Int]
         val dstHeight = (srcHeight * scale).asInstanceOf[Int]
 
+        //See if it is cached
+        val si = ImageCache.getScaledImage(sourceImage,dstWidth,dstHeight)
+        if (si.isDefined)
+            return si.get.scaledImage
+
+        //Not cached, create it then cache it
         val scaledImage = sourceImage.getScaledInstance(
                     dstWidth,dstHeight,Image.SCALE_FAST)
+        ImageCache.cacheScaledImage(sourceImage,dstWidth,dstHeight,scaledImage)
         scaledImage
     }
 
