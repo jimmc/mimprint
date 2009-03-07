@@ -21,7 +21,7 @@ class PlayItemS(
         val comments:List[String],  //comment lines preceding our data
         val baseDir:File,       //the base directory for this entry
         val fileName:String,    //file name relative to the base directory
-        val rotFlag:Int         //0=no rotation, 1 for +r ccw, 01 for -w cw,
+        val rotFlag:Int         //0=no rotation, 1 for +r ccw, -1 for -w cw,
                                 //  2 for +rr 180 degrees
         ) {
 

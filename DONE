@@ -138,3 +138,4 @@
 - Add multiButtonR method that uses resources to set button mnemonics. [080831]
 - Add mnemonics to buttons in Save/SaveAs/Cancel/Discard dialog. [080831]
 - Make Save the default key in the above dialog. [080902]
+- Fix scaling bug on images rotated clockwise (rot= -1). [090306]

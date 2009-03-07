@@ -117,7 +117,7 @@ object SImageUtil {
 
         val (srcWidth, srcHeight) = getImageSize(sourceImage)
 
-        val xy = (rotation==1 || rotation==3)
+        val xy = (rotation==1 || rotation==3 || rotation== -1)
                 //True if rotated by 90 (or 270) degrees, so the
                 //horizontal and vertical axes are interchanged.
         val xScale = displayWidth/(if (xy) srcHeight else srcWidth).asInstanceOf[Float]

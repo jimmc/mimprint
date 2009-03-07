@@ -1,4 +1,4 @@
-mimprint v0.2.3b+
+mimprint v0.2.4
 
   Enhancements:
 
@@ -9,6 +9,7 @@ mimprint v0.2.3b+
 
   Bug Fixes:
 
+  * Pictures which have been rotated clockwise now scale properly.
   * Fixed the label on the "Save As" menu command in the List menu
     (it mistakenly said just "Save", so there were to "Save" commands).
 
