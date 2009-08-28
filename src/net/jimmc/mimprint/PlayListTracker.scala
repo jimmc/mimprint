@@ -171,10 +171,10 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
                 ui.invokeUi(ui.errorDialog(eMsg))
             } else {
                 val msg = prompt + "move to next directory "+newDir+"?"
-                val leftMsg = PlayListRequestRight(playList)
+                val rightMsg = PlayListRequestRight(playList)
                 ui.invokeUi {
                     if (ui.confirmDialog(msg))
-                        this ! leftMsg
+                        this ! rightMsg
                 }
             }
         }
