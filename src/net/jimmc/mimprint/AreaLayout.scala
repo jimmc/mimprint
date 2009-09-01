@@ -472,7 +472,7 @@ abstract class AreaLayout {
             g2.setColor(oldColor) //restore previous color
     }
 
-    def writeTemplate(pw:PrintWriter, indent:int) {
+    def writeTemplate(pw:PrintWriter, indent:Int) {
         pw.print(getIndentString(indent))
         pw.print("<"+getTemplateElementName())
         writeTemplateElementAttributes(pw,indent)

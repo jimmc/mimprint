@@ -336,4 +336,4 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 }
 
 sealed abstract class PlayViewSingleRequest
-case class PlayViewSingleRequestFocus
+case class PlayViewSingleRequestFocus()

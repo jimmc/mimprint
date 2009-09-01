@@ -180,5 +180,5 @@ class PlayViewMulti(name:String,
 }
 
 sealed abstract class PlayViewMultiRequest
-case class PlayViewMultiRequestFocus
-case class PlayViewMultiRequestPrint
+case class PlayViewMultiRequestFocus()
+case class PlayViewMultiRequestPrint()

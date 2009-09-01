@@ -652,7 +652,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
      * @param n The index of the config to get, 0 is the primary screen.
      * @return The indicated config, or null if it does not exist.
      */
-    private def getAlternateGraphicsConfiguration(n:int):
+    private def getAlternateGraphicsConfiguration(n:Int):
             GraphicsConfiguration  = {
         if (n<0)
             throw new IllegalArgumentException("negative index not valid")

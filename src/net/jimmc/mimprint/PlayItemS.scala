@@ -143,7 +143,7 @@ object PlayItemS {
             val lineTrimmed = line.trim()
             val parts = lineTrimmed.split(";");
             fileName = parts(0)
-            parts.slice(1).foreach(setImageOption(_))
+            parts.drop(1).foreach(setImageOption(_))
                 //everything after the first part is an option
         }
 

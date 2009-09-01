@@ -13,7 +13,7 @@ object PageValue {
 
     val UNIT_MULTIPLIER = 1000
 
-    def formatPageValue(n:int):String = {
+    def formatPageValue(n:Int):String = {
         val d:Double = n.asInstanceOf[Double]/UNIT_MULTIPLIER
         pageValueFormat.format(d)
     }
