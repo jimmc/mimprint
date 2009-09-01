@@ -140,8 +140,8 @@ class PageLayout(app:SResources) {
             PageValue.formatPageValue(getPageHeight()),
             if (getPageUnit()==PageLayout.UNIT_CM) "cm" else "in"
         )
-        pw.println(MessageFormat.format(pageLineFmt,pageLineArgs.
-                asInstanceOf[Array[Object]]))
+        pw.println(MessageFormat.format(pageLineFmt,
+		(pageLineArgs.asInstanceOf[Array[Object]]:_*)))
         if (description!=null)
             pw.println("    <description>"+description+"</description>")
         areaLayout.writeTemplate(pw,1)

@@ -53,7 +53,7 @@ trait SResourcesBundle extends SResources {
      */
     def getResourceFormatted(key: String, arg: Any) : String = {
         val fmt = getResourceString(key)
-        MessageFormat.format(fmt, Array(arg.asInstanceOf[Object]))
+        MessageFormat.format(fmt, arg.asInstanceOf[Object])
     }
 
     /** Like getResourceString, but uses the string from the resource
@@ -63,6 +63,6 @@ trait SResourcesBundle extends SResources {
      */
     def getResourceFormatted(key: String, args: Array[Any]) : String = {
         val fmt = getResourceString(key)
-        MessageFormat.format(fmt, args.asInstanceOf[Array[Object]])
+        MessageFormat.format(fmt, args.asInstanceOf[Array[Object]]:_*)
     }
 }
