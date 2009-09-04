@@ -4,6 +4,7 @@ Arch
 build
 jtmp*
 local.properties
+log4j.jar
 mimprint.jar
 mimprint*.jar
 release
