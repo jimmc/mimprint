@@ -90,6 +90,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                     requestRotate(-1)))
         m.add(new SMenuItem(viewer,"menu.Image.AddToActive")(
                     viewer ! SViewerRequestAddToActive(playList,currentIndex)))
+        m.add(new SMenuItem(viewer,"menu.Image.RemoveImage")(
+                    viewer ! SViewerRequestRemoveImage(playList,currentIndex)))
         m.add(new SMenuItem(viewer,"menu.Image.ShowEditDialog")(
                     viewer ! SViewerRequestEditDialog(playList,currentIndex)))
         m.add(new SMenuItem(viewer,"menu.Image.ShowInfoDialog")(
@@ -125,8 +127,10 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
         playList = m.newList
-        if (m.index==currentIndex) {
-            imageSelected(-1)
+	if (currentIndex >= playList.size - 1) {
+            imageSelected(-1)		//last item in the list was deleted
+        } else if (m.index==currentIndex) {
+            //imageSelected(-1)		//leave index as-is
         } else if (m.index<currentIndex)
             currentIndex = currentIndex - 1
     }
@@ -272,6 +276,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             ev.getKeyChar() match {
                 case ' ' => viewer ! SViewerRequestActivate(playList)
                 case 'a' => requestScreenMode(SViewer.SCREEN_ALT)
+		case 'd' =>
+		    viewer ! SViewerRequestRemoveImage(playList,currentIndex)
                 case 'e' =>
                         viewer ! SViewerRequestEditDialog(playList,currentIndex)
                 case 'E' =>

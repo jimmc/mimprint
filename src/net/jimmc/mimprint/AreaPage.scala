@@ -523,6 +523,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 //refresh from our playlist and repaint the screen
                 refresh()
             /*
+            case 'd' =>
+                viewer ! SViewerRequestRemoveImage(playList,currentListIndex)
             case 'e' =>
                 viewer ! SViewerRequestEditDialog(playList,currentListIndex)
             case 'i' =>

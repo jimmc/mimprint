@@ -1,7 +1,11 @@
+2008
+2009
+Arch
 build
 jtmp*
 local.properties
 mimprint.jar
 mimprint*.jar
+release
 src/net/jimmc/*.old
 testsrc/net/jimmc/util/testFileUtil2.tmp

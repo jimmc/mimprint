@@ -133,8 +133,10 @@ class PlayViewMulti(name:String,
     protected def playListRemoveItem(m:PlayListRemoveItem) {
         playList = m.newList
         if (playListIndex >= 0) {
-            if (playListIndex == m.index) {
+	    if (playListIndex > playList.size -1) {
                 playListIndex = -1
+            } else if (playListIndex == m.index) {
+                //playListIndex = -1
             } else if (playListIndex > m.index)
                 playListIndex = playListIndex - 1
         }

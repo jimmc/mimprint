@@ -399,6 +399,8 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
                 showImageEditDialog(m.list,m.index)
         case m:SViewerRequestAddToActive =>
                 addToActive(m.list,m.index)
+        case m:SViewerRequestRemoveImage =>
+                removeImage(m.list,m.index)
         case m:SViewerRequestDirEditDialog =>
                 showDirEditDialog(m.list)
     }
@@ -416,9 +418,15 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             case m:PlayListRemoveItem =>
                 playList = m.newList
                 if (playListIndex >= 0) {
-                    if (playListIndex == m.index) {
+                    if (playListIndex >= playList.size - 1) {
+			//New playlist is empty, so nothing can be selected
                         playListIndex = -1
                         setTitleToFileName("")
+                    } else if (playListIndex == m.index) {
+			//Let's just leave the index as-is so that the
+			// next image in the list will be selected.
+                        //playListIndex = -1
+                        //setTitleToFileName("")
                     } else if (playListIndex > m.index)
                         playListIndex = playListIndex - 1
                 }
@@ -680,6 +688,13 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         printableTracker ! PlayListRequestAdd(printablePlayList,item)
     }
 
+    private def removeImage(list:PlayListS, index:Int) {
+	//Drop/remove the specified item from the playlist.
+        if (index<0)
+            return      //ignore it when nothing selected
+        mainTracker ! PlayListRequestRemove(list,index)
+    }
+
     private def showImageInfoDialog(pl:PlayListS, idx:Int) {
         var fileInfo = getFileInfo(pl, idx)
         if (fileInfo==null) {
@@ -818,6 +833,8 @@ case class SViewerRequestInfoDialog(list:PlayListS,index:Int)
 case class SViewerRequestEditDialog(list:PlayListS,index:Int)
         extends SViewerRequest
 case class SViewerRequestAddToActive(list:PlayListS,index:Int)
+        extends SViewerRequest
+case class SViewerRequestRemoveImage(list:PlayListS,index:Int)
         extends SViewerRequest
 case class SViewerRequestDirEditDialog(list:PlayListS)
         extends SViewerRequest

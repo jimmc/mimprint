@@ -81,6 +81,7 @@ info.ImageHelp=Available commands:\n\
 	Ctrl L - refresh\n\
         a - alternate screen mode\n\
 	E - edit text about the directory\n\
+	d - drop/remove image from list\n\
 	e - edit text about the image\n\
 	f - full screen mode\n\
 	i - show info about the image\n\
@@ -115,6 +116,7 @@ menu.Image.NextDirectory.label=Next Directory
 menu.Image.NextImage.label=Next Image
 menu.Image.PreviousDirectory.label=Previous Directory
 menu.Image.PreviousImage.label=Previous Image
+menu.Image.RemoveImage=Drop/Remove Image from PlayList
 menu.Image.RotateMenu.label=Rotate Image
 menu.Image.RotateMenu.R90.label=90 degrees CCW
 menu.Image.RotateMenu.R180.label=180 degrees

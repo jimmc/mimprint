@@ -180,8 +180,10 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
         playList = m.newList
-        if (m.index==currentImageSelection)
+	if (currentSelection > playList.size - 1)
             currentSelection = -1
+        //else if (m.index==currentImageSelection)
+            //currentSelection = -1
         else if (m.index<currentImageSelection)
             currentSelection -= 1
         redisplayList
