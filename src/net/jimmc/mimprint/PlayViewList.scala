@@ -9,6 +9,7 @@ import net.jimmc.swing.SwingS
 import net.jimmc.swing.SDragSource
 import net.jimmc.swing.SMenuItem
 import net.jimmc.util.FileUtilS
+import net.jimmc.util.StdLogger
 
 import java.awt.BorderLayout
 import java.awt.Color
@@ -43,7 +44,8 @@ import javax.swing.JScrollPane
 import scala.util.Sorting
 
 class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
-        extends PlayViewComp(name,viewer,tracker) with SDragSource {
+        extends PlayViewComp(name,viewer,tracker)
+	with SDragSource with StdLogger {
     //TODO - add modes (display icons; include file info)
     //TODO - add thread that loads image icons
     //TODO - implement dropping into this list
@@ -179,6 +181,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
+	logger.debug("enter PlayViewList.playListRemoveItem")
         playList = m.newList
 	if (currentSelection > playList.size - 1)
             currentSelection = -1
@@ -188,6 +191,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             currentSelection -= 1
         redisplayList
         setSelectedIndex(currentSelection)
+	logger.debug("leave PlayViewList.playListRemoveItem")
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {
@@ -253,15 +257,19 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         val displayableNames = fileNames.map((s:String) =>
             if (s==null || s=="") "-empty" else s)
         SwingS.invokeLater {
+	    logger.debug("enter PlayViewList.redisplayList#invokeLater")
             try {
                 appIsUpdatingModel = true
                 fileInfos = newFileInfos
                 fileNameListModel = new ArrayListModel(displayableNames)
+		logger.debug("leave PlayViewList.redisplayList#invokeLater:A")
                 fileNameList.setModel(fileNameListModel)
+		logger.debug("leave PlayViewList.redisplayList#invokeLater:B")
                 fileNameList.updateUI()
             } finally {
                 appIsUpdatingModel = false
             }
+	    logger.debug("leave PlayViewList.redisplayList#invokeLater")
         }
     }
     private var appIsUpdatingModel = false

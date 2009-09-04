@@ -8,8 +8,13 @@ package net.jimmc.mimprint
 import net.jimmc.swing.AboutWindow
 import net.jimmc.util.SResourcesBundle 
 
+import org.apache.log4j.xml.DOMConfigurator
+
 class AppS extends SResourcesBundle {
+    val LOG4J_WATCH_INTERVAL = 5000
+
     def doMain(args: Array[String]) {
+	initLog4j()
         initResources(this)
 
         val aboutTitle = getResourceString("about.title")
@@ -36,6 +41,14 @@ class AppS extends SResourcesBundle {
                     viewer.mainOpen(fn)
             }
         }
+    }
+
+    def initLog4j() {
+	val cfName = "mimprint.log4j.configfile"
+	val configFile = System.getProperty(cfName)
+	if (configFile==null)
+	    throw new IllegalArgumentException(cfName+" must be set")
+	DOMConfigurator.configureAndWatch(configFile,LOG4J_WATCH_INTERVAL)
     }
 }
 

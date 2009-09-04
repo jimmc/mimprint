@@ -13,6 +13,7 @@ SCALA_LIBRARY_JAR=${SCALA_LIB_DIR}/scala-library.jar
 #SCALA_CLASSPATH=`echo $SCALA_LIB_DIR/*.jar | tr ' ' ':'`
 SCALA_CLASSPATH=${SCALA_LIBRARY_JAR}
 #See also below for use of local copy of scala-library.jar
+
 SCALAMAIN_CLASS=scala.tools.nsc.MainGenericRunner
 APP_MAIN_CLASS=net.jimmc.mimprint.AppStart
 
@@ -65,6 +66,8 @@ done
 
 #Use local copy of scala-library if we have it.
 [ -f ${MIMPRINTHOME}/scala-library.jar ] && SCALA_CLASSPATH=${MIMPRINTHOME}/scala-library.jar
-CP=${SCALA_CLASSPATH}:${MIMPRINTHOME}/mimprint.jar
+CP=${SCALA_CLASSPATH}:${MIMPRINTHOME}/mimprint.jar:${MIMPRINTHOME}/log4j.jar
+LOG_CONFIG_ARGS="-Dmimprint.log4j.configfile=$MIMPRINTHOME/log4j.xml"
+JAVA_ARGS="$JAVA_ARGS $LOG_CONFIG_ARGS"
 exec $JAVA $JAVA_ARGS $JDEBUG $MAC_OPTS -cp $CP \
     $SCALA_MAIN_CLASS $APP_MAIN_CLASS "$@"

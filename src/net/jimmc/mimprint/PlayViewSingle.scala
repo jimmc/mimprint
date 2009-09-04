@@ -9,6 +9,7 @@ import net.jimmc.swing.KeyListenerCatch
 import net.jimmc.swing.SMenu
 import net.jimmc.swing.SMenuItem
 import net.jimmc.swing.SwingS
+import net.jimmc.util.StdLogger
 
 import java.awt.Color
 import java.awt.Cursor
@@ -33,7 +34,8 @@ import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 
 class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
-        extends PlayViewComp(name, viewer, tracker) {
+        extends PlayViewComp(name, viewer, tracker)
+	with StdLogger {
     private var imageComponent:JLabel = _
     private var mediaTracker:MediaTracker = _
     private var playList:PlayListS = _
@@ -126,6 +128,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
+	logger.debug("enter PlayViewSingle.playListRemoveItem")
         playList = m.newList
 	if (currentIndex >= playList.size - 1) {
             imageSelected(-1)		//last item in the list was deleted
@@ -133,6 +136,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             //imageSelected(-1)		//leave index as-is
         } else if (m.index<currentIndex)
             currentIndex = currentIndex - 1
+	logger.debug("leave PlayViewSingle.playListRemoveItem")
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {

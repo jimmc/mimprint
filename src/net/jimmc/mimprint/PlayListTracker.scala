@@ -9,6 +9,7 @@ import net.jimmc.util.ActorPublisher
 import net.jimmc.util.AsyncUi
 import net.jimmc.util.FileUtilS
 import net.jimmc.util.PFCatch
+import net.jimmc.util.StdLogger
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -18,7 +19,8 @@ import scala.actors.Actor.loop
 
 /** A playlist of images. */
 class PlayListTracker(val ui:AsyncUi) extends Actor
-        with ActorPublisher[PlayListMessage] {
+        with ActorPublisher[PlayListMessage]
+	with StdLogger{
     //Our current playlist
     private var playList:PlayListS = PlayListS(ui)
     private var currentIndex:Int = -1
@@ -103,10 +105,12 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     }
 
     private def removeItem(index:Int) {
+	logger.debug("enter PlayListTracker.removeItem")
         val newPlayList = playList.removeItem(index)
         publish(PlayListRemoveItem(this,playList,newPlayList,index))
         playList = newPlayList
         isModified = true
+	logger.debug("leave PlayListTracker.removeItem")
     }
 
     private def changeItem(itemIndex:Int, item:PlayItemS) {
