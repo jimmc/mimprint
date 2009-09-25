@@ -1,4 +1,4 @@
-/* PlayItemS.scala
+/* PlayItem.scala
  *
  * Jim McBeath, May 22, 2008
  */
@@ -17,7 +17,7 @@ import scala.collection.mutable.ListBuffer
  * we also store the text, such as comments, that preceeds the item
  * in the playlist file.
  */
-class PlayItemS(
+class PlayItem(
         val comments:List[String],  //comment lines preceding our data
         val baseDir:File,       //the base directory for this entry
         val fileName:String,    //file name relative to the base directory
@@ -29,7 +29,7 @@ class PlayItemS(
     //not provide a hashCode method.
     override def equals(that:Any) = {
         that match {
-            case other : PlayItemS =>
+            case other : PlayItem =>
                 (comments==other.comments) &&
                 (baseDir==other.baseDir) &&
                 (fileName==other.fileName) &&
@@ -87,24 +87,24 @@ class PlayItemS(
     /** Get another item referencing the same file but relative to
      * a different baseDir.
      */
-    def usingBase(newBase:File) : PlayItemS = {
+    def usingBase(newBase:File) : PlayItem = {
         if (pathFor(newBase)==pathFor(baseDir))
             this
         else if (fileName==null)
-            new PlayItemS(comments,newBase,null,rotFlag)
+            new PlayItem(comments,newBase,null,rotFlag)
         else {
             val path = FileUtilS.collapseRelative(
                     (new File(baseDir,fileName)).getPath())
                 //Put together base and file, collapse internal ".." elements
             val relativePath = FileUtilS.relativeTo(path, newBase)
-            new PlayItemS(comments,newBase,relativePath,rotFlag)
+            new PlayItem(comments,newBase,relativePath,rotFlag)
         }
     }
 
     /** Get another item with a different base such that the fileName field
      * does not include any directory names.
      */
-    def usingSelfBase(): PlayItemS = {
+    def usingSelfBase(): PlayItem = {
         if ((fileName==null) || (fileName.indexOf(File.separatorChar)<0))
             this
         else {
@@ -114,12 +114,12 @@ class PlayItemS(
     }
 }
 
-object PlayItemS {
+object PlayItem {
     /** Create an item from a list of strings.
      * The last string must be a final line as determined by isFinalLine,
      * and none of the preceding lines may be a final line.
      */
-    def apply(lines:List[String], listBaseDir:File) : PlayItemS = {
+    def apply(lines:List[String], listBaseDir:File) : PlayItem = {
         val comments = new ListBuffer[String]
         var baseDir:File = listBaseDir
         var fileName:String = null
@@ -204,12 +204,12 @@ object PlayItemS {
 
         validateFinalLines(lines)
         lines.foreach(processLine(_))
-        new PlayItemS(comments.toList,baseDir,fileName,rotFlag)
+        new PlayItem(comments.toList,baseDir,fileName,rotFlag)
     }
 
     /** Create an empty item. */
-    def emptyItem():PlayItemS = {
-        new PlayItemS(Nil,new File(""),null,0)
+    def emptyItem():PlayItem = {
+        new PlayItem(Nil,new File(""),null,0)
     }
 
     /** True if this line is a comment line.
@@ -243,8 +243,8 @@ object PlayItemS {
     /** Create a new item identical to the given one but rotated by
      * the specified amount.
      */
-    def rotate(item:PlayItemS, inc:Int) : PlayItemS = {
+    def rotate(item:PlayItem, inc:Int) : PlayItem = {
         val rot = (item.getRotFlag()+inc+1)%4 - 1
-        new PlayItemS(item.comments,item.baseDir,item.fileName,rot)
+        new PlayItem(item.comments,item.baseDir,item.fileName,rot)
     }
 }

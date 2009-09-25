@@ -57,7 +57,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     protected[mimprint] var includeIcons = false
     private var showingFileInfo = false
 
-    private var playList:PlayListS = _
+    private var playList:PlayList = _
     private var targetDirectory:File = _
     private var playableFileNames:Array[String] = _
     private var pathNames:Array[String] = _
@@ -469,7 +469,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             val iconImage:Image = if (icon==null) null else icon.getImage()
             val (image:Image, offset:Point) =
             if (DragSource.isDragImageSupported()) {
-                val im = SImageUtil.createTransparentIconImage(
+                val im = ImageUtil.createTransparentIconImage(
                         ourComponent,iconImage,path)
                 val width = im.getWidth(null)
                 val height = im.getHeight(null)
@@ -518,4 +518,4 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
 }
 
 sealed abstract class PlayViewListRequest
-case class PlayViewListRequestActivate(list:PlayListS)
+case class PlayViewListRequestActivate(list:PlayList)

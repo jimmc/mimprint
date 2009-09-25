@@ -38,9 +38,9 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 	with StdLogger {
     private var imageComponent:JLabel = _
     private var mediaTracker:MediaTracker = _
-    private var playList:PlayListS = _
+    private var playList:PlayList = _
     private var currentIndex:Int = -1
-    private var currentItem:PlayItemS = _
+    private var currentItem:PlayItem = _
 
     private var contextMenu:JPopupMenu = _
     private var cursorBusy = false
@@ -215,22 +215,22 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     private def getTransformedImage(index:Int):Image = {
         val item = playList.getItem(index)
         val f = new File(item.baseDir,item.fileName)
-        val im = SImageUtil.getImage(imageComponent,f.getPath)
-        SImageUtil.scaleAndRotate(im,item.rotFlag,f.getPath, imageComponent)
+        val im = ImageUtil.getImage(imageComponent,f.getPath)
+        ImageUtil.scaleAndRotate(im,item.rotFlag,f.getPath, imageComponent)
     }
     
     private def createScaledImage(sourceImage:Image,rot:Int,path:String):
             Image = {
-        SImageUtil.createScaledImage(sourceImage,rot,
+        ImageUtil.createScaledImage(sourceImage,rot,
             imageComponent.getWidth,imageComponent.getHeight,path)
     }
 
     private def createRotatedImage(sourceImage:Image,rot:Int):Image = {
-        SImageUtil.createRotatedImage(sourceImage,rot,imageComponent)
+        ImageUtil.createRotatedImage(sourceImage,rot,imageComponent)
     }
 
     private def loadCompleteImage(image:Image) {
-        SImageUtil.loadCompleteImage(mediaTracker,image)
+        ImageUtil.loadCompleteImage(mediaTracker,image)
     }
 
     //Set the cursor to a busy cursor.

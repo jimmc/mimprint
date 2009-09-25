@@ -64,7 +64,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     private var currentArea:AreaImageLayout = _
     var highlightedArea:AreaLayout = _
 
-    private var playList:PlayListS = PlayListS(viewer)
+    private var playList:PlayList = PlayList(viewer)
     private var currentIndex:Int = -1
         //index of the currentArea in the displayed page
         //The index into the playList is currentIndex+currentStart
@@ -174,10 +174,10 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
     def formatPageValue(n:Int) = PageValue.formatPageValue(n)
 
-    def displayPlayList(playList:PlayListS):Unit =
+    def displayPlayList(playList:PlayList):Unit =
         displayPlayList(playList,currentStart)
 
-    def displayPlayList(playList:PlayListS, start:Int) {
+    def displayPlayList(playList:PlayList, start:Int) {
         currentStart = start
         /*val n =*/ displayPlayList(areaLayout,playList,start)
         //n is the number of items from the list which are displayed
@@ -191,7 +191,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     //we return the number of images consumed (i.e. the number of
     //image locations in this layout, if less than the remaining
     //number of images in the list).
-    private def displayPlayList(aLayout:AreaLayout, list:PlayListS,
+    private def displayPlayList(aLayout:AreaLayout, list:PlayList,
             listIndex:Int):Int = {
         var idx = listIndex
         //Check for a top-level AreaImageLayout
@@ -315,7 +315,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
      */
     protected[mimprint] def scaleAndTranslate(g2:Graphics2D,
             userWidth:Int, userHeight:Int, windowWidth:Int, windowHeight:Int) {
-        SImageUtil.scaleAndTranslate(g2,userWidth,userHeight,
+        ImageUtil.scaleAndTranslate(g2,userWidth,userHeight,
                 windowWidth,windowHeight)
     }
 
@@ -443,7 +443,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
     private def clearCurrentArea() = {
         if (currentArea!=null && currentArea.hasImage) {
             //clear image from current area
-            val item = PlayItemS.emptyItem()
+            val item = PlayItem.emptyItem()
             tracker ! PlayListRequestChange(playList, currentListIndex, item)
         }
     }
@@ -453,7 +453,7 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
 
     private def requestInsertImage() {
         if (currentListIndex>=0 && currentListIndex<playList.size) {
-            val item = PlayItemS.emptyItem
+            val item = PlayItem.emptyItem
             tracker ! PlayListRequestInsert(playList, currentListIndex, item)
         }
     }
@@ -652,9 +652,9 @@ in an image area by 180 degrees, so we just use the r key for that.
             var image:Image = null     //image to drag
             var offset:Point = null
             if (fullImage!=null) {
-                image = SImageUtil.createTransparentIconImage(
+                image = ImageUtil.createTransparentIconImage(
                         AreaPage.this,fullImage,path)
-                SImageUtil.loadCompleteImage(AreaPage.this,image)
+                ImageUtil.loadCompleteImage(AreaPage.this,image)
                 val width = image.getWidth(null)
                 val height = image.getHeight(null)
                 offset = new Point(-width/2, -height/2)
@@ -852,7 +852,7 @@ in an image area by 180 degrees, so we just use the r key for that.
         }
         currentArea = dropArea
         currentIndex = currentArea.getImageIndex
-        val item = new PlayItemS(Nil,f.getParentFile,f.getName,0)
+        val item = new PlayItem(Nil,f.getParentFile,f.getName,0)
         tracker ! PlayListRequestSetItem(playList,dropArea.getImageIndex,item)
         //repaintCurrentImage()
             //replaint later when the message comes back to us

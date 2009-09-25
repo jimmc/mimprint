@@ -22,7 +22,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         with ActorPublisher[PlayListMessage]
 	with StdLogger{
     //Our current playlist
-    private var playList:PlayListS = PlayListS(ui)
+    private var playList:PlayList = PlayList(ui)
     private var currentIndex:Int = -1
     private var isModified = false
     private var lastLoadFileName:String = _
@@ -78,7 +78,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         case _ => println("Unrecognized message to PlayList")
     }
 
-    private def listMatches(list:PlayListS):Boolean = {
+    private def listMatches(list:PlayList):Boolean = {
         if (list!=playList) {
             println("Unknown or stale PlayList in tracker request")
                 //Could happen, but should be rare, so we basically ignore it
@@ -89,7 +89,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     /** Add an item to our current PlayList to produce a new current PlayList,
      * publish notices about the change.
      */
-    private def addItem(item:PlayItemS) {
+    private def addItem(item:PlayItem) {
         val newPlayList = playList.addItem(item)
         val newIndex = playList.size - 1
         publish(PlayListAddItem(this,playList,newPlayList,newIndex))
@@ -97,7 +97,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         isModified = true
     }
 
-    private def insertItem(itemIndex:Int, item:PlayItemS) {
+    private def insertItem(itemIndex:Int, item:PlayItem) {
         val newPlayList = playList.insertItem(itemIndex, item)
         publish(PlayListAddItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
@@ -113,18 +113,18 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
 	logger.debug("leave PlayListTracker.removeItem")
     }
 
-    private def changeItem(itemIndex:Int, item:PlayItemS) {
+    private def changeItem(itemIndex:Int, item:PlayItem) {
         val newPlayList = playList.replaceItem(itemIndex,item).
-                asInstanceOf[PlayListS]
+                asInstanceOf[PlayList]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
     }
 
-    private def setItem(itemIndex:Int, item:PlayItemS) {
+    private def setItem(itemIndex:Int, item:PlayItem) {
         val biggerPlayList = playList.ensureSize(itemIndex+1)
         val newPlayList = biggerPlayList.replaceItem(itemIndex,item).
-                asInstanceOf[PlayListS]
+                asInstanceOf[PlayList]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
@@ -132,7 +132,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
 
     private def rotateItem(itemIndex:Int, rot:Int) {
         val newPlayList = playList.rotateItem(itemIndex, rot).
-                asInstanceOf[PlayListS]
+                asInstanceOf[PlayList]
         publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
@@ -256,7 +256,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     def load(fileName:String, selectLast:Boolean) {
         if (!saveChangesAndContinue())
             return      //canceled
-        val newPlayList = PlayListS.load(ui,fileName).asInstanceOf[PlayListS]
+        val newPlayList = PlayList.load(ui,fileName).asInstanceOf[PlayList]
         lastLoadFileName =
             if ((new File(fileName)).isDirectory)
                 fileName+File.separator+"index.mpr"

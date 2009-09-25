@@ -26,7 +26,7 @@ class PlayViewMulti(name:String,
 
     private var areaPage:AreaPage = _
     private var areaPageControls:AreaPageControls = _
-    private var playList:PlayListS = _
+    private var playList:PlayList = _
     private var playListIndex:Int = _
 
     private var panel:JPanel = _

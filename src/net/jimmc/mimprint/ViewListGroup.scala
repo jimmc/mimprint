@@ -121,7 +121,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         playViewSingle.start()
     }
 
-    def requestActivate(playList:PlayListS) {
+    def requestActivate(playList:PlayList) {
         playViewList ! PlayViewListRequestActivate(playList)
     }
 

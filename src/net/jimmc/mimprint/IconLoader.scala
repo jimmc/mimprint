@@ -145,16 +145,16 @@ abstract class IconLoader(viewer:SViewer) extends Thread {
         if (desc!=null) {
             fileInfo.setText(desc)  //also updates html
         }
-        val image = new BufferedImage(SImageUtil.ICON_SIZE,
-                SImageUtil.ICON_SIZE,BufferedImage.TYPE_BYTE_INDEXED)
+        val image = new BufferedImage(ImageUtil.ICON_SIZE,
+                ImageUtil.ICON_SIZE,BufferedImage.TYPE_BYTE_INDEXED)
         val g2:Graphics2D = image.createGraphics()
         //Scale the layout to fit in the imate
         g2.setColor(Color.white)   //we use gray in the real layout background,
                 //but white looks better here
-        g2.fillRect(0,0,SImageUtil.ICON_SIZE,SImageUtil.ICON_SIZE) //clear to background
-        SImageUtil.scaleAndTranslate(g2,
+        g2.fillRect(0,0,ImageUtil.ICON_SIZE,ImageUtil.ICON_SIZE) //clear to background
+        ImageUtil.scaleAndTranslate(g2,
                 pageLayout.getPageWidth(),pageLayout.getPageHeight(),
-                SImageUtil.ICON_SIZE,SImageUtil.ICON_SIZE)
+                ImageUtil.ICON_SIZE,ImageUtil.ICON_SIZE)
         g2.setColor(Color.white)
         g2.fillRect(0,0,pageLayout.getPageWidth(),pageLayout.getPageHeight())
         g2.setColor(Color.black)
@@ -166,9 +166,9 @@ abstract class IconLoader(viewer:SViewer) extends Thread {
     private def getImageFileIcon(fileInfo:FileInfo):ImageIcon = {
         //val toolkit = viewer.getToolkit()
         val path = fileInfo.getPath()
-        val fullImage = SImageUtil.getImage(viewer,path)
-        val scaledImage = SImageUtil.createScaledImage(fullImage,
-                0,SImageUtil.ICON_SIZE,SImageUtil.ICON_SIZE,path)
+        val fullImage = ImageUtil.getImage(viewer,path)
+        val scaledImage = ImageUtil.createScaledImage(fullImage,
+                0,ImageUtil.ICON_SIZE,ImageUtil.ICON_SIZE,path)
         return new ImageIcon(scaledImage)
     }
 }

@@ -17,36 +17,36 @@ sealed abstract class PlayListMessage {
 /** PlayListInit is setn to a subscriber in response to a
  * PlayListRequestInit message, which the subscriber should send
  * immediately after subscribing. */
-case class PlayListInit(tracker:PlayListTracker, list:PlayListS)
+case class PlayListInit(tracker:PlayListTracker, list:PlayList)
         extends PlayListMessage
 
 /** PlayListAddItem is sent to subscribers after an item has been added to
  * the playlist at the specified index.
  * @param index The index of the new item in newList. */
 case class PlayListAddItem(tracker:PlayListTracker,
-        oldList:PlayListS, newList:PlayListS, index:Int)
+        oldList:PlayList, newList:PlayList, index:Int)
         extends PlayListMessage
 
 /** PlayListRemoveItem is sent to subscribers after an item has been removed
  * from the playst at the specifid index.
  * @param index The index of the removed item in oldList. */
 case class PlayListRemoveItem(tracker:PlayListTracker,
-        oldList:PlayListS, newList:PlayListS, index:Int)
+        oldList:PlayList, newList:PlayList, index:Int)
         extends PlayListMessage
 
 /** PlayListChangeItem is sent to subscribers after the item at the
  * specified index has been changed. */
 case class PlayListChangeItem(tracker:PlayListTracker,
-        oldList:PlayListS, newList:PlayListS, index:Int)
+        oldList:PlayList, newList:PlayList, index:Int)
         extends PlayListMessage
 
 /** PlayListSelectItem is sent to subscribers to select an item. */
 case class PlayListSelectItem(tracker:PlayListTracker,
-        list:PlayListS, index:Int)
+        list:PlayList, index:Int)
         extends PlayListMessage
 
 /** PlayListChangeList is sent to subscribers after the whole list
  * has been changed. */
 case class PlayListChangeList(tracker:PlayListTracker,
-        oldList:PlayListS, newList:PlayListS)
+        oldList:PlayList, newList:PlayList)
         extends PlayListMessage

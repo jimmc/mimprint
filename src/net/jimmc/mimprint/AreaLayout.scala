@@ -418,7 +418,7 @@ abstract class AreaLayout {
     }
 
     def printPage(g2:Graphics2D, comp:Component,
-            playList:PlayListS, start:Int):Int = {
+            playList:PlayList, start:Int):Int = {
         //paint each of our image page areas
         if (areas==null)
             return 0

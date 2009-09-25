@@ -16,7 +16,7 @@ import java.io.File
 class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     setBounds(x,y,width,height)
 
-    private var item:PlayItemS = _       //the item we are displaying
+    private var item:PlayItem = _       //the item we are displaying
     var path:String = _         //path from the item
     var image:Image = null      //the image we are displaying
     private var rot:Int = 0             //the rotation at which we display it
@@ -38,7 +38,7 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
 
     def hasImage() = image!=null
 
-    def setImage(newItem:PlayItemS, comp:Component) {
+    def setImage(newItem:PlayItem, comp:Component) {
         if (newItem==item) {
             if (transformedImage==null)
                 return
@@ -60,11 +60,11 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
             return
         }
         path = new File(newItem.baseDir,newItem.fileName).getPath
-        image = SImageUtil.getImage(comp,path)
+        image = ImageUtil.getImage(comp,path)
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
         //the image display area.
-        SImageUtil.loadCompleteImage(comp,image) //we need the image size
+        ImageUtil.loadCompleteImage(comp,image) //we need the image size
         val areaBounds:Rectangle = getBoundsInMargin()
         val imageAspect = (image.getWidth(null)>image.getHeight(null))
         val areaAspect = (areaBounds.width>areaBounds.height)
@@ -75,7 +75,7 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         //he must tweak that area's size to change the
         //aspect ratio.
         rot = (newItem.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
-        transformedImage = SImageUtil.scaleAndRotate(image,rot,path,comp)
+        transformedImage = ImageUtil.scaleAndRotate(image,rot,path,comp)
         item = newItem
     }
 
@@ -98,7 +98,7 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
     }
 
     override def printPage(g2p:Graphics2D, comp:Component,
-            playList:PlayListS, start:Int):Int ={
+            playList:PlayList, start:Int):Int ={
         if (start >= playList.size)
             return 0
         val g2 = g2p.create().asInstanceOf[Graphics2D]
@@ -120,13 +120,13 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         paintTransformedImage(g2, transformedImage)
     }
 
-    private def paintImage(g2:Graphics2D, comp:Component, item:PlayItemS) {
+    private def paintImage(g2:Graphics2D, comp:Component, item:PlayItem) {
         val path = new File(item.baseDir,item.fileName).getPath
-        val image = SImageUtil.getImage(comp,path)
+        val image = ImageUtil.getImage(comp,path)
         //We look at the aspect ratio of the image and
         //auto-rotate it to match the aspect ratio of
         //the image display area.
-        SImageUtil.loadCompleteImage(comp,image) //we need the image size
+        ImageUtil.loadCompleteImage(comp,image) //we need the image size
         val areaBounds:Rectangle = getBoundsInMargin()
         val imageAspect = (image.getWidth(null)>image.getHeight(null))
         val areaAspect = (areaBounds.width>areaBounds.height)
@@ -137,7 +137,7 @@ class AreaImageLayout(x:Int, y:Int, width:Int, height:Int) extends AreaLayout {
         //he must tweak that area's size to change the
         //aspect ratio.
         val rot = (item.getRotFlag() & ~1)+(if (needsRotate) 1 else 0)
-        val txImage = SImageUtil.scaleAndRotate(image,rot,path,comp)
+        val txImage = ImageUtil.scaleAndRotate(image,rot,path,comp)
         paintTransformedImage(g2,txImage)
     }
 

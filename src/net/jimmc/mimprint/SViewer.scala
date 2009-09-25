@@ -45,17 +45,17 @@ import javax.swing.JWindow
 import scala.actors.Actor
 import scala.actors.Actor.loop
 
-class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
+class SViewer(app:App) extends SFrame("Mimprint",app) with AsyncUi
         with Actor with Subscriber[PlayListMessage] with ToolPrompter {
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
     private val mainTracker = new PlayListTracker(this)
     mainTracker.askSaveOnChanges = true
-    private var playList:PlayListS = _  //current main play list
+    private var playList:PlayList = _  //current main play list
     private var playListIndex:Int = -1  //currently selected item in main list
 
     private val printableTracker = new PlayListTracker(this)
-    private var printablePlayList:PlayListS = _
+    private var printablePlayList:PlayList = _
     private var printablePlayListIndex:Int = -1
 
     private val toolBar = createToolBar()
@@ -678,7 +678,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         configs(n)      //a GraphicsConfiguration
     }
 
-    private def addToActive(list:PlayListS, index:Int) {
+    private def addToActive(list:PlayList, index:Int) {
         //Add the specified item to the currently active
         //target playlist, typically the Printable playlist.
         if (index<0)
@@ -688,14 +688,14 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         printableTracker ! PlayListRequestAdd(printablePlayList,item)
     }
 
-    private def removeImage(list:PlayListS, index:Int) {
+    private def removeImage(list:PlayList, index:Int) {
 	//Drop/remove the specified item from the playlist.
         if (index<0)
             return      //ignore it when nothing selected
         mainTracker ! PlayListRequestRemove(list,index)
     }
 
-    private def showImageInfoDialog(pl:PlayListS, idx:Int) {
+    private def showImageInfoDialog(pl:PlayList, idx:Int) {
         var fileInfo = getFileInfo(pl, idx)
         if (fileInfo==null) {
             val msg = getResourceString("error.NoImageSelected")
@@ -704,7 +704,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             infoDialog(fileInfo.info)
     }
 
-    private def showImageEditDialog(pl:PlayListS, idx:Int) {
+    private def showImageEditDialog(pl:PlayList, idx:Int) {
         var fileInfo = getFileInfo(pl, idx)
         if (fileInfo==null) {
             val msg = getResourceString("error.NoImageSelected")
@@ -718,7 +718,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         }
     }
 
-    private def showDirEditDialog(pl:PlayListS) {
+    private def showDirEditDialog(pl:PlayList) {
         val title = getResourceFormatted("prompt.TextForDirectory",
                 pl.baseDir.getPath)
         val descFile = new File(pl.baseDir,"summary.txt")
@@ -730,7 +730,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
             FileUtilS.writeFile(descFile,newText)
     }
 
-    private def getFileInfo(pl:PlayListS, idx:Int):FileInfo = {
+    private def getFileInfo(pl:PlayList, idx:Int):FileInfo = {
         if (idx<0)
             return null         //no image selected
         val item = pl.getItem(idx)
@@ -742,7 +742,7 @@ class SViewer(app:AppS) extends SFrame("Mimprint",app) with AsyncUi
         fileInfo
     }
 
-    private def setImageFileText(pl:PlayListS, idx:Int,
+    private def setImageFileText(pl:PlayList, idx:Int,
             fileInfo:FileInfo, text:String) = {
         val path = fileInfo.getPath
         writeFileText(path,text)
@@ -825,18 +825,18 @@ object SViewer {
 sealed abstract class SViewerRequest
 case class SViewerRequestClose() extends SViewerRequest
 case class SViewerRequestFileOpen() extends SViewerRequest
-case class SViewerRequestActivate(list:PlayListS) extends SViewerRequest
-case class SViewerRequestFocus(list:PlayListS) extends SViewerRequest
+case class SViewerRequestActivate(list:PlayList) extends SViewerRequest
+case class SViewerRequestFocus(list:PlayList) extends SViewerRequest
 case class SViewerRequestScreenMode(mode:Int) extends SViewerRequest
-case class SViewerRequestInfoDialog(list:PlayListS,index:Int)
+case class SViewerRequestInfoDialog(list:PlayList,index:Int)
         extends SViewerRequest
-case class SViewerRequestEditDialog(list:PlayListS,index:Int)
+case class SViewerRequestEditDialog(list:PlayList,index:Int)
         extends SViewerRequest
-case class SViewerRequestAddToActive(list:PlayListS,index:Int)
+case class SViewerRequestAddToActive(list:PlayList,index:Int)
         extends SViewerRequest
-case class SViewerRequestRemoveImage(list:PlayListS,index:Int)
+case class SViewerRequestRemoveImage(list:PlayList,index:Int)
         extends SViewerRequest
-case class SViewerRequestDirEditDialog(list:PlayListS)
+case class SViewerRequestDirEditDialog(list:PlayList)
         extends SViewerRequest
 
 /*

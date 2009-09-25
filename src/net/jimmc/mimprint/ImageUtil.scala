@@ -1,4 +1,4 @@
-/* SImageUtil.java
+/* ImageUtil.java
  *
  * Jim McBeath, June 19, 2008
  * (Translated from ImageUtil, originally November 18, 2005)
@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage
 import java.awt.MediaTracker
 
 /** Misceallaneous image utility methods. */
-object SImageUtil {
+object ImageUtil {
 
     def ICON_SIZE = 64
 
