@@ -7,12 +7,13 @@ package net.jimmc.swing
 
 import javax.swing.JCheckBoxMenuItem
 
-class SCheckBoxMenuItem(frame:SFrame, resPrefix:String)(action: =>Unit)
+class SCheckBoxMenuItem(frame:SFrame, resPrefix:String)(
+	    action: (SCheckBoxMenuItem)=>Unit)
         extends JCheckBoxMenuItem(frame.getResourceString(resPrefix+".label"))
         with SComponent with SCompToolPrompt {
 
     setupToolTip(frame, resPrefix)
     setupToolPrompt(frame, resPrefix)
     setupIcon(frame, resPrefix)
-    setupActionListener(frame, action)
+    setupActionListener(frame, action(this))
 }

@@ -8,6 +8,8 @@ package net.jimmc.mimprint
 import net.jimmc.swing.SCheckBoxMenuItem
 import net.jimmc.swing.SMenu
 import net.jimmc.swing.SMenuItem
+import net.jimmc.util.AbledPublisher
+import net.jimmc.util.AbledPublisher._
 import net.jimmc.util.SomeOrNone
 import net.jimmc.util.SomeOrNone.optionOrNull
 
@@ -22,23 +24,35 @@ import javax.swing.JPanel
 import javax.swing.JSplitPane
 import javax.swing.SwingConstants
 
+/** ViewListGroup is a collection of related UI components:
+ * a menu bar;
+ * a PlayViewList that displays the PlayList being tracked;
+ * a PlayViewSingle single-image viewer that shows the currently selected
+ *  item in the tracked PlayList.
+ */
 class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
-    private var playViewList:PlayViewList =
-            new PlayViewList(name+"List", viewer, tracker)
-    private var playViewSingle:PlayViewSingle =
-            new PlayViewSingle(name+"Single", viewer, tracker)
+    vlg:ViewListGroup =>
 
-    private var includeDirectories = true
-    private var groupComp:Component = _
-    private var singleComp:Component = _
-    private var mShowFileInfo:SCheckBoxMenuItem = _
-    private var mShowFileIcons:SCheckBoxMenuItem = _
-    private var mShowDirDates:SCheckBoxMenuItem = _
-    private var mShowSingleViewer:SCheckBoxMenuItem = _
+    val includeDirectories = true
+
+    private val showFileInfoPublisher = new AbledPublisher
+    private val showSingleViewerPublisher = new AbledPublisher
+    private val showDirectoriesPublisher = new AbledPublisher
+
+    private val playViewList:PlayViewList =
+            new PlayViewList(name+"List", viewer, tracker) {
+		override val includeDirectories = vlg.includeDirectories
+	    }
+    private val playViewSingle:PlayViewSingle =
+            new PlayViewSingle(name+"Single", viewer, tracker)
 
     def getComponent():Component = {
         val listComp = playViewList.getComponent()
-        singleComp = playViewSingle.getComponent()
+        val singleComp = playViewSingle.getComponent()
+	showSingleViewerPublisher.subscribe((ev)=> {
+	    singleComp.setVisible(ev.state)
+	    singleComp.getParent.asInstanceOf[JSplitPane].resetToPreferredSizes()
+	})
         val w = listComp.getPreferredSize.width
         singleComp.setPreferredSize(new Dimension(w,w*3/4))
         val split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
@@ -50,8 +64,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
 
         val mb = createOptionsMenuBar()
         panel.add(mb,BorderLayout.NORTH)
-        groupComp = panel
-        groupComp
+        panel		//This is our group component
     }
 
     //Create a menu bar with one menu, our Options menu
@@ -61,29 +74,44 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         m.setHorizontalTextPosition(SwingConstants.LEFT)
 
         //Add our menu items
-        mShowFileInfo = new SCheckBoxMenuItem(
-                viewer,"menu.List.ShowFileInfo")(
-                    showFileInfo(mShowFileInfo.getState))
+        val mShowFileInfo = new SCheckBoxMenuItem(
+                viewer,"menu.List.ShowFileInfo")((cb)=>
+                    showFileInfo(cb.getState))
         mShowFileInfo.setState(true)
+	showFileInfoPublisher.subscribe((ev)=>
+	    mShowFileInfo.setState(ev.state)
+	)
         m.add(mShowFileInfo)
 
-        mShowFileIcons = new SCheckBoxMenuItem(
-                viewer,"menu.List.ShowFileIcons")(
-                    showFileIcons(mShowFileIcons.getState))
+        val mShowFileIcons = new SCheckBoxMenuItem(
+                viewer,"menu.List.ShowFileIcons")((cb)=>
+                    showFileIcons(cb.getState))
         mShowFileIcons.setState(false)
+	showFileInfoPublisher.subscribe((ev)=>
+	    mShowFileIcons.setState(ev.state)
+	)
         m.add(mShowFileIcons)
 
-        mShowDirDates = new SCheckBoxMenuItem(
-                viewer,"menu.List.ShowDirDates")(
-                    showDirDates(mShowDirDates.getState))
+        val mShowDirDates = new SCheckBoxMenuItem(
+                viewer,"menu.List.ShowDirDates")((cb)=>
+                    showDirDates(cb.getState))
         mShowDirDates.setState(playViewList.includeDirectoryDates)
         mShowDirDates.setVisible(includeDirectories)
+	showFileInfoPublisher.subscribe((ev)=>
+	    mShowDirDates.setState(ev.state)
+	)
+	showDirectoriesPublisher.subscribe((ev)=>
+	    mShowDirDates.setVisible(ev.state)
+	)
         m.add(mShowDirDates)
 
-        mShowSingleViewer = new SCheckBoxMenuItem(
-                viewer,"menu.List.ShowSingleViewer")(
-                    showSingleViewer(mShowSingleViewer.getState))
+        val mShowSingleViewer:SCheckBoxMenuItem = new SCheckBoxMenuItem(
+                viewer,"menu.List.ShowSingleViewer")((cb)=>
+                    showSingleViewer(cb.getState))
         mShowSingleViewer.setState(true)
+	showSingleViewerPublisher.subscribe((ev)=>
+	    mShowSingleViewer.setState(ev.state)
+	)
         m.add(mShowSingleViewer)
         showSingleViewer(mShowSingleViewer.getState)
                 //make sure window state is in sync with menu item state
@@ -127,9 +155,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
 
     def showFileInfo(b:Boolean) {
         playViewList.showFileInfo(b)
-        mShowFileInfo.setState(b)
-        mShowFileIcons.setEnabled(b)
-        mShowDirDates.setEnabled(b)
+	showFileInfoPublisher.publish(Abled(b))
     }
 
     def showFileIcons(b:Boolean) {
@@ -143,18 +169,17 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     }
 
     def showSingleViewer(b:Boolean) {
-        singleComp.setVisible(b)
-        singleComp.getParent.asInstanceOf[JSplitPane].resetToPreferredSizes()
-        mShowSingleViewer.setState(b)
+	showSingleViewerPublisher.publish(Abled(b))
         playViewList.requestSelect
     }
 
+    /*
     def showDirectories(b:Boolean) {
         playViewList.includeDirectories = b
-        if (mShowDirDates!=null)
-            mShowDirDates.setVisible(b)
+	showDirectoriesPublisher.publish(Abled(b))
         this.includeDirectories = b
     }
+    */
 
     private def processOpen() {
         val msg = viewer.getResourceString("query.PlayListToOpen")

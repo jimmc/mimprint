@@ -186,7 +186,7 @@ class SViewer(app:App) extends SFrame("Mimprint",app) with AsyncUi
         screenModeButtons = modeInfo.map { mi =>
             val (modeVal, modeName) = mi
             val resKey = "menu.View.ScreenMode"+modeName
-            val checkBox = new SCheckBoxMenuItem(this,resKey)(
+            val checkBox = new SCheckBoxMenuItem(this,resKey)((cb)=>
                     setScreenMode(modeVal))
             m.add(checkBox)
             (modeVal, checkBox)
@@ -194,18 +194,18 @@ class SViewer(app:App) extends SFrame("Mimprint",app) with AsyncUi
 
         m.add(new JSeparator())
 
-        mShowAlt = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Alternate")(
-                setScreenModeAlt(mShowAlt.getState))
+        mShowAlt = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Alternate")((cb)=>
+                setScreenModeAlt(cb.getState))
         //Enable the Alternate Screen mode button only if we have an alt screen
         mShowAlt.setVisible(hasAlternateScreen)
         m.add(mShowAlt)
 
-        mShowDual = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Dual")(
-                setScreenModeDual(mShowDual.getState))
+        mShowDual = new SCheckBoxMenuItem(this,"menu.View.ScreenMode.Dual")((cb)=>
+                setScreenModeDual(cb.getState))
         m.add(mShowDual)
 
-        mShowPrintList = new SCheckBoxMenuItem(this,"menu.View.ShowPrintList")(
-                showPrintList(mShowPrintList.getState))
+        mShowPrintList = new SCheckBoxMenuItem(this,"menu.View.ShowPrintList")((cb)=>
+                showPrintList(cb.getState))
         mShowPrintList.setState(false)
         m.add(mShowPrintList)
 
@@ -291,12 +291,13 @@ class SViewer(app:App) extends SFrame("Mimprint",app) with AsyncUi
         val imageLister = mainList.getComponent()
         mainList.start()
 
-        printableList = new ViewListGroup("printableList",this,printableTracker)
+        printableList = new ViewListGroup("printableList",this,printableTracker) {
+	    override val includeDirectories = false
+	}
         printableLister = printableList.getComponent()
         printableLister.setPreferredSize(new Dimension(150,400))
         printableList.showFileInfo(false)
         printableList.showSingleViewer(false)
-        printableList.showDirectories(false)
         printableList.start()
 
         mainSingle = new PlayViewSingle("main",this,mainTracker)

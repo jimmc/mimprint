@@ -52,7 +52,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //TODO - add support for viewing our MIMPRINT (mpr) template files
     private val pathBgColor = new Color(0.9f, 0.9f, 0.8f)
     private val subdirBgColor = new Color(0.9f, 0.8f, 0.8f)
-    protected[mimprint] var includeDirectories = true
+    val includeDirectories = true
     protected[mimprint] var includeDirectoryDates = false
     protected[mimprint] var includeIcons = false
     private var showingFileInfo = false
