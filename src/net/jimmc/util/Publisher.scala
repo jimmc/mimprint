@@ -3,7 +3,7 @@ package net.jimmc.util
 /** Manage a subscriber list.
  * There are no guarantees on the order of subscribers in the list.
  * This code is a slightly modified version of ListenerManager
- * as published to my blog in 2008.
+ * as published to my blog in April 2009.
  */
 trait Publisher[E] {
     type S = (E) => Unit
