@@ -19,10 +19,9 @@ class App extends SResourcesBundle {
 
         val aboutTitle = getResourceString("about.title")
         val aboutInfo = getResourceString("about.info")
-        AboutWindow.setAboutTitle(aboutTitle)
-        AboutWindow.setAboutInfo(aboutInfo)
+	val aboutWindow = new AboutWindow(aboutTitle, aboutInfo)
 
-        val viewer = new SViewer(this)
+        val viewer = new SViewer(this,aboutWindow)
         viewer.show             //open the main window
         viewer.start
 

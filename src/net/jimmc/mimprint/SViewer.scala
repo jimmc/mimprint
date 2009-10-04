@@ -45,7 +45,8 @@ import javax.swing.JWindow
 import scala.actors.Actor
 import scala.actors.Actor.loop
 
-class SViewer(app:App) extends SFrame("Mimprint",app) with AsyncUi
+class SViewer(app:App, aboutWindow:AboutWindow)
+	extends SFrame("Mimprint",app) with AsyncUi
         with Actor with Subscriber[PlayListMessage] with ToolPrompter {
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
@@ -230,7 +231,7 @@ class SViewer(app:App) extends SFrame("Mimprint",app) with AsyncUi
     private def createHelpMenu():JMenu = {
         val m = new JMenu(getResourceString("menu.Help.label"))
         m.add(new SMenuItem(this,"menu.Help.About")(
-                AboutWindow.showAboutWindow(this)))
+                aboutWindow.showAboutWindow(this)))
         m
     }
 
