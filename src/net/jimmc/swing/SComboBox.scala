@@ -10,13 +10,13 @@ import javax.swing.JComboBox
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 
-class SComboBox(val frame:SFrame)(action: =>Unit)
+class SComboBox(val frame:SFrame)(action: (SComboBox)=>Unit)
         extends JComboBox with SComponent {
     /** Our values, if different from the displayed value. */
     private var values:Array[Any] = null
 
     //TODO - do toolTip stuff?
-    setupActionListener(frame, action)
+    setupActionListener(frame, action(this))
 
     /** Set all our choices at once.
      * This is faster than using addItem for each one.

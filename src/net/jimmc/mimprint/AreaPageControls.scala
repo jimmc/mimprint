@@ -10,7 +10,9 @@ import net.jimmc.swing.SFrame
 import net.jimmc.swing.SLabel
 import net.jimmc.swing.SSpinner
 import net.jimmc.swing.STextField
+import net.jimmc.util.Publisher
 
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Insets
@@ -28,34 +30,16 @@ import scala.collection.mutable.ArrayBuffer
 class AreaPageControls(val frame:SFrame,
         val multi:PlayViewMulti, val areaPage:AreaPage)
         extends JPanel {
-    import AreaPageControls._           //pick up our constants
 
     private var updatingSelected = false
+
+    case class AreaChange(index:Int, area:AreaLayout, areaType:AreaType)
+    private val areaChangePublisher = new Object with Publisher[AreaChange]
+	//Scalac complains if we just do "new Publisher[AreaType]"
 
     private var areaChoiceField:SComboBox = null
     private var areaChoicePopupList:JList = null
     private var lastAreaSelectedIndex:Int = -1
-
-    private var widthLabel:SLabel = null
-    private var widthField:STextField = null
-    private var heightLabel:SLabel = null
-    private var heightField:STextField = null
-    private var unitsLabel:SLabel = null
-    private var unitsField:SComboBox = null
-    private var rowCountLabel:SLabel = null
-    private var rowCountField:SSpinner = null
-    private var columnCountLabel:SLabel = null
-    private var columnCountField:SSpinner = null
-    private var splitOrientationLabel:SLabel = null
-    private var splitOrientationField:SComboBox = null
-    private var splitPercentLabel:SLabel = null
-    private var splitPercentField:SSpinner = null
-    private var marginsLabel:SLabel = null
-    private var marginsField:STextField = null
-    private var spacingLabel:SLabel = null
-    private var spacingField:STextField = null
-    private var layoutLabel:SLabel = null
-    private var layoutField:SComboBox = null
 
     private var pageNumberPanel:JPanel = null
     private var pageNumberField:STextField = null
@@ -77,53 +61,93 @@ class AreaPageControls(val frame:SFrame,
         add(pageNumberPanel)
 
         areaChoiceField = new SComboBox(frame)(
-                areaSelected(areaChoiceField.getSelectedIndex()))
+                (cb)=>areaSelected(cb.getSelectedIndex()))
         add(areaChoiceField)
         addAreaValueChangedListener()
         val prefix = "NotImplementedYet"     //TODO
 
-        widthLabel = makeLabel("Width")
+	def areaTypeVisibility(c:Component, f:(AreaType)=>Boolean) = {
+	    areaChangePublisher.subscribe(e=>c.setVisible(f(e.areaType)))
+	}
+
+        val widthLabel = makeLabel("Width")
         add(widthLabel)
-        widthField = new STextField(frame, prefix+".width",4)(
-                setPageWidth(widthField.getText()))
+	areaTypeVisibility(widthLabel,_==AreaTypePage)
+
+        val widthField = new STextField(frame, prefix+".width",4)(
+                (cb)=>setPageWidth(cb.getText()))
         add(widthField)
+	areaTypeVisibility(widthField,_==AreaTypePage)
+	areaChangePublisher.subscribe(e=>if (e.index==0)
+            widthField.setText(formatPageValue(areaPage.pageWidth)))
 
-        heightLabel = makeLabel("Height")
+        val heightLabel = makeLabel("Height")
         add(heightLabel)
-        heightField = new STextField(frame, prefix+".height",4)(
-                setPageHeight(heightField.getText()))
-        add(heightField)
+	areaTypeVisibility(heightLabel,_==AreaTypePage)
 
-        unitsLabel = makeLabel("Units")
-        add(unitsLabel)
-        unitsField = new SComboBox(frame)(
-                unitsSelected(unitsField.getSelectedIndex()))
+        val heightField = new STextField(frame, prefix+".height",4)(
+                (cb)=>setPageHeight(cb.getText()))
+        add(heightField)
+	areaTypeVisibility(heightField,_==AreaTypePage)
+	areaChangePublisher.subscribe(e=>if (e.index==0)
+            heightField.setText(formatPageValue(areaPage.pageHeight)))
+
+        //unitsLabel = makeLabel("Units")
+        //add(unitsLabel)
+        val unitsField = new SComboBox(frame)(
+                (cb)=>unitsSelected(cb.getSelectedIndex()))
         val initialUnitsItems = Array("cm", "in")
             //These match the values of PageValue.UNIT_CM and
             //PageValue.UNIT_INCH in AreaPage.
         unitsField.setItems(initialUnitsItems.asInstanceOf[Array[Any]])
         add(unitsField)
+	areaTypeVisibility(unitsField,_==AreaTypePage)
+	areaChangePublisher.subscribe(e=>if (e.index==0)
+            unitsField.setSelectedIndex(areaPage.pageUnit))
 
         //Set up the Grid fields
-        rowCountLabel = makeLabel("Rows")
+        val rowCountLabel = makeLabel("Rows")
         add(rowCountLabel)
+	areaTypeVisibility(rowCountLabel,_==AreaTypeGrid)
+
+	var rowCountField:SSpinner = null
+	var columnCountField:SSpinner = null
+	def setRowOrColumnCount() {
+	    setRowAndColumnCount(rowCountField, columnCountField)
+	}
+
         val rowCountModel = new SpinnerNumberModel(1,1,99,1)
         rowCountField = new SSpinner(frame,prefix+".rowCount",rowCountModel)(
-                setRowOrColumnCount())
+                (cb)=>setRowOrColumnCount())
         add(rowCountField)
+	areaTypeVisibility(rowCountField,_==AreaTypeGrid)
 
-        columnCountLabel = makeLabel("Columns")
+        val columnCountLabel = makeLabel("Columns")
         add(columnCountLabel)
+	areaTypeVisibility(columnCountLabel,_==AreaTypeGrid)
+
         val columnCountModel = new SpinnerNumberModel(1,1,99,1)
         columnCountField = new SSpinner(frame,prefix+".columnCount",
-                columnCountModel)(setRowOrColumnCount())
+                columnCountModel)((cb)=>setRowOrColumnCount())
         add(columnCountField)
+	areaTypeVisibility(columnCountField,_==AreaTypeGrid)
+
+	areaChangePublisher.subscribe(e=>if (e.index>0) {
+            e.area match {
+            case gridArea:AreaGridLayout =>
+                rowCountField.setValue(gridArea.rowCount)
+                columnCountField.setValue(gridArea.columnCount)
+	    case _ =>
+            }
+	})
 
         //Set up the Split fields
-        splitOrientationLabel = makeLabel("SplitOrientation")
+        val splitOrientationLabel = makeLabel("SplitOrientation")
         add(splitOrientationLabel)
-        splitOrientationField = new SComboBox(frame)(
-            splitOrientationSelected(splitOrientationField.getSelectedIndex()))
+	areaTypeVisibility(splitOrientationLabel,_==AreaTypeSplit)
+
+        val splitOrientationField = new SComboBox(frame)(
+            (cb)=>splitOrientationSelected(cb.getSelectedIndex()))
         val initialOrientationItems = Array(
           getResourceString("toolbar.Layout.SplitOrientation.Vertical.label"),
           getResourceString("toolbar.Layout.SplitOrientation.Horizontal.label")
@@ -133,34 +157,58 @@ class AreaPageControls(val frame:SFrame,
         splitOrientationField.setItems(
                 initialOrientationItems.asInstanceOf[Array[Any]])
         add(splitOrientationField);
+	areaTypeVisibility(splitOrientationField,_==AreaTypeSplit)
 
-        splitPercentLabel = makeLabel("SplitPercent")
+        val splitPercentLabel = makeLabel("SplitPercent")
         add(splitPercentLabel)
+	areaTypeVisibility(splitPercentLabel,_==AreaTypeSplit)
+
         val percentModel = new SpinnerNumberModel(5,1,99,5)
-        splitPercentField = new SSpinner(frame,prefix+".splitPercent",
-                percentModel)({
-                    val n:Int = splitPercentField.getValue().asInstanceOf[Int]
+        val splitPercentField = new SSpinner(frame,prefix+".splitPercent",
+                percentModel)((cb)=>{
+                    val n:Int = cb.getValue().asInstanceOf[Int]
                     setSplitPercentage(n)
                 })
         add(splitPercentField)
+	areaTypeVisibility(splitPercentField,_==AreaTypeSplit)
 
-        marginsLabel = makeLabel("Margins")
+	areaChangePublisher.subscribe(e=>if (e.index>0) {
+            e.area match {
+            case splitArea:AreaSplitLayout =>
+                splitOrientationField.setSelectedIndex(
+                        splitArea.getOrientation())
+                splitPercentField.setValue(splitArea.getSplitPercentage())
+	    case _ =>
+            }
+	})
+
+        val marginsLabel = makeLabel("Margins")
         add(marginsLabel)
-        marginsField = new STextField(frame,prefix+".margins",4)(
-                setMargins(marginsField.getText()))
-        add(marginsField)
+	areaTypeVisibility(marginsLabel,_!=AreaTypePage)
 
-        spacingLabel = makeLabel("Spacing")
+        val marginsField = new STextField(frame,prefix+".margins",4)(
+                (cb)=>setMargins(cb.getText()))
+        add(marginsField)
+	areaTypeVisibility(marginsField,_!=AreaTypePage)
+	areaChangePublisher.subscribe(e=>if (e.index>0)
+            marginsField.setText(formatPageValue(e.area.getMargins())))
+
+        val spacingLabel = makeLabel("Spacing")
         add(spacingLabel)
-        spacingField = new STextField(frame,prefix+".spacing",4)(
-                setSpacing(spacingField.getText()))
+	areaTypeVisibility(spacingLabel,e=>(e==AreaTypeGrid || e==AreaTypeSplit))
+        val spacingField = new STextField(frame,prefix+".spacing",4)(
+                (cb)=>setSpacing(cb.getText()))
         add(spacingField)
+	areaTypeVisibility(spacingField,e=>(e==AreaTypeGrid || e==AreaTypeSplit))
+	areaChangePublisher.subscribe(e=>if (e.index>0)
+            spacingField.setText(formatPageValue(e.area.getSpacing())))
 
         //Add the layout choice
-        layoutLabel = makeLabel("Layout")
+        val layoutLabel = makeLabel("Layout")
         add(layoutLabel)
-        layoutField = new SComboBox(frame)(
-                layoutSelected(layoutField.getSelectedIndex()))
+	areaTypeVisibility(layoutLabel,_!=AreaTypePage)
+        val layoutField = new SComboBox(frame)(
+                (cb)=>layoutSelected(cb.getSelectedIndex()))
         val initialLayoutItems = Array(
             getResourceString("toolbar.Layout.Layout.Image.label"),
             getResourceString("toolbar.Layout.Layout.Grid.label"),
@@ -169,6 +217,18 @@ class AreaPageControls(val frame:SFrame,
                 //TODO define constants
         layoutField.setItems(initialLayoutItems.asInstanceOf[Array[Any]])
         add(layoutField)
+	areaTypeVisibility(layoutField,_!=AreaTypePage)
+	areaChangePublisher.subscribe(e=>if (e.index>0) {
+            e.area match {
+            case imageArea:AreaImageLayout =>
+                layoutField.setSelectedIndex(0)        //TODO define constant
+            case gridArea:AreaGridLayout =>
+                layoutField.setSelectedIndex(1)        //TODO define constant
+            case splitArea:AreaSplitLayout =>
+                layoutField.setSelectedIndex(2)        //TODO define constant
+	    case _ =>
+            }
+	})
     }
 
     private def makePageNumberPanel():JPanel = {
@@ -177,7 +237,7 @@ class AreaPageControls(val frame:SFrame,
         p.add(new SLabel(frame,"toolbar.Layout.PageNumber.Label"))
         pageNumberField = new STextField(frame,
                 "toolbar.Layout.PageNumber.Number",2)(
-            setPageNumber(pageNumberField.getText)
+            (cb)=>setPageNumber(cb.getText)
         )
         pageNumberField.setText("1")
         p.add(pageNumberField)
@@ -268,7 +328,7 @@ class AreaPageControls(val frame:SFrame,
     private def updateAreaChoiceField(selectedArea:Option[AreaLayout]) {
         val numChoices = 1+allAreas.length
         val areaChoiceStrs = new Array[Any](numChoices)
-        areaChoiceStrs(0) = "0. "+areaTypeToString(AREA_PAGE)
+        areaChoiceStrs(0) = "0. "+AreaTypePage.toString
         for (i <- 0 until allAreas.length) {
             var treeLocation = allAreas(i).getTreeLocation()
             if (treeLocation==null)
@@ -299,68 +359,15 @@ class AreaPageControls(val frame:SFrame,
         lastAreaSelectedIndex = reqIndex
         val index = if (reqIndex<0) 0 else reqIndex
                 //by default select the page (0)
-        var pageSelected = false
-        var gridSelected = false
-        var splitSelected = false
-        var simpleSelected = false
-        var areaType:Int = getAreaType(index)
-        areaType match {
-            case AREA_PAGE => pageSelected = true
-            case AREA_IMAGE => simpleSelected = true
-            case AREA_GRID => gridSelected = true
-            case AREA_SPLIT => splitSelected = true
-            case _ => throw new IllegalArgumentException(
-                    "bad area type: "+areaType)
-        }
+        val areaType = getAreaType(index)
+
         updatingSelected = true;
 
-        //set the visibility on our fields and labels
-        widthLabel.setVisible(pageSelected);
-        widthField.setVisible(pageSelected);
-        heightLabel.setVisible(pageSelected);
-        heightField.setVisible(pageSelected);
-        unitsLabel.setVisible(false);   //not used
-        unitsField.setVisible(pageSelected);
-        marginsLabel.setVisible(!pageSelected);
-        marginsField.setVisible(!pageSelected);
-        rowCountLabel.setVisible(gridSelected);
-        rowCountField.setVisible(gridSelected);
-        columnCountLabel.setVisible(gridSelected);
-        columnCountField.setVisible(gridSelected);
-        splitOrientationLabel.setVisible(splitSelected);
-        splitOrientationField.setVisible(splitSelected);
-        splitPercentLabel.setVisible(splitSelected);
-        splitPercentField.setVisible(splitSelected);
-        spacingLabel.setVisible(gridSelected||splitSelected);
-        spacingField.setVisible(gridSelected||splitSelected);
-        layoutLabel.setVisible(!pageSelected);
-        layoutField.setVisible(!pageSelected);
+	val area:AreaLayout = if (index>0) allAreas(index-1) else null
+	areaChangePublisher.publish(AreaChange(index,area,areaType))
 
-        if (index==0) {
-            //Page fields
-            widthField.setText(formatPageValue(areaPage.pageWidth))
-            heightField.setText(formatPageValue(areaPage.pageHeight))
-            unitsField.setSelectedIndex(areaPage.pageUnit);
-            areaPage.highlightedArea = null
-        } else {
-            val area:AreaLayout = allAreas(index-1)
-            areaPage.highlightedArea = area
-            marginsField.setText(formatPageValue(area.getMargins()))
-            spacingField.setText(formatPageValue(area.getSpacing()))
-            area match {
-            case imageArea:AreaImageLayout =>
-                layoutField.setSelectedIndex(0)        //TODO define constant
-            case gridArea:AreaGridLayout =>
-                layoutField.setSelectedIndex(1)        //TODO define constant
-                rowCountField.setValue(gridArea.rowCount)
-                columnCountField.setValue(gridArea.columnCount)
-            case splitArea:AreaSplitLayout =>
-                layoutField.setSelectedIndex(2)        //TODO define constant
-                splitOrientationField.setSelectedIndex(
-                        splitArea.getOrientation())
-                splitPercentField.setValue(splitArea.getSplitPercentage())
-            }
-        }
+	areaPage.highlightedArea = area
+
         updatingSelected = false
         areaPage.repaint()
     }
@@ -410,15 +417,15 @@ class AreaPageControls(val frame:SFrame,
     }
 
     //Get the type of the area specified by the given index
-    private def getAreaType(index:Int):Int = {
+    private def getAreaType(index:Int):AreaType = {
         if (index==0)
-            return AREA_PAGE
+            return AreaTypePage
         val a:AreaLayout = allAreas(index-1)
         //TODO - make an AreaLayout method to get type int
         a match {
-            case aa:AreaImageLayout => AREA_IMAGE
-            case aa:AreaGridLayout => AREA_GRID
-            case aa:AreaSplitLayout => AREA_SPLIT
+            case aa:AreaImageLayout => AreaTypeImage
+            case aa:AreaGridLayout => AreaTypeGrid
+            case aa:AreaSplitLayout => AreaTypeSplit
             case _ => throw new IllegalArgumentException(
                     "unknown instance type "+a);
         }
@@ -426,17 +433,7 @@ class AreaPageControls(val frame:SFrame,
 
     private def getAreaTypeString(index:Int):String = {
         val areaType = getAreaType(index)
-        areaTypeToString(areaType)
-    }
-
-    private def areaTypeToString(areaType:Int):String = {
-        areaType match {
-        case AREA_PAGE => getResourceString("layout.areaType.Page")
-        case AREA_IMAGE => getResourceString("layout.areaType.Image")
-        case AREA_GRID => getResourceString("layout.areaType.Grid")
-        case AREA_SPLIT => getResourceString("layout.areaType.Split")
-        case _ => throw new IllegalArgumentException("bad area type: "+areaType)
-        }
+	areaType.toString
     }
 
     private def layoutSelected(layoutTypeIndex:Int) {
@@ -448,13 +445,13 @@ class AreaPageControls(val frame:SFrame,
         if (newAreaType==areaType)
             return             //no change
         val newArea:AreaLayout = newAreaType match {
-        case AREA_IMAGE =>
+        case AreaTypeImage =>
             new AreaImageLayout(0,0,0,0)
-        case AREA_GRID =>
+        case AreaTypeGrid =>
             val newGridArea = new AreaGridLayout()
             newGridArea.setRowColumnCounts(2,2)
             newGridArea
-        case AREA_SPLIT =>
+        case AreaTypeSplit =>
             new AreaSplitLayout()
         case _ =>
             throw new RuntimeException("bad newAreaType "+newAreaType)
@@ -491,8 +488,8 @@ class AreaPageControls(val frame:SFrame,
         multi.refreshAreas()
     }
 
-    private def layoutIndexToAreaType(index:Int):Int = {
-        val types = Array( AREA_IMAGE, AREA_GRID, AREA_SPLIT )
+    private def layoutIndexToAreaType(index:Int):AreaType = {
+        val types = Array( AreaTypeImage, AreaTypeGrid, AreaTypeSplit )
             //this must match the initialLayoutItems
         return types(index)
     }
@@ -577,7 +574,8 @@ class AreaPageControls(val frame:SFrame,
 
     /** Read the row and column values from the text fields
      * and set those numbers on the grid layout. */
-    private def setRowOrColumnCount() {
+    private def setRowAndColumnCount(
+	    rowCountField:SSpinner, columnCountField:SSpinner) {
         if (updatingSelected)
             return
         val rowCount = rowCountField.getValue().asInstanceOf[Int]
@@ -623,11 +621,16 @@ class AreaPageControls(val frame:SFrame,
     /** Get a string from our resources. */
     def getResourceFormatted(name:String, args:Array[Any]):String =
         frame.getResourceFormatted(name, args)
-}
 
-object AreaPageControls {
-    protected val AREA_PAGE = 0
-    protected val AREA_IMAGE = 1
-    protected val AREA_GRID = 2
-    protected val AREA_SPLIT = 3
+
+    sealed abstract class AreaType {
+	val resName:String
+	override def toString() = {
+	    getResourceString("layout.areaType."+resName)
+	}
+    }
+    case object AreaTypePage extends AreaType  { val resName = "Page" }
+    case object AreaTypeImage extends AreaType { val resName = "Image" }
+    case object AreaTypeGrid extends AreaType  { val resName = "Grid" }
+    case object AreaTypeSplit extends AreaType { val resName = "Split" }
 }
