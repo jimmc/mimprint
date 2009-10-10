@@ -219,20 +219,6 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         ImageUtil.scaleAndRotate(im,item.rotFlag,f.getPath, imageComponent)
     }
     
-    private def createScaledImage(sourceImage:Image,rot:Int,path:String):
-            Image = {
-        ImageUtil.createScaledImage(sourceImage,rot,
-            imageComponent.getWidth,imageComponent.getHeight,path)
-    }
-
-    private def createRotatedImage(sourceImage:Image,rot:Int):Image = {
-        ImageUtil.createRotatedImage(sourceImage,rot,imageComponent)
-    }
-
-    private def loadCompleteImage(image:Image) {
-        ImageUtil.loadCompleteImage(mediaTracker,image)
-    }
-
     //Set the cursor to a busy cursor.
     private def setCursorBusy(busy:Boolean) {
         cursorBusy = busy
