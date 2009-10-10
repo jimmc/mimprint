@@ -35,7 +35,7 @@ import javax.swing.SwingConstants
 
 class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         extends PlayViewComp(name, viewer, tracker)
-	with StdLogger {
+        with StdLogger {
     private var imageComponent:JLabel = _
     private var mediaTracker:MediaTracker = _
     private var playList:PlayList = _
@@ -128,15 +128,15 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
-	logger.debug("enter PlayViewSingle.playListRemoveItem")
+        logger.debug("enter PlayViewSingle.playListRemoveItem")
         playList = m.newList
-	if (currentIndex >= playList.size - 1) {
-            imageSelected(-1)		//last item in the list was deleted
+        if (currentIndex >= playList.size - 1) {
+            imageSelected(-1)           //last item in the list was deleted
         } else if (m.index==currentIndex) {
-            //imageSelected(-1)		//leave index as-is
+            //imageSelected(-1)         //leave index as-is
         } else if (m.index<currentIndex)
             currentIndex = currentIndex - 1
-	logger.debug("leave PlayViewSingle.playListRemoveItem")
+        logger.debug("leave PlayViewSingle.playListRemoveItem")
     }
 
     protected def playListChangeItem(m:PlayListChangeItem) {
@@ -204,12 +204,27 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 val ii = new ImageIcon(im)
                 imageComponent.setIcon(ii)
                 imageComponent.setText(null)
+                preloadImage(index-1)
+                preloadImage(index+1)
                 setCursorBusy(false)
             }
             currentItem = item
         }
         currentIndex = index
         imageComponent.revalidate()
+    }
+
+    private def preloadImage(index:Int) {
+        if (index<0) return
+        if (index>=playList.size) return
+        val item = playList.getItem(index)
+        if (item.fileName.endsWith("."+FileInfo.MIMPRINT_EXTENSION)) return
+            //ignore non-image files
+        val f = new File(item.baseDir,item.fileName)
+
+        //TODO - Might want to do this part in another thread
+        val im = ImageUtil.getImage(imageComponent,f.getPath)
+        ImageUtil.scaleAndRotate(im,item.rotFlag,f.getPath, imageComponent)
     }
 
     private def getTransformedImage(index:Int):Image = {
@@ -266,8 +281,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             ev.getKeyChar() match {
                 case ' ' => viewer ! SViewerRequestActivate(playList)
                 case 'a' => requestScreenMode(SViewer.SCREEN_ALT)
-		case 'd' =>
-		    viewer ! SViewerRequestRemoveImage(playList,currentIndex)
+                case 'd' =>
+                    viewer ! SViewerRequestRemoveImage(playList,currentIndex)
                 case 'e' =>
                         viewer ! SViewerRequestEditDialog(playList,currentIndex)
                 case 'E' =>
