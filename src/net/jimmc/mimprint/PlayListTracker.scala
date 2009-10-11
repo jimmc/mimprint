@@ -20,7 +20,7 @@ import scala.actors.Actor.loop
 /** A playlist of images. */
 class PlayListTracker(val ui:AsyncUi) extends Actor
         with ActorPublisher[PlayListMessage]
-	with StdLogger{
+        with StdLogger{
     //Our current playlist
     private var playList:PlayList = PlayList(ui)
     private var currentIndex:Int = -1
@@ -90,58 +90,64 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
      * publish notices about the change.
      */
     private def addItem(item:PlayItem) {
+        val oldPlayList = playList
         val newPlayList = playList.addItem(item)
         val newIndex = playList.size - 1
-        publish(PlayListAddItem(this,playList,newPlayList,newIndex))
         playList = newPlayList
         isModified = true
+        publish(PlayListAddItem(this,oldPlayList,newPlayList,newIndex))
     }
 
     private def insertItem(itemIndex:Int, item:PlayItem) {
+        val oldPlayList = playList
         val newPlayList = playList.insertItem(itemIndex, item)
-        publish(PlayListAddItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
+        publish(PlayListAddItem(this,oldPlayList,newPlayList,itemIndex))
     }
 
     private def removeItem(index:Int) {
-	logger.debug("enter PlayListTracker.removeItem")
+        logger.debug("enter PlayListTracker.removeItem")
+        val oldPlayList = playList
         val newPlayList = playList.removeItem(index)
-        publish(PlayListRemoveItem(this,playList,newPlayList,index))
         playList = newPlayList
         isModified = true
-	logger.debug("leave PlayListTracker.removeItem")
+        publish(PlayListRemoveItem(this,oldPlayList,newPlayList,index))
+        logger.debug("leave PlayListTracker.removeItem")
     }
 
     private def changeItem(itemIndex:Int, item:PlayItem) {
+        val oldPlayList = playList
         val newPlayList = playList.replaceItem(itemIndex,item).
                 asInstanceOf[PlayList]
-        publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
+        publish(PlayListChangeItem(this,oldPlayList,newPlayList,itemIndex))
     }
 
     private def setItem(itemIndex:Int, item:PlayItem) {
+        val oldPlayList = playList
         val biggerPlayList = playList.ensureSize(itemIndex+1)
         val newPlayList = biggerPlayList.replaceItem(itemIndex,item).
                 asInstanceOf[PlayList]
-        publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
+        publish(PlayListChangeItem(this,oldPlayList,newPlayList,itemIndex))
     }
 
     private def rotateItem(itemIndex:Int, rot:Int) {
+        val oldPlayList = playList
         val newPlayList = playList.rotateItem(itemIndex, rot).
                 asInstanceOf[PlayList]
-        publish(PlayListChangeItem(this,playList,newPlayList,itemIndex))
         playList = newPlayList
         isModified = true
+        publish(PlayListChangeItem(this,oldPlayList,newPlayList,itemIndex))
     }
 
     private def selectItem(itemIndex:Int) {
         //no change to the playlist, we just publish a message
-        publish(PlayListSelectItem(this,playList,itemIndex))
         currentIndex = itemIndex
+        publish(PlayListSelectItem(this,playList,itemIndex))
     }
 
     private def selectUp() {
@@ -256,20 +262,21 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     def load(fileName:String, selectLast:Boolean) {
         if (!saveChangesAndContinue())
             return      //canceled
+        val oldPlayList = playList
         val newPlayList = PlayList.load(ui,fileName).asInstanceOf[PlayList]
         lastLoadFileName =
             if ((new File(fileName)).isDirectory)
                 fileName+File.separator+"index.mpr"
             else
                 fileName
-        publish(PlayListChangeList(this,playList,newPlayList))
+        playList = newPlayList
+        isModified = false
+        publish(PlayListChangeList(this,oldPlayList,newPlayList))
         val idx = if (selectLast) newPlayList.size - 1 else 0
         //Auto select the first/last item in the list if it is an image file
         if (newPlayList.size>0 &&
                 FileInfo.isImageFileName(newPlayList.getItem(idx).fileName))
             selectItem(idx)
-        playList = newPlayList
-        isModified = false
     }
 
     //If our playlist has changed AND the askSaveOnChanges flag is true,
