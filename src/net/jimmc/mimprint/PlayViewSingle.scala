@@ -133,7 +133,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         if (currentIndex >= playList.size - 1) {
             imageSelected(-1)           //last item in the list was deleted
         } else if (m.index==currentIndex) {
-            //imageSelected(-1)         //leave index as-is
+            imageSelected(currentIndex)         //leave index as-is, redisplay
         } else if (m.index<currentIndex)
             currentIndex = currentIndex - 1
         logger.debug("leave PlayViewSingle.playListRemoveItem")
@@ -152,8 +152,8 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     protected def playListChangeList(m:PlayListChangeList) {
         playList = m.newList
         currentIndex = -1
-        if (playList.size>0)
-            imageSelected(0)
+        //if (playList.size>0)
+            //imageSelected(0)
     }
 
     override protected val handleOtherMessage : PartialFunction[Any,Unit] = {
