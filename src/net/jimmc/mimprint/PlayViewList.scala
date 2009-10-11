@@ -70,11 +70,11 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     private var ourComponent:Component = _
     private var fileNameList:JList = _
     private var fileNameListModel:ArrayListModel = _
-    private var currentSelection = -1
+    private var currentListIndex = -1
         //JList index of selected item; if an image is selected, this value
         // is == imageIndex+pathCount+subdirCount
-    private def currentImageSelection =
-        currentSelection - (pathCount + subdirCount)
+    private def currentImageIndex =
+        currentListIndex - (pathCount + subdirCount)
     def baseDir = playList.baseDir
 
     private var noContextMenu:JPopupMenu = _
@@ -168,29 +168,29 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
 
     protected def playListInit(m:PlayListInit) {
         playList = m.list
-        currentSelection = -1
+        currentListIndex = -1
         redisplayList
     }
 
     protected def playListAddItem(m:PlayListAddItem) {
         playList = m.newList
-        if (m.index<=currentImageSelection)
-            currentSelection += 1
+        if (m.index<=currentImageIndex)
+            currentListIndex += 1
         redisplayList
-        setSelectedIndex(currentSelection)
+        setSelectedListIndex(currentListIndex)
     }
 
     protected def playListRemoveItem(m:PlayListRemoveItem) {
 	logger.debug("enter PlayViewList.playListRemoveItem")
         playList = m.newList
-	if (currentSelection > playList.size - 1)
-            currentSelection = -1
-        //else if (m.index==currentImageSelection)
-            //currentSelection = -1
-        else if (m.index<currentImageSelection)
-            currentSelection -= 1
+	if (currentImageIndex > playList.size - 1)
+            currentListIndex = -1
+        //else if (m.index==currentImageIndex)
+            //currentListIndex = -1
+        else if (m.index<currentImageIndex)
+            currentListIndex -= 1
         redisplayList
-        setSelectedIndex(currentSelection)
+        setSelectedListIndex(currentListIndex)
 	logger.debug("leave PlayViewList.playListRemoveItem")
     }
 
@@ -198,18 +198,22 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         playList = m.newList
         redisplayList
         //If our selected item got changed, we have to re-highlight it
-        if (m.index==currentImageSelection)
-            setSelectedIndex(currentSelection)
+        if (m.index==currentImageIndex)
+            setSelectedListIndex(currentListIndex)
     }
 
     protected def playListSelectItem(m:PlayListSelectItem) {
-        val newSelection = m.index + pathCount + subdirCount
-        if (newSelection==currentSelection)
+        if (m.index==currentImageIndex)
             return              //no change
-        setSelectedIndex(newSelection)
+        val newListIndex =
+            if (m.index<0)
+                -1
+            else
+                m.index + pathCount + subdirCount
+        setSelectedListIndex(newListIndex)
     }
     private var appIsSelecting = false
-    private def setSelectedIndex(n:Int) {
+    private def setSelectedListIndex(n:Int) {
         SwingS.invokeLater {        //run this on the event thread
             try {
                 appIsSelecting = true
@@ -224,7 +228,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
 
     protected def playListChangeList(m:PlayListChangeList) {
         playList = m.newList
-        currentSelection = -1
+        currentListIndex = -1
         redisplayList
     }
 
@@ -412,12 +416,12 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //Send out a select request to cause our listeners to refresh themselves
     def requestSelect() {
         if (tracker!=null && playList!=null)
-            tracker ! PlayListRequestSelect(playList,currentImageSelection)
+            tracker ! PlayListRequestSelect(playList,currentImageIndex)
     }
 
     def requestRemove() {
         if (tracker!=null && playList!=null)
-            tracker ! PlayListRequestRemove(playList,currentImageSelection)
+            tracker ! PlayListRequestRemove(playList,currentImageIndex)
     }
 
     def load(path:String) = tracker.load(path)
@@ -426,20 +430,20 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     def save(path:String,absolute:Boolean) = tracker.save(path,absolute)
 
     private def listValueChanged() {
-        currentSelection = fileNameList.getSelectedIndex()
-        if (currentSelection<0)
+        currentListIndex = fileNameList.getSelectedIndex()
+        if (currentListIndex<0)
             return              //nothing selected now
-        if (currentSelection >= (pathCount+subdirCount)) {
+        if (currentListIndex >= (pathCount+subdirCount)) {
             //we have selected a file
             //TODO - check to see if it is an MPR file (e.g. our template)
             //Send the select request to our PlayListTracker
-            tracker ! PlayListRequestSelect(playList,currentImageSelection)
+            tracker ! PlayListRequestSelect(playList,currentImageIndex)
         } else {
             //A directory has been selected (path or subdir)
             if (!appIsSelecting) {
                 //If user clicked (rather than using up or down arrows
                 //in the main window), then we open that directory.
-                val fileInfo = getFileInfo(currentSelection)
+                val fileInfo = getFileInfo(currentListIndex)
                 tracker.load(fileInfo.getPath)
             }
         }
