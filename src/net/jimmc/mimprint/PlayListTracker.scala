@@ -9,6 +9,7 @@ import net.jimmc.util.ActorPublisher
 import net.jimmc.util.AsyncUi
 import net.jimmc.util.FileUtilS
 import net.jimmc.util.PFCatch
+import net.jimmc.util.SomeOrNone
 import net.jimmc.util.StdLogger
 
 import java.io.File;
@@ -213,6 +214,9 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
             load(newDir.getPath,false)
         }
     }
+
+    ///So we can see what file we are dealing with
+    def fileName = SomeOrNone(lastLoadFileName)
 
     ///Save our playlist to a file.
     def save(filename:String):Boolean = {

@@ -17,6 +17,7 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.io.File
+import javax.swing.BoxLayout
 import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JMenuBar
@@ -42,9 +43,14 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
     private val playViewList:PlayViewList =
             new PlayViewList(name+"List", viewer, tracker) {
 		override val includeDirectories = vlg.includeDirectories
+                override protected def playListChangeList(m:PlayListChangeList){
+                    super.playListChangeList(m)
+                    updateFileLabel
+                }
 	    }
     private val playViewSingle:PlayViewSingle =
             new PlayViewSingle(name+"Single", viewer, tracker)
+    private var fileLabel:JLabel = _
 
     def getComponent():Component = {
         val listComp = playViewList.getComponent()
@@ -62,8 +68,15 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         panel.setLayout(new BorderLayout())
         panel.add(split,BorderLayout.CENTER)
 
+        val menuPanel = new JPanel()
+        //menuPanel.setLayout(new BoxLayout(menuPanel,BoxLayout.Y_AXIS))
+        menuPanel.setLayout(new BorderLayout())
+        fileLabel = new JLabel("File Name Goes Here")
         val mb = createOptionsMenuBar()
-        panel.add(mb,BorderLayout.NORTH)
+        menuPanel.add(fileLabel,BorderLayout.NORTH)
+        menuPanel.add(mb,BorderLayout.CENTER)
+
+        panel.add(menuPanel,BorderLayout.NORTH)
         panel		//This is our group component
     }
 
@@ -142,6 +155,12 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
 
         mb.add(m)
         mb
+    }
+
+    private def updateFileLabel {
+        val fileName = tracker.fileName.getOrElse("(None)")
+        fileLabel.setText(fileName)
+        fileLabel.setToolTipText(fileName)   //display might be truncated
     }
 
     def start() {
