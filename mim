@@ -42,7 +42,7 @@ while [ -L $MIMSCRIPT ]; do
 done
 MIMPRINTHOME=`dirname $MIMSCRIPT`
 
-JAVA_ARGS="-Xmx200m"
+JAVA_ARGS="-Xmx300m"
 while [ $# -gt 0 ]; do
     case "$1" in
     "-debug")
