@@ -148,6 +148,10 @@ class PlayViewMulti(name:String,
         refreshAreas()
     }
 
+    protected def playListUpdateItem(m:PlayListUpdateItem) {
+        refreshAreas()
+    }
+
     protected def playListSelectItem(m:PlayListSelectItem) {
         playListIndex = m.index
         refreshAreas()

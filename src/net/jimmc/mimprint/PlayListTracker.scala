@@ -55,6 +55,9 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         case m:PlayListRequestChange =>
             if (listMatches(m.list))
                 changeItem(m.index,m.item)
+        case m:PlayListRequestUpdate =>
+            if (listMatches(m.list))
+                updateItem(m.index)
         case m:PlayListRequestSetItem =>
             if (listMatches(m.list))
                 setItem(m.index,m.item)
@@ -124,6 +127,10 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         playList = newPlayList
         isModified = true
         publish(PlayListChangeItem(this,oldPlayList,newPlayList,itemIndex))
+    }
+
+    private def updateItem(itemIndex:Int) {
+        publish(PlayListUpdateItem(this,playList,itemIndex))
     }
 
     private def setItem(itemIndex:Int, item:PlayItem) {

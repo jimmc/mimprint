@@ -38,6 +38,11 @@ case class PlayListRequestRemove(list:PlayList, index:Int)
 case class PlayListRequestChange(list:PlayList, index:Int, item:PlayItem)
         extends PlayListRequest
 
+/** Request for listeners to update the display of an item due to a change
+ * to non-playlist related data, such as the image or accompanying text. */
+case class PlayListRequestUpdate(list:PlayList, index:Int)
+        extends PlayListRequest
+
 /** Request to replace an existing item with a new item,
  * or to expand the PlayList as required to add the item at the
  * specified index. */

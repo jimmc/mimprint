@@ -40,6 +40,12 @@ case class PlayListChangeItem(tracker:PlayListTracker,
         oldList:PlayList, newList:PlayList, index:Int)
         extends PlayListMessage
 
+/** PlayListUpdateItem is sent to subscribers after related data for
+ * the item at the specified index has been changed. */
+case class PlayListUpdateItem(tracker:PlayListTracker,
+        list:PlayList, index:Int)
+        extends PlayListMessage
+
 /** PlayListSelectItem is sent to subscribers to select an item. */
 case class PlayListSelectItem(tracker:PlayListTracker,
         list:PlayList, index:Int)

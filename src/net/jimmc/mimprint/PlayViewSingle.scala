@@ -145,6 +145,11 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             imageSelected(m.index)
     }
 
+    protected def playListUpdateItem(m:PlayListUpdateItem) {
+        if (m.index==currentIndex)
+            imageSelected(m.index)
+    }
+
     protected def playListSelectItem(m:PlayListSelectItem) {
         imageSelected(m.index)
     }

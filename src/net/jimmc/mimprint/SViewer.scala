@@ -447,6 +447,9 @@ class SViewer(app:App, aboutWindow:AboutWindow)
                 playList = m.newList
                 val fn = playList.getItem(playListIndex).getFileName
                 setTitleToFileName(fn)
+            case m:PlayListUpdateItem =>
+                ;       //All of our display info is in the playList, so
+                        //nothing of ours changes if the playList doesn't.
             case m:PlayListChangeList =>
                 playList = m.newList
                 playListIndex = -1
@@ -480,6 +483,8 @@ class SViewer(app:App, aboutWindow:AboutWindow)
                 printablePlayList = m.newList
                 /* val fn = printablePlayList.getItem(
                         printablePlayListIndex).getFileName */
+            case m:PlayListUpdateItem =>
+                ;               //do nothing
             case m:PlayListChangeList =>
                 printablePlayList = m.newList
                 printablePlayListIndex = -1
@@ -748,8 +753,7 @@ class SViewer(app:App, aboutWindow:AboutWindow)
             fileInfo:FileInfo, text:String) = {
         val path = fileInfo.getPath
         writeFileText(path,text)
-        val item = pl.getItem(idx)
-        mainTracker ! PlayListRequestChange(pl,idx,item)
+        mainTracker ! PlayListRequestUpdate(pl,idx)
             //Make the listeners update their display of this item
     }
 

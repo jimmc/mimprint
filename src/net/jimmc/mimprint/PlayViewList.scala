@@ -202,6 +202,12 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             setSelectedListIndex(currentListIndex)
     }
 
+    protected def playListUpdateItem(m:PlayListUpdateItem) {
+        redisplayList
+        if (m.index==currentImageIndex)
+            setSelectedListIndex(currentListIndex)
+    }
+
     protected def playListSelectItem(m:PlayListSelectItem) {
         if (m.index==currentImageIndex)
             return              //no change

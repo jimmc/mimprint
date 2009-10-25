@@ -32,6 +32,7 @@ abstract class PlayView(private val tracker:PlayListTracker) extends Actor
         case m:PlayListAddItem => playListAddItem(m)
         case m:PlayListRemoveItem => playListRemoveItem(m)
         case m:PlayListChangeItem => playListChangeItem(m)
+        case m:PlayListUpdateItem => playListUpdateItem(m)
         case m:PlayListSelectItem => playListSelectItem(m)
         case m:PlayListChangeList => playListChangeList(m)
     }
@@ -47,6 +48,7 @@ abstract class PlayView(private val tracker:PlayListTracker) extends Actor
     protected def playListAddItem(m:PlayListAddItem):Unit
     protected def playListRemoveItem(m:PlayListRemoveItem):Unit
     protected def playListChangeItem(m:PlayListChangeItem):Unit
+    protected def playListUpdateItem(m:PlayListUpdateItem):Unit
     protected def playListSelectItem(m:PlayListSelectItem):Unit
     protected def playListChangeList(m:PlayListChangeList):Unit
 }
