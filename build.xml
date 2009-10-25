@@ -42,10 +42,11 @@
         <property name="scala.library.jar"
                 value="${scala.dir}/lib/scala-library.jar"/>
 
+        <property name="scalatest.version" value="1.0"/>
         <property name="scalatest.dir"
-                value="${net.dir}/scala/scalatest-current"/>
+                value="${net.dir}/scala/scalatest-${scalatest.version}"/>
         <property name="scalatest.jar"
-                value="${scalatest.dir}/scalatest-0.9.2.jar"/>
+                value="${scalatest.dir}/scalatest-${scalatest.version}.jar"/>
 
         <!-- Unit testing, things you might want to change -->
         <property name="test.coverage" value=""/>
@@ -374,11 +375,9 @@
         <pathconvert property="runscalatest.classpath"
                 refid="test.classpath" pathsep=":"/>
         <property name="test.main.class" value="org.scalatest.tools.Runner"/>
-        <property name="test.out.file" value="${test.results.dir}/scalatest.out"/>
         <echo>scala -classpath ${runscalatest.classpath} ${test.main.class} -p ${testobj.dir} -o</echo>
         <exec
                 executable="scala"
-                output="${test.out.file}"
                 failonerror="true"
         >
             <arg line="-classpath ${runscalatest.classpath}"/>
