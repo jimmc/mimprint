@@ -441,9 +441,21 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             return              //nothing selected now
         if (currentListIndex >= (pathCount+subdirCount)) {
             //we have selected a file
-            //TODO - check to see if it is an MPR file (e.g. our template)
-            //Send the select request to our PlayListTracker
-            tracker ! PlayListRequestSelect(playList,currentImageIndex)
+            val fileInfo = getFileInfo(currentListIndex)
+            val path = fileInfo.getPath
+            if (FileInfo.isPlayList(path) && !appIsSelecting) {
+                //It's an mpr file, assume it's a playlist and load it up
+                tracker.load(path)
+            } else if (FileInfo.isOurFileName(path) && !appIsSelecting) {
+                //TODO - validate that it is in fact a template file
+                //assume layout template, display it in printable area
+                viewer ! SViewerRequestScreenMode(SViewer.SCREEN_PRINT)
+                    //make sure we are displaying the printable screen
+                viewer ! SViewerRequestLoadLayoutTemplate(path)
+            } else {
+                //Send the select request to our PlayListTracker
+                tracker ! PlayListRequestSelect(playList,currentImageIndex)
+            }
         } else {
             //A directory has been selected (path or subdir)
             if (!appIsSelecting) {

@@ -7,6 +7,7 @@
 package net.jimmc.mimprint
 
 import net.jimmc.util.FileUtilS
+import net.jimmc.util.StandardUi
 import net.jimmc.util.ZoneInfo
 
 import java.io.File
@@ -39,6 +40,21 @@ object FileInfo {
             return true
         }
         return false
+    }
+
+    /** True if we recognize the filename and it looks like a playlist. */
+    def isPlayList(name:String):Boolean = {
+        if (!isOurFileName(name))
+            return false;
+        try {
+            val ui:StandardUi = null //hack: assume the load operation
+                    //doesn't actually need the ui
+            PlayList.load(ui,name)
+            return true         //no errors, assume it really is a playlist
+        } catch {
+            case e:IllegalArgumentException =>
+                return false            //invalid playlist entry
+        }
     }
 
     /** True if the file name is for an image file that we recognize. */

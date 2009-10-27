@@ -405,6 +405,8 @@ class SViewer(app:App, aboutWindow:AboutWindow)
                 removeImage(m.list,m.index)
         case m:SViewerRequestDirEditDialog =>
                 showDirEditDialog(m.list)
+        case m:SViewerRequestLoadLayoutTemplate =>
+                loadLayoutTemplate(m.name)
     }
 
     private def processMainPlayListMessage(msg:PlayListMessage) {
@@ -807,6 +809,9 @@ class SViewer(app:App, aboutWindow:AboutWindow)
         showStatus(status)
     }
 
+    private def loadLayoutTemplate(name:String):Unit =
+        loadLayoutTemplate(new File(name))
+
     //Edit the description of the current page layout
     private def editLayoutDescription() {
         if (printableMulti==null) {
@@ -843,6 +848,8 @@ case class SViewerRequestAddToActive(list:PlayList,index:Int)
 case class SViewerRequestRemoveImage(list:PlayList,index:Int)
         extends SViewerRequest
 case class SViewerRequestDirEditDialog(list:PlayList)
+        extends SViewerRequest
+case class SViewerRequestLoadLayoutTemplate(name:String)
         extends SViewerRequest
 
 /*
