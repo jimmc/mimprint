@@ -6,20 +6,16 @@
 
 - Allow opening a jar or zip file, display contents. (051115)
 
-
 Bugs:
 
 PlayLists:
-- Allow specifying multiple image files and use that as the list of files
+- Allow specifying multiple image files and use that as the playlist
   rather than using a directory list (if >1 file specified). (020818)
-- Call the above a "Playlist" file.  Allow specifying a playlist file on
-  the command line, in which case it displays all images listed in that
-  playlist file.  Allow multiple playlist files on the command line; 
-  allow mixing playlist files and image files; all playlist files to
-  contain the names of other playlist files as well as image files. (021101)
-- Add a command to tell mimprint to record the current rotation state to
-  the images.mmp files; add a command to tell it to remove this filename from
-  the images.mmp file; add a command to tell it to create an images.mmp file
+- Allow multiple playlist files on the command line. (021101)
+- Allow mixing playlist files and image files. (021101)
+- Allow playlist files to contain the names of other playlist files
+  as well as image files. (021101)
+- Add a command to tell it to create an images.mpr file
   from the current viewing information. (020828)
 
 Pan/Zoom:
@@ -33,8 +29,7 @@ Printable:
 * Add a "mark for print" command that adds this image to an in-memory list
   of images to be printed.  Put an indicator in the image filename list
   so user can see it is marked for printing. 
-  Make the printable image mode handle multiple
-  pages.  Add a command to take the marked images and drop them into the
+  Add a command to take the marked images and drop them into the
   slots on the multiple pages, advancing to the next page when each page
   is full. (071230)
 - Support templates with multiple pages, plus a way of specifying which

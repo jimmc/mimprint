@@ -125,9 +125,10 @@
 - Change fileDialog methods to use Option rather than null. [080703]
 - Display current dir as path components, Mac-style. [080704]
 - Add popup menu command and 'E' key to edit the directory summary file.[080704]
-- Make printing work for multiple pages. [080704]
+- Make printing work for multiple pages. (071230) [080704]
 - Add Page selection field to printable page. [080706]
-- Add right-click menu to PlayViewList, with Remove Item menu item. [080711]
+- Add right-click menu to PlayViewList, with Remove Item menu item.
+  (020828) [080711]
 - Fix a list-index bug in PlayViewList. [080711]
 - Ask about saving playlist if it changed, when moving to new list. [080711]
 - Add Save As menu command to List menu, change Save command to save to
@@ -139,3 +140,15 @@
 - Add mnemonics to buttons in Save/SaveAs/Cancel/Discard dialog. [080831]
 - Make Save the default key in the above dialog. [080902]
 - Fix scaling bug on images rotated clockwise (rot= -1). [090306]
+- Add 'd' command to remove (drop) an image from a playlist. [090903]
+- Add log4j logging and config file. [090903]
+- Precache next and previous images. [091010]
+- Fix bug where first image would momentarily get selected when moving
+  to the end of the previous folder. [091011]
+- Fix bug that caused Remove not to work properly near end of list. [091011]
+- Add playlist filename to list view. [091023]
+- Make it so updates only to text files don't mark playlist as needing
+  to be save. [091025]
+- Fix scala unit tests to work again. [091025]
+- Make selecting a PlayList or Template from a list work properly. [091026]
+- Add Caption menu and capability. [091027]
