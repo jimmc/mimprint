@@ -125,6 +125,13 @@ menu.Image.ShowDirEditDialog.label=Show Directory Edit Dialog
 menu.Image.ShowEditDialog.label=Show Edit Dialog
 menu.Image.ShowInfoDialog.label=Show Info Dialog
 
+menu.Image.Caption.label=Caption
+menu.Image.Caption.IncludeFileInfo.label=Include File Info
+menu.Image.Caption.Larger.label=Larger Font
+menu.Image.Caption.ShowCaption.label=Show Caption
+menu.Image.Caption.Smaller.label=Smaller Font
+menu.Image.Caption.TopCaption.label=Caption Above Image
+
 menu.Layout.label=Layout
 menu.Layout.EditDescription.label=Edit Description...
 menu.Layout.LoadTemplate.label=Load Template...

@@ -163,7 +163,7 @@ class FileInfo(
     def isDirectory() = (index<pathCount) || (fType==DIR)
 
     /** Get the text for the specified file. */
-    private def getFileText():String = {
+    def getFileText():String = {
         val path = getPath()
         try {
             val textPath = getTextFileNameForImage(path)
@@ -185,7 +185,7 @@ class FileInfo(
      * @param useHtml True to format with for HTML, false for plain text.
      * @return The info about the image
      */
-    protected def getFileTextInfo(useHtml:Boolean,
+    def getFileTextInfo(useHtml:Boolean,
             includeDirDates:Boolean):String = {
         val path = getPath()
         if (path==null) {
@@ -224,13 +224,22 @@ class FileInfo(
         //Add (N of M)
         val thisIndex = index+1
         if (index<pathCount) {
-            sb.append("; Path "+thisIndex+" of "+pathCount) //TBD i18n
+            if (pathCount>0)
+                sb.append("; Path "+thisIndex+" of "+pathCount) //TBD i18n
+            else
+                sb.append("; Path "+thisIndex) //TBD i18n
         } else if (isDirectory()) {
             val dirIndex = thisIndex - pathCount
-            sb.append("; Folder "+dirIndex+" of "+subdirCount)  //TBD i18n
+            if (subdirCount>0)
+                sb.append("; Folder "+dirIndex+" of "+subdirCount)  //TBD i18n
+            else
+                sb.append("; Folder "+dirIndex)  //TBD i18n
         } else {
             val fileIndex = thisIndex - (pathCount + subdirCount)
-            sb.append("; File "+fileIndex+" of "+fileCount)  //TBD i18n
+            if (fileCount>0)
+                sb.append("; File "+fileIndex+" of "+fileCount)  //TBD i18n
+            else
+                sb.append("; File "+fileIndex)  //TBD i18n
         }
 
         //Add file size

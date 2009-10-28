@@ -6,11 +6,13 @@
 package net.jimmc.mimprint
 
 import net.jimmc.swing.KeyListenerCatch
+import net.jimmc.swing.SCheckBoxMenuItem
 import net.jimmc.swing.SMenu
 import net.jimmc.swing.SMenuItem
 import net.jimmc.swing.SwingS
 import net.jimmc.util.StdLogger
 
+import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Component
@@ -22,6 +24,7 @@ import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
+import java.awt.Font
 import java.awt.geom.AffineTransform
 import java.awt.Graphics2D
 import java.awt.Image
@@ -30,13 +33,17 @@ import java.awt.Point
 import java.io.File
 import javax.swing.ImageIcon
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 
 class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         extends PlayViewComp(name, viewer, tracker)
         with StdLogger {
+    private var imagePanel:JPanel = _
     private var imageComponent:JLabel = _
+    private var captionLabel:JLabel = _
+    private var includeFileInfo = false
     private var mediaTracker:MediaTracker = _
     private var playList:PlayList = _
     private var currentIndex:Int = -1
@@ -67,7 +74,16 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 
         contextMenu = createContextMenu()
 
-        imageComponent
+        captionLabel = new JLabel()
+        captionLabel.setHorizontalAlignment(SwingConstants.CENTER)
+
+        imagePanel = new JPanel()
+        imagePanel.setLayout(new BorderLayout())
+        imagePanel.add(imageComponent,BorderLayout.CENTER)
+        imagePanel.add(captionLabel,BorderLayout.SOUTH)
+        captionLabel.setVisible(false)
+
+        imagePanel
     }
 
     private def createContextMenu():JPopupMenu = {
@@ -101,9 +117,29 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         m.add(new SMenuItem(viewer,"menu.Image.ShowDirEditDialog")(
                     viewer ! SViewerRequestDirEditDialog(playList)))
 
+        m.add(createCaptionMenu())
+
         m
     }
     
+    private def createCaptionMenu() = {
+        val m = new SMenu(viewer,"menu.Image.Caption")
+
+        m.add(new SCheckBoxMenuItem(viewer,"menu.Image.Caption.ShowCaption")(
+                (cb) => showCaption(cb.getState)))
+        m.add(new SCheckBoxMenuItem(viewer,"menu.Image.Caption.TopCaption")(
+                (cb) => setCaptionTop(cb.getState)))
+        m.add(new SCheckBoxMenuItem(
+                viewer,"menu.Image.Caption.IncludeFileInfo")(
+                (cb) => setCaptionIncludeFileInfo(cb.getState)))
+        m.add(new SMenuItem(viewer,"menu.Image.Caption.Larger")(
+                resizeCaptionFont(1.5)))
+        m.add(new SMenuItem(viewer,"menu.Image.Caption.Smaller")(
+                resizeCaptionFont(0.67)))
+
+        m
+    }
+
     def isShowing():Boolean = imageComponent.isShowing
 
     //TODO - add code to preload next/previous images?
@@ -166,6 +202,54 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         case m:Any => println("Unrecognized message to PlayViewSingle")
     }
 
+    private def showCaption(b:Boolean) {
+        captionLabel.setVisible(b)
+        setCaptionText(currentIndex)
+    }
+
+    private def setCaptionTop(b:Boolean) {
+        val position = if (b) BorderLayout.NORTH else BorderLayout.SOUTH
+        imagePanel.remove(captionLabel)
+        imagePanel.add(captionLabel,position)
+        imagePanel.revalidate
+    }
+
+    private def setCaptionIncludeFileInfo(b:Boolean) {
+        includeFileInfo = b
+        setCaptionText(currentIndex)
+    }
+
+    private def resizeCaptionFont(scale:Double) {
+        val f:Font = captionLabel.getFont
+        val newFont = f.deriveFont((f.getSize2D * scale).asInstanceOf[Float])
+        captionLabel.setFont(newFont)
+    }
+
+    private def setCaptionText(index:Int) {
+        if (!captionLabel.isVisible)
+            return
+        if (index<0) {
+            captionLabel.setText("")
+            return
+        }
+        val item = playList.getItem(index)
+        val fileInfo = new FileInfo(index,0,0,0,item.baseDir,item.fileName)
+        fileInfo.loadInfo(false)
+        val captionText0 =
+            if (includeFileInfo)
+                fileInfo.getFileTextInfo(true,false)
+            else
+                htmlify(fileInfo.text)
+        val captionText = if (captionText0==null) "" else captionText0
+        captionLabel.setText(captionText)
+    }
+    private def htmlify(s:String):String = {
+        if (s==null || s=="")
+            ""
+        else
+            "<html>"+s+"</html>"
+    }
+
     private def requestRotate(rot:Int) {
         tracker ! PlayListRequestRotate(playList, currentIndex, rot)
     }
@@ -177,17 +261,20 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 //println("Single "+name+" not showing")
                 imageComponent.setText("")
                 imageComponent.setIcon(null)
+                captionLabel.setText("")
                 currentIndex = -1
                 currentItem = null
             }
             return
         }
+        currentIndex = index
         if (index<0) {
 //println("Single "+name+" setting no image")
             val msg = viewer.getResourceString("error.NoImageSelected")
             imageComponent.setText(msg)
             imageComponent.setIcon(null)
             currentItem = null
+            captionLabel.setText("")
         } else {
             val item = playList.getItem(index)
             if (item == currentItem) {
@@ -196,12 +283,14 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 return
             }
 //println("Single "+name+" loading image "+index)
+            currentItem = item
             if (item.fileName.endsWith("."+FileInfo.MIMPRINT_EXTENSION)) {
                 //It is one of our files, not an image
                 //TODO - use some code from IconLoader to display our
                 //templates?
                 imageComponent.setIcon(null)
                 imageComponent.setText(null)
+                captionLabel.setText("")
             } else {
                 setCursorBusy(true)
                 val im = getTransformedImage(index)
@@ -209,14 +298,13 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 val ii = new ImageIcon(im)
                 imageComponent.setIcon(ii)
                 imageComponent.setText(null)
+                setCaptionText(index)
                 preloadImage(index-1)
                 preloadImage(index+1)
                 setCursorBusy(false)
             }
-            currentItem = item
         }
-        currentIndex = index
-        imageComponent.revalidate()
+        imagePanel.revalidate()
     }
 
     private def preloadImage(index:Int) {
