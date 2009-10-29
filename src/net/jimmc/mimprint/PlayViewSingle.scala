@@ -255,8 +255,11 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     }
 
     private def imageSelected(index:Int) {
-        if (!isShowing) {
-            //If we are not showing, don't waste time loading images
+        if (!isShowing || messageQueueContainsSelect()) {
+            //If we are not showing, or if there is another "select" request
+            //already in our incoming message queue (such as when the user
+            //moves down the list quickly),
+            //don't waste time loading up an image.
             if (currentIndex >= 0) {
 //println("Single "+name+" not showing")
                 imageComponent.setText("")
@@ -343,6 +346,11 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
         if (cursorBusy)
             return      //busy takes priority over invisible
         imageComponent.setCursor(if (visible) null else invisibleCursor)
+    }
+
+    //True if we have any pending "select" messages in our input queue
+    private def messageQueueContainsSelect():Boolean = {
+        mailbox.get(0)(_.isInstanceOf[PlayListSelectItem]).isDefined
     }
 
     def refresh() {

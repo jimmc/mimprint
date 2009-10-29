@@ -152,3 +152,4 @@
 - Fix scala unit tests to work again. [091025]
 - Make selecting a PlayList or Template from a list work properly. [091026]
 - Add Caption menu and capability. [091027]
+- Skip loading intermediate images when moving quickly through a list. [091028]
