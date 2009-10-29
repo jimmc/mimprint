@@ -276,9 +276,12 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
         val oldPlayList = playList
         val newPlayList = PlayList.load(ui,fileName).asInstanceOf[PlayList]
         lastLoadFileName =
-            if ((new File(fileName)).isDirectory)
-                fileName+File.separator+"index.mpr"
-            else
+            if ((new File(fileName)).isDirectory) {
+                if (fileName.endsWith(File.separator))
+                    fileName+"index.mpr"        //don't double up the separator
+                else
+                    fileName+File.separator+"index.mpr"
+            } else
                 fileName
         playList = newPlayList
         isModified = false
