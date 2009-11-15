@@ -46,8 +46,22 @@ case class PlayListUpdateItem(tracker:PlayListTracker,
         list:PlayList, index:Int)
         extends PlayListMessage
 
+/** PlayListPreSelectItem is sent to subscribers before a select event.
+ *  Subscribers must process it quickly.
+ */
+case class PlayListPreSelectItem(tracker:PlayListTracker,
+        list:PlayList, index:Int)
+        extends PlayListMessage
+
 /** PlayListSelectItem is sent to subscribers to select an item. */
 case class PlayListSelectItem(tracker:PlayListTracker,
+        list:PlayList, index:Int)
+        extends PlayListMessage
+
+/** PlayListPostSelectItem is sent to subscribers after a select event.
+ *  Subscribers must process it quickly.
+ */
+case class PlayListPostSelectItem(tracker:PlayListTracker,
         list:PlayList, index:Int)
         extends PlayListMessage
 

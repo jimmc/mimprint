@@ -186,8 +186,18 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             imageSelected(m.index)
     }
 
+    private var preSelectItem:Option[PlayListPreSelectItem] = None
+    override protected def playListPreSelectItem(m:PlayListPreSelectItem) {
+        m.tracker.registerSelector(m)
+        preSelectItem = Some(m)
+    }
+
     protected def playListSelectItem(m:PlayListSelectItem) {
         imageSelected(m.index)
+        preSelectItem foreach { m =>
+            m.tracker.unregisterSelector(m)
+        }
+        preSelectItem = None
     }
 
     protected def playListChangeList(m:PlayListChangeList) {
@@ -255,6 +265,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
     }
 
     private def imageSelected(index:Int) {
+        logger.debug("PlayViewSingle.imageSelected enter")
         if (!isShowing || messageQueueContainsSelect()) {
             //If we are not showing, or if there is another "select" request
             //already in our incoming message queue (such as when the user
@@ -268,6 +279,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
                 currentIndex = -1
                 currentItem = null
             }
+            logger.debug("PlayViewSingle.imageSelected exit (1)")
             return
         }
         currentIndex = index
@@ -283,6 +295,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             if (item == currentItem) {
                 //We already have this image loaded and selected
 //println("Single "+name+" already showing image "+index)
+                logger.debug("PlayViewSingle.imageSelected exit (2)")
                 return
             }
 //println("Single "+name+" loading image "+index)
@@ -308,6 +321,7 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
             }
         }
         imagePanel.revalidate()
+        logger.debug("PlayViewSingle.imageSelected exit")
     }
 
     private def preloadImage(index:Int) {

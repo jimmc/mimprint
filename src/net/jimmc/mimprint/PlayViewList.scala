@@ -26,6 +26,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.Image
 import java.awt.Point
+import java.awt.Rectangle
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -52,6 +53,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     //TODO - add support for viewing our MIMPRINT (mpr) template files
     private val pathBgColor = new Color(0.9f, 0.9f, 0.8f)
     private val subdirBgColor = new Color(0.9f, 0.8f, 0.8f)
+    private val secondaryBgColor = new Color(0.9f, 0.9f, 0.9f)
     val includeDirectories = true
     protected[mimprint] var includeDirectoryDates = false
     protected[mimprint] var includeIcons = false
@@ -75,6 +77,11 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         // is == imageIndex+pathCount+subdirCount
     private def currentImageIndex =
         currentListIndex - (pathCount + subdirCount)
+    private var secondaryListIndex = -1
+        // We use the secondary index while selection is happening to help
+        // the user know that the images are being selected
+    private def secondaryImageIndex =
+        secondaryListIndex - (pathCount + subdirCount)
     def baseDir = playList.baseDir
 
     private var noContextMenu:JPopupMenu = _
@@ -208,7 +215,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             setSelectedListIndex(currentListIndex)
     }
 
-    protected def playListSelectItem(m:PlayListSelectItem) {
+    override protected def playListPreSelectItem(m:PlayListPreSelectItem) {
         if (m.index==currentImageIndex)
             return              //no change
         val newListIndex =
@@ -216,6 +223,30 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 -1
             else
                 m.index + pathCount + subdirCount
+        //Note that we are changing images
+        secondaryListIndex = newListIndex
+        val r:Rectangle = fileNameList.getCellBounds(secondaryListIndex,
+                secondaryListIndex)
+        fileNameList.repaint(r.x, r.y, r.width, r.height)
+        SwingS.invokeLater {        //run this on the event thread
+            fileNameList.ensureIndexIsVisible(secondaryListIndex)
+        }
+    }
+
+    protected def playListSelectItem(m:PlayListSelectItem) {
+        //do nothing for the actual select event, since we don't
+        //know if we are getting that event before or after the image viewers
+    }
+
+    override protected def playListPostSelectItem(m:PlayListPostSelectItem) {
+        if (m.index==currentImageIndex)
+            return              //no change
+        val newListIndex =
+            if (m.index<0)
+                -1
+            else
+                m.index + pathCount + subdirCount
+        secondaryListIndex = -1         //done selecting
         setSelectedListIndex(newListIndex)
     }
     private var appIsSelecting = false
@@ -399,6 +430,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 val c = if (index<pathCount) pathBgColor else subdirBgColor
                 cell.setBackground(c)
             }
+            if (index==secondaryListIndex)
+                cell.setBackground(secondaryBgColor)
             cell.setBorder(BorderFactory.createLineBorder(Color.black))
             cell
         }
@@ -452,7 +485,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
                 viewer ! SViewerRequestScreenMode(SViewer.SCREEN_PRINT)
                     //make sure we are displaying the printable screen
                 viewer ! SViewerRequestLoadLayoutTemplate(path)
-            } else {
+            } else if (!appIsSelecting) {
                 //Send the select request to our PlayListTracker
                 tracker ! PlayListRequestSelect(playList,currentImageIndex)
             }

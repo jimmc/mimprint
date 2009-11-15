@@ -17,6 +17,7 @@ import java.io.PrintWriter;
 
 import scala.actors.Actor
 import scala.actors.Actor.loop
+import scala.collection.mutable.Map
 
 /** A playlist of images. */
 class PlayListTracker(val ui:AsyncUi) extends Actor
@@ -155,8 +156,61 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     private def selectItem(itemIndex:Int) {
         //no change to the playlist, we just publish a message
         currentIndex = itemIndex
+
+        val pre = PlayListPreSelectItem(this,playList,itemIndex)
+
+        logger.debug("PlayListTracker.selectItem publishing PreSelect")
+        //First we publish a pre-select event so that everyone knows
+        //we are about to select.  This should be handled quickly.
+        publish(pre)
+        //register at least one selector
+        registerSelector(pre)
+
+        logger.debug("PlayListTracker.selectItem publishing Select")
+        //We publish the select event, which may take a while to process
+        //(such as by the image viewer that has to load the image)
         publish(PlayListSelectItem(this,playList,itemIndex))
+
+        //unregister; if nobody else registered, this will cause
+        //the PostSelect to be sent; if sombody else registered,
+        //the PostSelect will be sent only after they unregister.
+        unregisterSelector(pre)
+
+        logger.debug("PlayListTracker.selectItem done")
     }
+
+    lazy val selectorMap = Map[PlayListPreSelectItem,Int]()
+
+    //If a subscriber will take a long time to process the SelectItem message,
+    //it can call this method when it gets a PreSelectItem, so that the
+    //PostSelectItem will not be sent out until after it has called
+    //unregisterSelector.
+    def registerSelector(ev:PlayListPreSelectItem) {
+        selectorMap.synchronized {
+            val n = selectorMap.getOrElse(ev,0)
+            logger.debug("PlayListTracker.registerSelector("+ev+")="+n)
+            selectorMap.put(ev,n+1)
+        }
+    }
+
+    def unregisterSelector(ev:PlayListPreSelectItem) {
+        selectorMap.synchronized {
+            val n = selectorMap.getOrElse(ev,0) - 1
+            logger.debug("PlayListTracker.unregisterSelector("+ev+")="+n)
+            if (n>0) {
+                selectorMap.put(ev,n)
+            } else {
+                logger.debug("PlayListTracker.unregisterSelector publishing PostSelect")
+                //Last we publish post-select event so that everyone knows
+                //that the selection is done.  This should be handled quickly.
+                selectorMap.put(ev,n - 1)
+                selectorMap.removeKey(ev)
+                if (n==0)
+                    publish(PlayListPostSelectItem(this,ev.list,ev.index))
+            }
+        }
+    }
+
 
     private def selectUp() {
         if (currentIndex>0)

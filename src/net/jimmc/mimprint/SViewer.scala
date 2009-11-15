@@ -434,7 +434,11 @@ class SViewer(app:App, aboutWindow:AboutWindow)
                     } else if (playListIndex > m.index)
                         playListIndex = playListIndex - 1
                 }
+            case m:PlayListPreSelectItem =>
+                setTitleToFileName("....")
             case m:PlayListSelectItem =>
+                ; //ignore this message
+            case m:PlayListPostSelectItem =>
                 playList = m.list
                 playListIndex = m.index
                 //We sometimes get an index out of bounds exception on startup
@@ -477,10 +481,12 @@ class SViewer(app:App, aboutWindow:AboutWindow)
                     } else if (printablePlayListIndex > m.index)
                         printablePlayListIndex = printablePlayListIndex - 1
                 }
+            case m:PlayListPreSelectItem =>     ; //ignore
             case m:PlayListSelectItem =>
                 printablePlayListIndex = m.index
                 /* val fn = printablePlayList.getItem(
                         printablePlayListIndex).getFileName */
+            case m:PlayListPostSelectItem =>        ; //ignore
             case m:PlayListChangeItem =>
                 printablePlayList = m.newList
                 /* val fn = printablePlayList.getItem(
