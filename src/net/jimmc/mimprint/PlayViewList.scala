@@ -218,6 +218,8 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     override protected def playListPreSelectItem(m:PlayListPreSelectItem) {
         if (m.index==currentImageIndex)
             return              //no change
+        if (currentImageIndex<0)
+            return              //don't try to do this when switching lists
         val newListIndex =
             if (m.index<0)
                 -1
@@ -227,9 +229,11 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
         secondaryListIndex = newListIndex
         val r:Rectangle = fileNameList.getCellBounds(secondaryListIndex,
                 secondaryListIndex)
-        fileNameList.repaint(r.x, r.y, r.width, r.height)
-        SwingS.invokeLater {        //run this on the event thread
-            fileNameList.ensureIndexIsVisible(secondaryListIndex)
+        if (r!=null) {          //r is null if secondaryListIndex is not valid
+            fileNameList.repaint(r.x, r.y, r.width, r.height)
+            SwingS.invokeLater {        //run this on the event thread
+                fileNameList.ensureIndexIsVisible(secondaryListIndex)
+            }
         }
     }
 
@@ -266,6 +270,7 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
     protected def playListChangeList(m:PlayListChangeList) {
         playList = m.newList
         currentListIndex = -1
+        secondaryListIndex = -1
         redisplayList
     }
 

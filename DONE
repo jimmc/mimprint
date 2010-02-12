@@ -153,3 +153,6 @@
 - Make selecting a PlayList or Template from a list work properly. [091026]
 - Add Caption menu and capability. [091027]
 - Skip loading intermediate images when moving quickly through a list. [091028]
+- Fix bug: NPE sometimes when switching to a new dir (or on startup).
+  (091216) [100211]
+- Make list update after editing directory summary text. [100211]

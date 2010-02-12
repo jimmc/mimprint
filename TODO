@@ -1,3 +1,11 @@
+Bugs:
+- NPE on print printview. (091216)
+    Fix: edit print config, don't use "auto" orientation.
+    See sun bug 6633656 and workarounds in comments
+    Add a note to the documentation about this? (091216)
+- MatchError on drag-to-printview. (091216)
+
+Misc:
 - Fix memory leaks. (080327)
 
 - Make sure image dragging works on all platforms, or add workaround. (051119)
@@ -5,8 +13,6 @@
 - Add a Users Guide. (060123)
 
 - Allow opening a jar or zip file, display contents. (051115)
-
-Bugs:
 
 PlayLists:
 - Allow specifying multiple image files and use that as the playlist

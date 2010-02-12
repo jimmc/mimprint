@@ -741,8 +741,11 @@ class SViewer(app:App, aboutWindow:AboutWindow)
             if (descFile.exists) FileUtilS.readFile(descFile)
             else ""
         val newText:String = editTextDialog(title,oldText)
-        if (newText!=null)
+        if (newText!=null) {
             FileUtilS.writeFile(descFile,newText)
+            mainTracker ! PlayListRequestUpdate(pl,playListIndex)
+                //refresh the non-item part of the list
+        }
     }
 
     private def getFileInfo(pl:PlayList, idx:Int):FileInfo = {
