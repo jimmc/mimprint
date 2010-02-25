@@ -351,7 +351,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
     //we ask the user if he wants to save the playlist.
     //Return true if the user saved successfully or declined to save;
     //return false if the user canceled.
-    private def saveChangesAndContinue():Boolean = {
+    def saveChangesAndContinue():Boolean = {
         if (!askSaveOnChanges)
             return true         //ignore changes at this point
         if (!isModified)

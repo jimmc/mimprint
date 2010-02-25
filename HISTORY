@@ -6,12 +6,28 @@ mimprint v0.2.4
     directory and there have been changes to the current playlist now
     has key accelerators (S/A/D/C), and Save is the default (so can be
     activated by pressing Enter).
+  * When moving quickly through a list, the program attempts to skip some
+    screen updates of images when it gets behind.  The next and previous
+    images are now pre-cached to improve performance when stepping slowly
+    through a list.
+  * The 'd' command can be used to drop an image (delete the reference)
+    from a playlist.  The image file itself is not deleted.
 
   Bug Fixes:
 
   * Pictures which have been rotated clockwise now scale properly.
   * Fixed the label on the "Save As" menu command in the List menu
     (it mistakenly said just "Save", so there were to "Save" commands).
+  * After updating the folder summary text, the list display now updates
+    to show the edited text.
+  * When a playlist has been modified, attempting to exit now asks for
+    confirmation and allows the playlist to be saved first.
+  * Updates only to text files (which are not in the playlist) no longer
+    cause the playlist to be marked as modified (which causes the program
+    to ask the user if it should be saved when that is not necessary).
+  * A MatchError when dragging has been fixed.  Also, the drop cursor works
+    a bit better when dragging from one image area to another, although it
+    still does not quite work properly when dragging from a list to an area.
 
 ----------------------------------------------------------------------
 

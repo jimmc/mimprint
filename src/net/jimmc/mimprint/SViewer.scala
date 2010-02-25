@@ -251,8 +251,8 @@ class SViewer(app:App, aboutWindow:AboutWindow)
     //Closing this window causes the app to exit
     override def processClose() = processFileExit
 
-    //Don't ask about exiting, just do it
-    override def confirmExit():Boolean = true
+    //If there were changes, ask for confirmation before exiting
+    override def confirmExit():Boolean = mainTracker.saveChangesAndContinue
 
     def processFilePrint() {
         if (screenMode == SViewer.SCREEN_PRINT)

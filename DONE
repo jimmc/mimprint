@@ -148,7 +148,7 @@
 - Fix bug that caused Remove not to work properly near end of list. [091011]
 - Add playlist filename to list view. [091023]
 - Make it so updates only to text files don't mark playlist as needing
-  to be save. [091025]
+  to be saved. [091025]
 - Fix scala unit tests to work again. [091025]
 - Make selecting a PlayList or Template from a list work properly. [091026]
 - Add Caption menu and capability. [091027]
@@ -156,3 +156,5 @@
 - Fix bug: NPE sometimes when switching to a new dir (or on startup).
   (091216) [100211]
 - Make list update after editing directory summary text. [100211]
+- MatchError on drag-to-printview. (091216) [100221]
+- If playlist changed, ask user for confirmation before exiting. [100224]
