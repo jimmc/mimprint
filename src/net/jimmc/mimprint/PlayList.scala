@@ -204,7 +204,7 @@ object PlayList {
         var listComments:List[String] = Nil
         var lines = new ListBuffer[String]
         var line:String = in.readLine()
-        if (line.startsWith("<?xml")) {
+        if (line!=null && line.startsWith("<?xml")) {
             //Make sure we don't load a template file as a playlist
             throw new IllegalArgumentException(
                     "Attempt to load xml file as PlayList")
