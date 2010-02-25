@@ -10,6 +10,7 @@ import net.jimmc.swing.SDragSource
 import net.jimmc.swing.SLabel
 import net.jimmc.swing.SMenuItem
 import net.jimmc.util.SResources
+import net.jimmc.util.StdLogger
 
 import java.awt.Color
 import java.awt.Cursor
@@ -54,7 +55,7 @@ import javax.swing.JPopupMenu
 
 class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         extends JComponent with Printable
-        with SDragSource {
+        with SDragSource with StdLogger {
     protected[mimprint] var controls:AreaPageControls = null
 
     private var pageLayout = new PageLayout(viewer)
@@ -649,16 +650,18 @@ in an image area by 180 degrees, so we just use the r key for that.
                     a.image
                 else
                     null   //image dragging not supported
-            var image:Image = null     //image to drag
-            var offset:Point = null
-            if (fullImage!=null) {
-                image = ImageUtil.createTransparentIconImage(
-                        AreaPage.this,fullImage,path)
-                ImageUtil.loadCompleteImage(AreaPage.this,image)
-                val width = image.getWidth(null)
-                val height = image.getHeight(null)
-                offset = new Point(-width/2, -height/2)
-            }
+            val (image:Option[Image],offset:Option[Point]) =
+                if (fullImage!=null) {
+                    val img = ImageUtil.createTransparentIconImage(
+                            AreaPage.this,fullImage,path)
+                    ImageUtil.loadCompleteImage(AreaPage.this,img)
+                    val width = img.getWidth(null)
+                    val height = img.getHeight(null)
+                    val offs = new Point(-width/2, -height/2)
+                    (Some(img),Some(offs))
+                } else {
+                    (None, None)
+                }
             startImageDrag(ev, image, offset, path)
         }
       //End DragGestureListener interface
@@ -667,34 +670,42 @@ in an image area by 180 degrees, so we just use the r key for that.
     class AreaPageDragSourceListener extends DragSourceListener {
       //The DragSourceListener interface
         def dragEnter(ev:DragSourceDragEvent) {
-            //println("AreaSource dragEnter")
+            logger.debug("AreaSource dragEnter")
             setDragCursor(ev)
         }
         def dragOver(ev:DragSourceDragEvent) {
-            //println("AreaSource dragOver")
+            logger.debug("AreaSource dragOver")
             setDragCursor(ev)
         }
         def dragExit(ev:DragSourceEvent) {
-            //println("AreaSource DragSourceListener dragExit")
+            logger.debug("AreaSource DragSourceListener dragExit")
+            clearDragCursor(ev)
         }
         def dragDropEnd(ev:DragSourceDropEvent) {
             dragArea = null
             setHighlightedArea(null)
             if (!ev.getDropSuccess()) {
-                println("AreaSource DragSource DragDropEnd drop failed")
+                logger.debug("AreaSource DragSource DragDropEnd drop failed")
                 return
             }
             val dropAction:Int = ev.getDropAction()
-            if (dropAction==DnDConstants.ACTION_COPY)
-                println("AreaPage DragSource DragDropEnd Copy")
-            else if (dropAction==DnDConstants.ACTION_MOVE)
-                println("AreaPage DragSource DragDropEnd Move")
-            else
-                println("DragDropEnd no action")
+            if (logger.isDebugEnabled) {
+                if (dropAction==DnDConstants.ACTION_COPY)
+                    logger.debug("AreaPage DragSource DragDropEnd Copy")
+                else if (dropAction==DnDConstants.ACTION_MOVE)
+                    logger.debug("AreaPage DragSource DragDropEnd Move")
+                else
+                    logger.debug("DragDropEnd no action")
+            }
             //TODO - need to do anything here to handle the drag end?
         }
         def dropActionChanged(ev:DragSourceDragEvent) { }
       //End DragSourceListener interface
+    }
+
+    private def clearDragCursor(ev:DragSourceEvent) {
+        val ctx:DragSourceContext = ev.getDragSourceContext()
+        ctx.setCursor(null)
     }
 
     private def setDragCursor(ev:DragSourceDragEvent) {
@@ -702,14 +713,14 @@ in an image area by 180 degrees, so we just use the r key for that.
         val action:Int = ev.getDropAction()
         ctx.setCursor(null)
         if ((action & DnDConstants.ACTION_COPY)!=0) {
-            //println("cursor Copy")
+            logger.debug("cursor Copy")
             ctx.setCursor(DragSource.DefaultCopyDrop)
             //TODO - we are getting here, but the cursor does not change.
         } else if ((action & DnDConstants.ACTION_MOVE)!=0) {
-            //println("cursor Move")
+            logger.debug("cursor Move")
             ctx.setCursor(DragSource.DefaultMoveDrop)
         } else {
-            //System.out.println("cursor NoCopy")
+            logger.debug("cursor NoCopy")
             ctx.setCursor(DragSource.DefaultCopyNoDrop)
             //TODO - or MoveNoDrop?
         }
@@ -722,27 +733,29 @@ in an image area by 180 degrees, so we just use the r key for that.
             if (a==null || a==dragArea) {
                 //No drop in source area or outside any area
                 setHighlightedArea(null)
-                //println("reject drag")
+                logger.debug("reject drag")
                 ev.rejectDrag()
                 return
             }
             setHighlightedArea(a)
-            //println("accept drag")
+            logger.debug("accept drag")
             ev.acceptDrag(AreaPage.this.dropActions)
         }
       //The DropTargetListener interface
         def dragEnter(ev:DropTargetDragEvent) {
+            logger.debug("AreaPageDropTargetListener.dragEnter")
             checkDrop(ev)
         }
         def dragOver(ev:DropTargetDragEvent) {
+            logger.debug("AreaPageDropTargetListener.dragOver")
             checkDrop(ev)
         }
         def dropActionChanged(ev:DropTargetDragEvent) {
             checkDrop(ev)
         }
         def dragExit(ev:DropTargetEvent) {
+            logger.debug("AreaPageDropTargetListener.dragExit")
             setHighlightedArea(null)
-            //println("DropTargetListener dragExit")
         }
 
         def drop(ev:DropTargetDropEvent) {

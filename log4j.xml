@@ -10,8 +10,17 @@
 		value="%d{ABSOLUTE} %5p %c{1}:%L - %m%n"/>
 	</layout>
     </appender>
+
+    <!-- Enable this for debugging one file...
+    <category name="net.jimmc.mimprint.AreaPage" additivity="false">
+        <priority value="debug" />
+        <appender-ref ref="stdout" />
+    </category> 
+    -->
+
     <root>
 	<priority value="fatal"/>
 	<appender-ref ref="stdout"/>
     </root>
+
 </log4j:configuration>

@@ -33,12 +33,12 @@ trait SDragSource {
     }
 
     protected def startImageDrag(ev:DragGestureEvent,
-            image:Image, offset:Point, path:String) {
+            image:Option[Image], offset:Option[Point], path:String) {
         try {
             val transferable:Transferable = new StringSelection(path)
-            if (image!=null) {
+            if (image.isDefined) {
                 ev.startDrag(DragSource.DefaultCopyNoDrop,
-                        image, offset, transferable, dragSourceListener)
+                        image.get, offset.get, transferable, dragSourceListener)
             } else {
                 ev.startDrag(DragSource.DefaultCopyNoDrop,
                         transferable, dragSourceListener)

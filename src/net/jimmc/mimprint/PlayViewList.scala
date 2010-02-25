@@ -527,17 +527,17 @@ class PlayViewList(name:String,viewer:SViewer,tracker:PlayListTracker)
             val icon:ImageIcon = fileInfo.icon
             //If the platform does not support image dragging, don't do it
             val iconImage:Image = if (icon==null) null else icon.getImage()
-            val (image:Image, offset:Point) =
-            if (DragSource.isDragImageSupported()) {
-                val im = ImageUtil.createTransparentIconImage(
-                        ourComponent,iconImage,path)
-                val width = im.getWidth(null)
-                val height = im.getHeight(null)
-                val p = new Point(-width/2, -height/2)
-                (im, p)
-            } else {
-                (null, null)   //image dragging not supported
-            }
+            val (image:Option[Image], offset:Option[Point]) =
+                if (DragSource.isDragImageSupported()) {
+                    val im = ImageUtil.createTransparentIconImage(
+                            ourComponent,iconImage,path)
+                    val width = im.getWidth(null)
+                    val height = im.getHeight(null)
+                    val p = new Point(-width/2, -height/2)
+                    (Some(im), Some(p))
+                } else {
+                    (None, None)   //image dragging not supported
+                }
             startImageDrag(ev,image,offset,path)
         }
     }
