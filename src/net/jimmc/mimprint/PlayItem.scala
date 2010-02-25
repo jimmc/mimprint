@@ -244,7 +244,7 @@ object PlayItem {
      * the specified amount.
      */
     def rotate(item:PlayItem, inc:Int) : PlayItem = {
-        val rot = (item.getRotFlag()+inc+1)%4 - 1
+        val rot = (item.getRotFlag()+inc+5)%4 - 1  //keep it >= -1
         new PlayItem(item.comments,item.baseDir,item.fileName,rot)
     }
 }
