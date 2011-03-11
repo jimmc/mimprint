@@ -53,6 +53,8 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPopupMenu
 
+import scala.math
+
 class AreaPage(viewer:SViewer, tracker:PlayListTracker)
         extends JComponent with Printable
         with SDragSource with StdLogger {
@@ -362,8 +364,8 @@ class AreaPage(viewer:SViewer, tracker:PlayListTracker)
                 paperWidth*PageValue.UNIT_MULTIPLIER/paperScale
         var paperPageHeight:Double =
                 paperHeight*PageValue.UNIT_MULTIPLIER/paperScale
-        val widthDiff:Double = Math.abs(pageWidth - paperPageWidth)
-        val heightDiff:Double = Math.abs(pageHeight - paperPageHeight)
+        val widthDiff:Double = math.abs(pageWidth - paperPageWidth)
+        val heightDiff:Double = math.abs(pageHeight - paperPageHeight)
         if (widthDiff>0.5/PageValue.UNIT_MULTIPLIER ||
                 heightDiff>0.5/PageValue.UNIT_MULTIPLIER) {
             //Ask user if he wants to continue, and whether he wants to

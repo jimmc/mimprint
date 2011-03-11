@@ -17,8 +17,7 @@ import net.jimmc.util.FileUtilS
 import net.jimmc.util.PFCatch
 import net.jimmc.util.Subscribe
 import net.jimmc.util.Subscriber
-import net.jimmc.util.UserException
-
+import net.jimmc.util.UserException 
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -46,8 +45,8 @@ import scala.actors.Actor
 import scala.actors.Actor.loop
 
 class SViewer(app:App, aboutWindow:AboutWindow)
-	extends SFrame("Mimprint",app) with AsyncUi
-        with Actor with Subscriber[PlayListMessage] with ToolPrompter {
+	extends SFrame("Mimprint",app) with AsyncUi with ToolPrompter
+        {
 //TODO - implement ToolPrompter interface (to get menu toolPrompts)
 
     private val mainTracker = new PlayListTracker(this)
@@ -364,15 +363,22 @@ class SViewer(app:App, aboutWindow:AboutWindow)
     def showToolPrompt(s:String) = showStatus(s)
     def clearToolPrompt() = showStatus("")
 
-    //The Actor trait
-    def act() {
-        mainTracker ! Subscribe(this)
-        mainTracker ! PlayListRequestInit(this)
-        printableTracker ! Subscribe(this)
-        printableTracker ! PlayListRequestInit(this)
-        this ! SViewerRequestFocus(null)
-        loop { react (PFCatch(handleMessage,"SViewer",this)) }
+    //As of Scala 2.8, we can no longer mixin both Actor and Frame because
+    //they both include a getState method, but with different return types
+    //(and different uses).  So we delegate the actor functionality to
+    //another object, and we forward the start and ! methods to it.
+    val svActor = new Actor with Subscriber[PlayListMessage] {
+        def act() {
+            mainTracker ! Subscribe(this)
+            mainTracker ! PlayListRequestInit(this)
+            printableTracker ! Subscribe(this)
+            printableTracker ! PlayListRequestInit(this)
+            this ! SViewerRequestFocus(null)
+            loop { react (PFCatch(handleMessage,"SViewer",SViewer.this)) }
+        }
     }
+    def start = svActor.start
+    def !(msg:Any) = svActor ! msg
 
     val handleMessage : PartialFunction[Any,Unit] = {
         case m:PlayListMessage if (m.tracker==mainTracker) =>
@@ -530,7 +536,7 @@ class SViewer(app:App, aboutWindow:AboutWindow)
         if (mode == screenMode)
             return              //already in that mode
         if (mode != SViewer.SCREEN_FULL)
-            this.show()
+            this.setVisible(true)
 
         mode match {
             case SViewer.SCREEN_FULL => setScreenModeFull()
@@ -539,7 +545,7 @@ class SViewer(app:App, aboutWindow:AboutWindow)
         }
 
         if (mode != SViewer.SCREEN_FULL && fullWindow!=null) {
-            fullWindow.hide
+            fullWindow.setVisible(false)
         }
         if (mode == SViewer.SCREEN_FULL && fullWindow!=null)
             fullWindow.validate()
@@ -550,7 +556,7 @@ class SViewer(app:App, aboutWindow:AboutWindow)
 
         mainTracker ! PlayListRequestSelect(playList,playListIndex)
             //send a notice to the new window to display the current image
-        this ! SViewerRequestFocus(null)
+        svActor ! SViewerRequestFocus(null)
             //make sure the right window has focus
 
         if (screenMode!=SViewer.SCREEN_FULL)
@@ -580,13 +586,13 @@ class SViewer(app:App, aboutWindow:AboutWindow)
             altWindow.setBackground(imageArea.getBackground())
         }
         if (b) {
-            altWindow.show()
+            altWindow.setVisible(true)
             mainTracker ! PlayListRequestSelect(playList,playListIndex)
                 //send a notice to the new window to display the current image
-            this ! SViewerRequestFocus(null)
+            svActor ! SViewerRequestFocus(null)
                 //make sure the right window has focus
         } else
-            altWindow.hide()
+            altWindow.setVisible(false)
     }
 
     private def setScreenModeDual():Unit= setScreenModeDual(!mShowDual.getState)
@@ -600,13 +606,13 @@ class SViewer(app:App, aboutWindow:AboutWindow)
                     mShowDual.setState(false))
         }
         if (b) {
-            dualWindow.show()
+            dualWindow.setVisible(true)
             mainTracker ! PlayListRequestSelect(playList,playListIndex)
                 //send a notice to the new window to display the current image
-            this ! SViewerRequestFocus(null)
+            svActor ! SViewerRequestFocus(null)
                 //make sure the right window has focus
         } else
-            dualWindow.hide()
+            dualWindow.setVisible(false)
     }
 
     private def setScreenModeFull() {
@@ -616,8 +622,8 @@ class SViewer(app:App, aboutWindow:AboutWindow)
             val screenSize = getToolkit().getScreenSize()
             fullWindow = initializePlayView(fullSingle,screenSize)
         }
-        fullWindow.show()
-        this.hide()
+        fullWindow.setVisible(true)
+        this.setVisible(false)
     }
 
     private def setScreenModePrint() {

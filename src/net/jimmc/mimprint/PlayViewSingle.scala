@@ -364,7 +364,13 @@ class PlayViewSingle(name:String, viewer:SViewer, tracker:PlayListTracker)
 
     //True if we have any pending "select" messages in our input queue
     private def messageQueueContainsSelect():Boolean = {
-        mailbox.get(0)(_.isInstanceOf[PlayListSelectItem]).isDefined
+        /* Unfortunately, Scala 2.8 no longer allows accessing the mailbox
+         * this way, so we can't easily peek ahead.
+         * Until I get around to reimplementing this in a cleaner way,
+         * I will just disable this feature.
+         */
+        //mailbox.get(0)(_.isInstanceOf[PlayListSelectItem]).isDefined
+        false
     }
 
     def refresh() {

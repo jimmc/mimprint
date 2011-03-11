@@ -53,7 +53,7 @@ class PlayList(
     //the specified index.  All items which previous had the same or
     //higher index are moved up one.
     def insertItem(itemIndex:Int, item:PlayItem): PlayList = {
-        val newItems:Array[PlayItem] = Array.make(items.length+1,null)
+        val newItems:Array[PlayItem] = Array.fill(items.length+1)(null)
         if (itemIndex>0)
             Array.copy(items,0,newItems,0,itemIndex)
         val n = items.length - itemIndex    //number of items after it to move
@@ -67,7 +67,7 @@ class PlayList(
     //the specified index.  All items which previously had a
     //higher index are moved down one.
     def removeItem(itemIndex:Int): PlayList = {
-        val newItems:Array[PlayItem] = Array.make(items.length-1,null)
+        val newItems:Array[PlayItem] = Array.fill(items.length-1)(null)
         if (itemIndex>0)
             Array.copy(items,0,newItems,0,itemIndex)
         val n = items.length - itemIndex - 1  //number of items after it to move
@@ -79,7 +79,7 @@ class PlayList(
     //Create a new PlayList containing the same items as ours except that
     //the item at the specified index has been replaced by the given item.
     def replaceItem(itemIndex:Int, item:PlayItem): PlayList = {
-        val newItems:Array[PlayItem] = Array.make(items.length,null)
+        val newItems:Array[PlayItem] = Array.fill(items.length)(null)
         Array.copy(items,0,newItems,0,items.length)
         newItems(itemIndex) = item.usingSelfBase()
         new PlayList(ui,baseDir,newItems,comments)
@@ -88,7 +88,7 @@ class PlayList(
     //Create a new PlayList containing the same items as ours except that
     //the specified image is rotated.
     def rotateItem(itemIndex:Int, rot:Int):PlayList = {
-        val newItems:Array[PlayItem] = Array.make(items.length,null)
+        val newItems:Array[PlayItem] = Array.fill(items.length)(null)
         Array.copy(items,0,newItems,0,items.length)
         newItems(itemIndex) = PlayItem.rotate(items(itemIndex),rot)
         new PlayList(ui,baseDir,newItems,comments)
@@ -100,7 +100,7 @@ class PlayList(
     def ensureSize(newSize:Int):PlayList = {
         if (size >= newSize)
             return this         //already big enough
-        val newItems:Array[PlayItem] = Array.make(newSize,null)
+        val newItems:Array[PlayItem] = Array.fill(newSize)(null)
         Array.copy(items,0,newItems,0,items.length)
         for (i <- items.length until newItems.length)
             newItems(i) = PlayItem.emptyItem()

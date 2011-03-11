@@ -22,7 +22,7 @@ class App extends SResourcesBundle {
 	val aboutWindow = new AboutWindow(aboutTitle, aboutInfo)
 
         val viewer = new SViewer(this,aboutWindow)
-        viewer.show             //open the main window
+        viewer.setVisible(true)             //open the main window
         viewer.start
 
         //TODO - do a better job of parsing the command line args

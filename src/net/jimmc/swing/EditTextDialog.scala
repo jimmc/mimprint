@@ -34,7 +34,7 @@ trait EditTextDialog {
 	    override def windowActivated(e:WindowEvent) =
                 SwingS.invokeLater(tx.requestFocus)
 	})
-        dlg.show()    //get user's changes
+        dlg.setVisible(true)    //get user's changes
 
         val v:Any = pane.getValue()
         v match {

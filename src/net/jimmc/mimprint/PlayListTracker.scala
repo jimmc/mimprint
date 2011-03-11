@@ -204,7 +204,7 @@ class PlayListTracker(val ui:AsyncUi) extends Actor
                 //Last we publish post-select event so that everyone knows
                 //that the selection is done.  This should be handled quickly.
                 selectorMap.put(ev,n - 1)
-                selectorMap.removeKey(ev)
+                selectorMap.remove(ev)
                 if (n==0)
                     publish(PlayListPostSelectItem(this,ev.list,ev.index))
             }

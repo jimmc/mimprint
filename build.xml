@@ -136,25 +136,29 @@
         </javac>
     </target>
 
-    <target name="scalac" depends="init,mkdirs,javac">
+    <macrodef name="base-scalac">
         <!-- fsc task is same as scalac, but uses cached "fast scala compiler" -->
         <!-- To clear out the compiler cache, run "fsc -reset" -->
-        <scalac
-             srcdir="${src.dir}"
-             destdir="${class.dir}"
-             addparams="-g:vars"
-             classpathref="scala.classpath"
-             force="changed"
-             deprecation="on"
-        >
-            <!-- <include name="**/*.java"/> -->
-            <!-- Supposedly one can run scalac with a list of both java
-                 and scala files, but apparently that is not yet in the
-                 release as of 2.7.1; probably in one of the recent
-                 nightly builds (as of 2008-05-22). -->
-            <include name="**/*.scala"/>
-	    <exclude name="**/*.old/**/*.scala"/>
-        </scalac>
+        <attribute name="m.cp.name" default="scala.classpath"/>
+        <attribute name="m.src.dir" default="${src.dir}"/>
+        <attribute name="m.class.dir" default="${class.dir}"/>
+        <sequential>
+            <scalac
+                 srcdir="@{m.src.dir}"
+                 destdir="@{m.class.dir}"
+                 addparams="-g:vars"
+                 classpathref="@{m.cp.name}"
+                 force="changed"
+                 deprecation="on"
+            >
+                <include name="**/*.scala"/>
+                <exclude name="**/*.old/**/*.scala"/>
+            </scalac>
+        </sequential>
+    </macrodef>
+
+    <target name="scalac" depends="init,mkdirs,javac">
+        <base-scalac/>
     </target>
 
     <!-- Compile the test classes -->
@@ -176,23 +180,12 @@
 	</javac>
     </target>
 
-    <target name="testscalac" depends="init,mkdirs,testjavac">
-        <!-- fsc task is same as scalac, but uses cached "fast scala compiler" -->
-        <!-- To clear out the compiler cache, run "fsc -reset" -->
-        <scalac
-             srcdir="${testsrc.dir}"
-             destdir="${testobj.dir}"
-             classpathref="testcompile.classpath"
-             force="changed"
-        >
-            <!-- <include name="**/*.java"/> -->
-            <!-- Supposedly one can run scalac with a list of both java
-                 and scala files, but apparently that is not yet in the
-                 release as of 2.7.1; probably in one of the recent
-                 nightly builds (as of 2008-05-22). -->
-            <include name="**/*.scala"/>
-	    <exclude name="**/*.old/**/*.scala"/>
-        </scalac>
+    <target name="testscalac" depends="init,build"
+            description="Compile the scala test files">
+        <base-scalac
+            m.cp.name="testcompile.classpath"
+            m.src.dir="${testsrc.dir}"
+            m.class.dir="${testobj.dir}" />
     </target>
 
     <!-- Create the default properties file from all of the props files -->

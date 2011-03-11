@@ -92,7 +92,7 @@ trait BasicDialogs extends BasicQueries {
                         //the text at once.
                 pane.setInitialValue(null)
                 pane.selectInitialValue()
-                dlg.show()
+                dlg.setVisible(true)
         }
     }
 
@@ -195,7 +195,7 @@ trait BasicDialogs extends BasicQueries {
                 labels.asInstanceOf[Array[Object]], defaultLabel)
         val dialog = pane.createDialog(dialogParent, title)
         addMnemonicsToButtons(pane,mnemMap,mxMap)
-        dialog.show()
+        dialog.setVisible(true)
         pane.getValue match {
             case s:String => labels.indexOf(s)
             case _ => -1
