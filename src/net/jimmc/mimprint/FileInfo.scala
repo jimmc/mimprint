@@ -272,8 +272,10 @@ class FileInfo(
                     val tz:TimeZone = new ZoneInfo(tzFile)
                     val zOff:Int = tz.getOffset(modTimeMillis)
                     val stz = new SimpleTimeZone(zOff,tz.getID())
+                    val dstStr =
+                        if (tz.inDaylightTime(modDate)) " '(DST)'" else ""
                     dFmt.setTimeZone(stz)
-                    dFmt.applyPattern(dFmt.toPattern()+" zzzz")
+                    dFmt.applyPattern(dFmt.toPattern()+" zzzz"+dstStr)
                 } catch {
                     case ex:IOException =>
 println("IOException reading ZoneInfo: "+ex.getMessage())

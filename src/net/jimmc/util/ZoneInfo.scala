@@ -488,7 +488,7 @@ class ZoneInfo(f:File) extends TimeZone /*throws IOException*/ {
 
   /** Return the offset from UT for an epoch time. */
   override def getOffset(ts:Long):Int = {
-    var offset = getTZ(ts).offset
+    var offset = getTZ(ts/1000).offset
     var y = leapSecs.length - 2
     var brk = false
     while (y >= 0 && !brk) {
