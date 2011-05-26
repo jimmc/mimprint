@@ -158,3 +158,5 @@
 - Make list update after editing directory summary text. [100211]
 - MatchError on drag-to-printview. (091216) [100221]
 - If playlist changed, ask user for confirmation before exiting. [100224]
+- Fix off-by-one-hour bug during DST when using TZ file. [110524]
+- Change so small viewer is not shown on startup. [110524]

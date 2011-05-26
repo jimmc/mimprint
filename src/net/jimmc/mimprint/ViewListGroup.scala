@@ -121,7 +121,7 @@ class ViewListGroup(name:String, viewer:SViewer, tracker:PlayListTracker) {
         val mShowSingleViewer:SCheckBoxMenuItem = new SCheckBoxMenuItem(
                 viewer,"menu.List.ShowSingleViewer")((cb)=>
                     showSingleViewer(cb.getState))
-        mShowSingleViewer.setState(true)
+        //mShowSingleViewer.setState(true)
 	showSingleViewerPublisher.subscribe((ev)=>
 	    mShowSingleViewer.setState(ev.state)
 	)
