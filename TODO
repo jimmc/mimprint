@@ -3,6 +3,9 @@ Bugs:
     Fix: edit print config, don't use "auto" orientation.
     See sun bug 6633656 and workarounds in comments
     Add a note to the documentation about this? (091216)
+- Sometimes on startup, image dates get read in as zero (Jan 1 1970 UCT)
+  and info from txt file does not get loaded. (110526)
+- Traceback when index.mpr references non-existant file
 
 Misc:
 - Fix memory leaks. (080327)
@@ -12,6 +15,13 @@ Misc:
 - Add a Users Guide. (060123)
 
 - Allow opening a jar or zip file, display contents. (051115)
+* Re-implement mechanism to elide updates when moving quickly through the
+  list of images. (110524)
+
+Navigation:
+- Split dir/file list into two: nav list for dirs, file list for images.(110524)
+* Make default not include small viewer. (110524)
+- Include timezone name (if set) in dir info. (110524)
 
 PlayLists:
 - Allow specifying multiple image files and use that as the playlist
@@ -44,12 +54,14 @@ Printable:
 - Option in template to display captions under photos: separate control
   for showing filename, file date and file text. (051116)
 
-Misc:
-- Add ability to search through summary.txt and image.txt files. (080425)
+Slideshow:
 * Add auto-slideshow mode, so that it automatically advances to the next
   slide after N seconds (settable in a preference dialog). (071230)
 - Add slideshow mode, random order, loop within directory vs auto-advance,
   slideshow on playlist. (021211)
+
+Misc:
+- Add ability to search through summary.txt and image.txt files. (080425)
 - Create a .mim directory within each viewed directory: put thumbnails there,
   put a file there with rotation info.  Could also put the mark-for-print
   info there, so that you can spend a long time marking and come back later

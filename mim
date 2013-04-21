@@ -4,7 +4,8 @@
 SCALA_HOME=$HOME/net/scala/scala-current
 if [ ! -d $SCALA_HOME ]; then
     HERE=`dirname $0`
-    SCALA_HOME=$HERE/../../net/scala/scala-current
+    HEREDOTDOT=`cd $HERE; cd ..; cd ..; /bin/pwd`
+    SCALA_HOME=$HEREDOTDOT/net/scala/scala-current
 fi
 SCALA_LIB_DIR=$SCALA_HOME/lib
 [ -d $SCALA_HOME/lib ] && SCALA_LIB_DIR=$SCALA_HOME/lib
@@ -28,11 +29,10 @@ if [ "$machine" = "Power Macintosh" ]; then
     MAC_OPTS="$MAC_OPT_DOCKNAME $MAC_OPT_ABOUTNAME"
     JAVA=java
 else
-    #Assume running on Linux.  You might want to change this location.
+    #Assume running on Linux.
     if [ "$JAVAHOME" = "" ]; then
-        #JAVAHOME=/u/java/j2sdk1.4.2_10
-        #JAVAHOME=/u/java/jdk1.5
-        JAVAHOME=/u/java/jdk1.6
+        #If JAVAHOME is not set, assume there is a standard java installed
+        JAVA=${JAVA:-java}
     fi
 fi
 JAVA=${JAVA:-$JAVAHOME/bin/java}
@@ -42,7 +42,9 @@ while [ -L $MIMSCRIPT ]; do
 done
 MIMPRINTHOME=`dirname $MIMSCRIPT`
 
-JAVA_ARGS="-Xmx300m"
+mxFlag=0
+JAVA_ARGS=""
+DEFAULT_JAVA_MEM_ARG="-Xmx300m"
 while [ $# -gt 0 ]; do
     case "$1" in
     "-debug")
@@ -59,10 +61,16 @@ while [ $# -gt 0 ]; do
 	JAVA_ARGS="$JAVA_ARGS $2"
 	shift; shift;
 	;;
+    "-mx")
+        mxFlag=1
+	JAVA_ARGS="$JAVA_ARGS -Xmx$2"
+	shift; shift;
+        ;;
     *) break
 	;;
     esac
 done
+[ $mxFlag = 0 ] && JAVA_ARGS="$JAVA_ARGS $DEFAULT_JAVA_MEM_ARG"
 
 #Use local copy of scala-library if we have it.
 [ -f ${MIMPRINTHOME}/scala-library.jar ] && SCALA_CLASSPATH=${MIMPRINTHOME}/scala-library.jar

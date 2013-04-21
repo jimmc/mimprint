@@ -1,4 +1,17 @@
-Mimprint                                        June 20, 2008
+Mimprint                                        Nov 9, 2011
+
+Setting up on a new machine
+---------------------------
+1. Make sure you have java and scala installed
+2. Clone the git repository (or unpack a distribution).
+3. Pick a location for net.dir where you will put dependencies.
+4. Create the file local.properties with the line
+    net.dir=/path/to/your/net/dir
+5. mkdir /path/to/your/net/dir
+6. Copy files to your net dir:
+   a. log4j.jar - then make a link from the mimprint dir to log4j.jar (for runtime use only)
+   b. jshortcut folder
+7. Optional: ln -s $MIMHOME/mim $HOME/bin  (plug in value for MIMHOME)
 
 Building a new version
 ----------------------
