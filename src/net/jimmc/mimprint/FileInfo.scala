@@ -64,7 +64,7 @@ object FileInfo {
             return false    //no extension
         val extension = name.substring(dotPos+1).toLowerCase()
         if (extension.equals("gif") || extension.equals("jpg") ||
-                extension.equals("jpeg")) {
+                extension.equals("jpeg") || extension.equals("png")) {
             return true
         }
         return false

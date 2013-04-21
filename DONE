@@ -160,3 +160,4 @@
 - If playlist changed, ask user for confirmation before exiting. [100224]
 - Fix off-by-one-hour bug during DST when using TZ file. [110524]
 - Change so small viewer is not shown on startup. [110524]
+- Include png files in list of known image file types. [130420]
